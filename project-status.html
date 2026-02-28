@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technician Assistant Project Status — February 28, 2026</title>
+<style>
+  /* Auth gate */
+  body.locked { overflow: hidden; }
+  #auth-gate {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #f8f8f8; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .gate-box {
+    background: #fff; border: 1px solid #ddd; border-radius: 12px;
+    padding: 40px; text-align: center; max-width: 360px; width: 90%;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .gate-box .gate-logo {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, #4a8c4a, #2d5a2d);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px; font-size: 24px; font-weight: 700; color: #fff;
+    border: 2px solid #6aaa6a;
+  }
+  .gate-box h2 { color: #1a1a1a; font-size: 20px; margin-bottom: 6px; }
+  .gate-box p { color: #888; font-size: 13px; margin-bottom: 20px; }
+  .gate-box input {
+    width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid #ccc;
+    background: #f9f9f9; color: #1a1a1a; font-size: 15px; text-align: center;
+    outline: none; margin-bottom: 12px;
+  }
+  .gate-box input:focus { border-color: #4a8c4a; }
+  .gate-box button {
+    width: 100%; padding: 12px; border-radius: 8px; border: none;
+    background: linear-gradient(135deg, #4a8c4a, #2d5a2d); color: #fff;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .gate-box button:hover { opacity: 0.9; }
+  #gate-error { display: none; color: #d66a6a; font-size: 13px; margin-top: 10px; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a; padding: 48px 56px; max-width: 850px; margin: 0 auto; line-height: 1.5; }
+  h1 { font-size: 32px; text-align: center; margin-bottom: 2px; }
+  .subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 2px solid #e0e0e0; }
+  h2 { font-size: 22px; margin-top: 32px; margin-bottom: 12px; }
+  h3 { font-size: 16px; margin-top: 20px; margin-bottom: 8px; }
+  p, li { font-size: 14px; margin-bottom: 6px; }
+  ul { padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+  th { background: #f5f5f5; font-weight: 600; }
+  .complete { color: #2e7d32; font-weight: 600; }
+  .pending { color: #e65100; font-weight: 600; }
+  .new { color: #1565c0; font-weight: 600; }
+  .resolved { color: #2e7d32; font-weight: 600; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 12px; font-family: 'SF Mono', Menlo, monospace; }
+  pre { background: #f5f5f5; padding: 12px; border-radius: 6px; font-size: 12px; font-family: 'SF Mono', Menlo, monospace; margin: 8px 0; overflow-x: auto; white-space: pre-wrap; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 2px solid #e0e0e0; text-align: center; color: #999; font-size: 12px; }
+  .tag { display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 4px; }
+  .tag.blue { background: #e3f2fd; color: #1565c0; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.teal { background: #e0f2f1; color: #00695c; }
+  .section-new { background: #f0f7ff; border-left: 3px solid #1565c0; padding: 12px 16px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+  .section-done { background: #f0fff0; border-left: 3px solid #2e7d32; padding: 12px 16px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+  .back-link { display: inline-block; margin-bottom: 20px; color: #2e7d32; text-decoration: none; font-size: 14px; font-weight: 600; }
+  .back-link:hover { text-decoration: underline; }
+  @media print { body { padding: 24px 36px; } }
+  @media (max-width: 600px) { body { padding: 20px 16px; } }
+</style>
+</head>
+<body class="locked">
+
+<!-- AUTH GATE -->
+<div id="auth-gate">
+  <div class="gate-box">
+    <div class="gate-logo">TA</div>
+    <h2>Technician Assistant</h2>
+    <p>Enter password to view this report</p>
+    <input type="password" id="gate-pass" placeholder="Password" onkeydown="if(event.key==='Enter')checkPass()">
+    <button onclick="checkPass()">Unlock</button>
+    <div id="gate-error">Incorrect password</div>
+  </div>
+</div>
+
+<script>
+function checkPass(){var h=0,s=document.getElementById('gate-pass').value;for(var i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0;}if(h===1377894183){document.getElementById('auth-gate').style.display='none';document.body.classList.remove('locked');sessionStorage.setItem('ta-auth','1');}else{document.getElementById('gate-error').style.display='block';}}
+if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate').style.display='none';document.body.classList.remove('locked');}
+</script>
+
+<a href="index.html" class="back-link">&larr; Back to Reports</a>
+
+<h1>Technician Assistant</h1>
+<div class="subtitle">Project Status &mdash; February 28, 2026 (v1.0 &mdash; Full Mock Build + AI Chat + Repair Docs)</div>
+
+<h2>Executive Summary</h2>
+<p><strong>Technician Assistant (TA)</strong> is a field service management application that provides technicians with a controlled, read/write interface to Salesforce work order data &mdash; without giving them direct access to Salesforce or any other enterprise SaaS platform. The app is purpose-built for HVAC/mechanical field technicians who need to view assigned work orders, complete line items, upload site photos, track parts usage, report out-of-box issues, and manage their weekly schedule &mdash; all from a single mobile-friendly interface.</p>
+
+<p><strong>The core problem it solves:</strong> Field technicians currently need Salesforce licenses ($25&ndash;$150/user/month) to access work order data, but they only need a small subset of fields. TA acts as a controlled gateway &mdash; techs see exactly the fields they need (serial numbers, account info, line items, scheduling) and report their work (images, parts used, completion status) through purpose-built forms. The data syncs back to Salesforce through adapter APIs. This eliminates per-seat SaaS costs while giving dispatchers full visibility into field operations.</p>
+
+<p><strong>How it works in practice:</strong></p>
+<ul>
+  <li><strong>Login:</strong> Techs authenticate with username/password. 3-hour session cookies. Admin and tech roles with different permissions (only admin can change work order priority/severity).</li>
+  <li><strong>Main Dashboard:</strong> Shows real-time weather for the tech's zip code, overdue work order alerts (auto-loaded on login), navigation to all app sections, and an AI chat assistant that can see all work orders, schedule data, and reference documents.</li>
+  <li><strong>Work Orders:</strong> Browse all assigned WOs sorted by due date (oldest first). Each WO shows case info (serial number, account name/address, requested time), a priority meter (LOW/MED/HIGH &mdash; admin-only editing), and the work order type (Service, Install, Maintenance). Techs navigate between WOs with left/right arrows.</li>
+  <li><strong>Type-Specific Templates:</strong> Each WO type renders a tailored workflow:
+    <ul>
+      <li><strong>Service (Types 1, 4):</strong> 8 line items to check off, 4 image upload slots (system photos, damage, wide view), software push button, mandatory parts page before closing.</li>
+      <li><strong>Install (Type 2):</strong> 5 line items, PDF/video installation guides, 10 image upload slots, out-of-box issue reporting, optional parts page.</li>
+      <li><strong>Maintenance (Type 3):</strong> Same as Install but without OOB reporting.</li>
+    </ul>
+  </li>
+  <li><strong>Parts Page:</strong> 10-row parts form with quantity inputs, dropdown selection from 50-item parts catalog, confirmation checkboxes, 2 image uploads, FedEx return label generation for defective parts.</li>
+  <li><strong>Out-of-Box Issues:</strong> Structured form for reporting shipping damage, system issues, or missing items with Y/N toggles, free-text notes, and 10 image upload slots.</li>
+  <li><strong>Schedule:</strong> 8-week Monday&ndash;Sunday calendar view showing all scheduled WOs. Today is highlighted. Clicking a WO number navigates directly to that work order.</li>
+  <li><strong>Notifications:</strong> Scrolling feed of up to 20 notifications (new assignments, priority changes, overdue alerts, parts shipments, training reminders) with color-coded urgency.</li>
+  <li><strong>AI Chat:</strong> GPT-4.1-mini powered assistant with full visibility into all work orders, the complete schedule, and 6 repair reference PDFs. Techs can ask "what's overdue?", "what's on my schedule this week?", "give me the troubleshooting guide", or "what's diagnostic code E-42?" and get specific, data-backed answers with clickable document links.</li>
+  <li><strong>Image Uploads:</strong> Base64 upload system with slot-based naming (system1, damage, install1&ndash;10, oob1&ndash;10, part1&ndash;2). Supports mobile camera picker. Thumbnails preview in-app. Stored locally in uploads/ directory per work order.</li>
+</ul>
+
+<p><strong>Mock Adapter Architecture:</strong> Since Salesforce, Equipment System, and FedEx APIs are not yet available, the entire app runs on a <strong>mock adapter layer</strong> that simulates real API behavior using seeded data in a local SQLite database. The mock layer is functionally identical to what the real adapters will provide &mdash; same data shapes, same response patterns, same error handling. When real APIs are available, each integration swaps by changing one environment variable (<code>USE_MOCK=false</code>) and implementing one adapter file per service. Zero frontend changes required.</p>
+
+<p><strong>Current state:</strong> The app is fully functional with 45 seeded work orders spanning 8 weeks, 50 parts catalog entries, 20 notifications, equipment data per WO, 6 repair reference PDFs, and a context-aware AI assistant. It runs as a macOS Electron desktop app accessible locally and via Tailscale on iPhone as a PWA.</p>
+
+<div class="section-done">
+<strong>BUILD COMPLETE (Feb 28, 2:30 AM):</strong> Full application built and deployed in a single session. 45 work orders across 8 weeks (3 overdue), 4 WO types with 3 template workflows, AI chat with full data context + 6 repair PDFs, admin-only priority control, custom shield icon, image uploads, parts management, FedEx label generation, and 8-week schedule calendar. Deployed to /Applications/Technician Assistant.app.
+</div>
+
+<h2>System Architecture</h2>
+<table>
+  <tr><th>Component</th><th>Technology</th><th>Details</th></tr>
+  <tr><td>Desktop App</td><td>Electron 33</td><td>macOS ARM64, unsigned build, custom TA shield icon</td></tr>
+  <tr><td>Backend</td><td>Express 5 (ESM)</td><td>Port 4300, binds 0.0.0.0. Single server.js (~682 lines). Cookie-based auth, 3-hour sessions.</td></tr>
+  <tr><td>Dashboard</td><td>React 19 + Vite 7</td><td>Single monolithic App.jsx (~923 lines). State-based page navigation, no router. 15 page states.</td></tr>
+  <tr><td>Database</td><td>SQLite + Prisma 6</td><td>16 models (~212 lines schema), auto-migrates on startup</td></tr>
+  <tr><td>Chat LLM</td><td>OpenAI GPT-4.1-mini</td><td>Full WO + schedule + docs context injected into system prompt. Clickable PDF links in responses.</td></tr>
+  <tr><td>Weather</td><td>wttr.in API</td><td>No API key needed. Shows temp, condition for tech's zip code.</td></tr>
+  <tr><td>Mock Layer</td><td>Prisma/SQLite</td><td>USE_MOCK=true. 45 WOs, 50 parts, 20 notifications, equipment data. Swap-ready for real APIs.</td></tr>
+  <tr><td>Color Theme</td><td>Dark Green</td><td>Background: #0f1a0f, Panel: #1a2a1a, Accent: #6aaa6a, Text: #e8e4d9</td></tr>
+</table>
+
+<h2>Application Function &mdash; Page-by-Page Detail</h2>
+
+<h3>P1: Login Gate</h3>
+<ul>
+  <li>SVG shield logo with gradient fill, metallic border, glow effect, and "TA" text</li>
+  <li>Username + password fields with Enter key submission</li>
+  <li>SHA-256 password hashing, server-side validation</li>
+  <li>3-hour session cookie (<code>ta_auth</code>) with SameSite=Lax</li>
+  <li>Backend connectivity indicator while connecting</li>
+  <li>Two seeded accounts: <code>admin</code> / <code>admin123</code> (full access) and <code>tech1</code> / <code>tech123</code> (read-only priority)</li>
+</ul>
+
+<h3>P2: Main Dashboard</h3>
+<ul>
+  <li><strong>Top bar:</strong> Mini shield logo, app name, current date (full weekday format), weather (temp + condition), MOCK badge, logout button</li>
+  <li><strong>Overdue alerts:</strong> Red-bordered cards auto-loaded on login. Shows WO number, account name, due date. Click to navigate directly to WO.</li>
+  <li><strong>Navigation grid:</strong> 5 buttons &mdash; Notifications (with unread count badge), Work Orders, Schedule, System Site (external link), LMS (external link)</li>
+  <li><strong>AI Chat:</strong> 400px message area, text input with Enter-to-send, assistant responses with clickable PDF/URL links. System prompt includes all WOs, full schedule, and available repair documents.</li>
+</ul>
+
+<h3>P3: Notifications</h3>
+<ul>
+  <li>Scrolling card list, max 20, newest first</li>
+  <li>Color-coded by type: green (info), orange (warning), red (urgent)</li>
+  <li>Left border accent color indicates severity</li>
+  <li>Shows title, body text, and relative date</li>
+  <li>Bottom bar with back-to-main + logout buttons</li>
+</ul>
+
+<h3>P4: Schedule (8-Week Calendar)</h3>
+<ul>
+  <li>Monday&ndash;Sunday grid, 8 weeks scrollable</li>
+  <li>Today's cell highlighted with green accent border + background</li>
+  <li>WO numbers shown as clickable chips in each day cell</li>
+  <li>Click WO chip &rarr; navigates to that work order in WO hub</li>
+  <li>~45 work orders distributed across 8 weeks (1&ndash;2 per weekday, Sundays empty)</li>
+</ul>
+
+<h3>P5&ndash;P13: Work Order Hub</h3>
+<ul>
+  <li><strong>WO Header:</strong> Left/right navigation arrows, WO number (large accent text), status badge (open/closed)</li>
+  <li><strong>Case Info:</strong> 4-field grid &mdash; Serial Number, Account Name, Account Address, Time Requested</li>
+  <li><strong>Priority Meter:</strong> 3-level bar (LOW green / MED yellow / HIGH red). Active level is full opacity, inactive are dimmed. <strong>Admin-only:</strong> tech users see read-only meter with "(admin only)" label. Server-side 403 enforcement.</li>
+  <li><strong>Type Tabs:</strong> 4 tabs (1. Service, 2. Install, 3. Maintenance, 4. Service). Active tab highlighted with green accent.</li>
+  <li><strong>Type-specific template</strong> renders below based on <code>activeWO.type</code>:
+    <ul>
+      <li>Type 1 or 4 &rarr; <code>renderServiceTemplate()</code></li>
+      <li>Type 2 &rarr; <code>renderInstallTemplate(showOob=true)</code></li>
+      <li>Type 3 &rarr; <code>renderInstallTemplate(showOob=false)</code></li>
+    </ul>
+  </li>
+  <li><strong>System Data / Instructions:</strong> Split panel with equipment specs (capacity, voltage, phase, refrigerant, airflow, SEER, weight, model, firmware, install date, warranty, location) on left, PDF/video guide links on right.</li>
+  <li><strong>Notes:</strong> Free-text textarea that saves per WO via PATCH endpoint.</li>
+  <li><strong>Close button:</strong> Validates parts completion for service types before allowing close. Sets dateCompleted + timeCompleted automatically. Logs to ActionLog.</li>
+</ul>
+
+<h3>Service Template (Types 1, 4)</h3>
+<ul>
+  <li><strong>Action buttons:</strong> Parts/Supplies (navigates to parts page), Push SW Update (simulated 2s delay, marks <code>swPushed=true</code>)</li>
+  <li><strong>Time section:</strong> Date/Time Requested (read-only), Time Completed (time picker input)</li>
+  <li><strong>Image uploads:</strong> 4 slots &mdash; System 1, System 2, Damage, Wide View. Click to open file picker. Thumbnail preview after upload.</li>
+  <li><strong>Line items:</strong> 8 checkable items (Inspect system, Check refrigerant, Clean coils, Test electrical, Verify thermostat, Inspect ductwork, Replace filters, Document readings). Toggle YES/NO per item.</li>
+  <li><strong>Close validation:</strong> Parts page must be completed (<code>partsCompleted=true</code>) before closing. Server returns 400 with message if parts not done.</li>
+</ul>
+
+<h3>Install Template (Type 2)</h3>
+<ul>
+  <li><strong>Action buttons:</strong> Out of Box Issue (navigates to OOB page), Parts/Supplies</li>
+  <li><strong>PDF/Video guides:</strong> Model-specific installation manual + setup walkthrough links</li>
+  <li><strong>Line items:</strong> 5 items (Verify site readiness, Unbox/inspect, Mount unit, Connect electrical, Connect plumbing)</li>
+  <li><strong>Image uploads:</strong> 10 slots (Install 1&ndash;10)</li>
+  <li><strong>Close validation:</strong> Parts are optional for install types</li>
+</ul>
+
+<h3>Maintenance Template (Type 3)</h3>
+<ul>
+  <li>Identical to Install template but <strong>without</strong> the Out of Box Issue button</li>
+</ul>
+
+<h3>P14: Parts Page</h3>
+<ul>
+  <li>10-row parts form, each row: quantity input (0&ndash;99), dropdown (50-item catalog), part name display, confirmation checkbox</li>
+  <li>Parts catalog organized by category: Compressor, Filter, Electronics, Sensor, Motor, Drive, Bearing, Valve, Gasket, Wiring, Power, Cooling, Hardware, Seal, Supply, Plumbing, Control, Duct, Insulation, Air Quality, Safety, Ignition</li>
+  <li>Free-text notes field for additional parts information</li>
+  <li>2 image upload slots for parts photos</li>
+  <li>FedEx Return Label button &mdash; generates mock tracking number (794XXXXXXXXX), creates ReturnLabel record</li>
+  <li>Submit button saves all parts, marks <code>partsCompleted=true</code> on WO, returns to WO page</li>
+</ul>
+
+<h3>P15: Out of Box Issue</h3>
+<ul>
+  <li><strong>Read-only fields:</strong> Issue Date (auto-populated), System Number (from WO serial)</li>
+  <li><strong>Y/N toggles:</strong> Shipping Damage, System Issue, Missing Items &mdash; green YES / red NO buttons</li>
+  <li><strong>Other notes:</strong> Free-text textarea for additional details</li>
+  <li><strong>Image uploads:</strong> 10 slots (OOB 1&ndash;10) for documenting damage/issues</li>
+  <li>Submit saves to OutOfBoxIssue model, returns to WO page</li>
+</ul>
+
+<h2>AI Chat System</h2>
+<p>The chat assistant uses OpenAI GPT-4.1-mini with a context-rich system prompt that includes <strong>live application data</strong> on every message. No second API needed &mdash; the backend queries Prisma directly and injects the results.</p>
+
+<h3>Context Injected Into Every Chat Message</h3>
+<table>
+  <tr><th>Data Source</th><th>What's Included</th><th>Update Frequency</th></tr>
+  <tr><td>Work Orders (all)</td><td>WO number, type, status, overdue flag, priority, account name, address, serial number, scheduled date, due date, time requested, line item progress (X/Y done), parts required/completed, SW pushed, notes</td><td>Real-time (queried per message)</td></tr>
+  <tr><td>Schedule (all)</td><td>Date, WO number, title (type + account name), account name</td><td>Real-time (queried per message)</td></tr>
+  <tr><td>Repair Documents (6 PDFs)</td><td>Document title + direct download URL path for each PDF</td><td>Static (scanned from docs/ folder)</td></tr>
+  <tr><td>Current Date</td><td>Full date string for temporal context</td><td>Real-time</td></tr>
+</table>
+
+<h3>Available Repair Documents</h3>
+<table>
+  <tr><th>Document</th><th>Contents</th><th>Pages</th></tr>
+  <tr><td>ProClimate 1000 Service Manual</td><td>Safety precautions, system overview, 7 diagnostic codes (E-01 through E-70), PM schedule, common repairs with part numbers</td><td>1</td></tr>
+  <tr><td>ProClimate Installation Guide</td><td>Pre-installation checklist, mechanical/electrical/plumbing installation, refrigerant charge, commissioning &amp; handoff</td><td>1</td></tr>
+  <tr><td>Safety Procedures Field Service</td><td>PPE requirements, LOTO 6-step procedure, EPA 608 refrigerant handling, NFPA 70E electrical safety, emergency procedures</td><td>1</td></tr>
+  <tr><td>Troubleshooting Quick Reference</td><td>No cooling, no heating, short cycling, excessive noise, water leaks &mdash; each with 5 diagnostic steps and part numbers</td><td>1</td></tr>
+  <tr><td>Parts Cross-Reference Guide</td><td>All 50 parts organized by category with part numbers, descriptions, and cross-references</td><td>1</td></tr>
+  <tr><td>Warranty Claims Procedure</td><td>Coverage terms, 5-step claim filing, parts return process, OOB reporting, reimbursement policy</td><td>1</td></tr>
+</table>
+
+<h3>Example Chat Queries</h3>
+<ul>
+  <li>"What work orders are overdue?" &rarr; Lists specific WO numbers, account names, and how many days overdue</li>
+  <li>"What's on my schedule this week?" &rarr; Lists each day's appointments with WO numbers and accounts</li>
+  <li>"Tell me about WO-2026-015" &rarr; Full details: type, priority, account, address, line item progress, parts status</li>
+  <li>"What's diagnostic code E-42?" &rarr; "Communication fault &mdash; check wiring harness WIR-MN01" (from service manual)</li>
+  <li>"Give me the troubleshooting guide" &rarr; Provides clickable link to PDF</li>
+  <li>"What part do I need for a compressor replacement?" &rarr; "CMP-A007 for 3-ton or CMP-B012 for 5-ton units" (from parts guide)</li>
+  <li>"How do I file a warranty claim?" &rarr; 5-step process from warranty procedures PDF</li>
+</ul>
+
+<h2>Mock Adapter Pattern</h2>
+<p>The key architectural decision. Since Salesforce, Equipment System, and FedEx APIs are not yet available, every external integration is simulated with a mock layer backed by Prisma/SQLite. The mock layer produces realistic data with the <strong>exact same shapes and patterns</strong> that real APIs will return.</p>
+
+<h3>Integration Points (Mock &rarr; Real Swap Plan)</h3>
+<table>
+  <tr><th>Integration</th><th>Mock Implementation</th><th>Real Swap</th></tr>
+  <tr><td>Salesforce</td><td>WO CRUD, schedule queries, notifications, parts catalog, line items &mdash; all from SQLite seed data</td><td>Set <code>USE_MOCK=false</code>, implement <code>salesforce-real.js</code> with SF REST API using <code>SF_CLIENT_ID</code> / <code>SF_CLIENT_SECRET</code></td></tr>
+  <tr><td>Equipment System</td><td>System specs, firmware, PDF/video URLs, SW push (simulated 2s delay + success response)</td><td>Implement <code>equipment-real.js</code> with real system API endpoints</td></tr>
+  <tr><td>FedEx</td><td>Generates fake tracking numbers (794XXXXXXXXX), creates ReturnLabel records in DB</td><td>Implement <code>fedex-real.js</code> with FedEx Ship API using <code>FEDEX_API_KEY</code> / <code>FEDEX_ACCOUNT_NUMBER</code></td></tr>
+</table>
+
+<h3>Seed Data (auto-runs on first boot)</h3>
+<table>
+  <tr><th>Data Type</th><th>Quantity</th><th>Details</th></tr>
+  <tr><td>Users</td><td>2</td><td>admin (Alex Hosage, admin role) + tech1 (Jordan Mitchell, tech role)</td></tr>
+  <tr><td>Work Orders</td><td>45</td><td>Types 1&ndash;4 distributed ~40% service, 20% install, 20% maintenance, 20% service. 3 overdue. Spread across 8 weeks (Mon&ndash;Sat, 1&ndash;2/day).</td></tr>
+  <tr><td>Line Items</td><td>~270</td><td>8 per service WO, 5 per install/maintenance WO</td></tr>
+  <tr><td>Schedule Entries</td><td>45</td><td>One per WO, matching scheduled dates</td></tr>
+  <tr><td>Equipment Data</td><td>45</td><td>One per WO: model, firmware, specs (JSON), location, warranty</td></tr>
+  <tr><td>Parts Catalog</td><td>50</td><td>Organized across 22 categories with realistic HVAC part names/numbers</td></tr>
+  <tr><td>Notifications</td><td>20</td><td>Mix of info, warning, urgent types spanning 20 days</td></tr>
+  <tr><td>Accounts</td><td>45</td><td>Realistic business names, addresses across 20+ US cities, unique serial numbers</td></tr>
+</table>
+
+<h2>Repository + File Structure</h2>
+<p><strong>Local Path:</strong> <code>~/Desktop/technician-assistant/</code></p>
+
+<table>
+  <tr><th>File / Folder</th><th>Lines</th><th>Contents</th></tr>
+  <tr><td>backend/src/server.js</td><td>~682</td><td>Express 5 API, 25+ endpoints, auth middleware, weather, WOs, parts, images, schedule, notifications, equipment, FedEx, chat (with full data context), docs serving</td></tr>
+  <tr><td>backend/src/seed.js</td><td>~297</td><td>Seed 2 users, 45 WOs, 50 parts catalog, 20 notifications, equipment data, schedule entries</td></tr>
+  <tr><td>backend/prisma/schema.prisma</td><td>~212</td><td>16 models: User, Session, WorkOrder, LineItem, WoImage, PartEntry, PartsCatalog, OutOfBoxIssue, ScheduleEntry, Notification, EquipmentData, ReturnLabel, Thread, Message, ActionLog, SystemState</td></tr>
+  <tr><td>backend/docs/</td><td>&mdash;</td><td>6 repair reference PDFs (service manual, installation guide, safety, troubleshooting, parts xref, warranty)</td></tr>
+  <tr><td>backend/uploads/</td><td>&mdash;</td><td>Per-WO image storage (slot-based naming, gitignored)</td></tr>
+  <tr><td>dashboard/src/App.jsx</td><td>~923</td><td>Single monolithic component: login, main dashboard, notifications, schedule, WO hub, 3 type templates, parts, OOB, chat with link rendering</td></tr>
+  <tr><td>dashboard/src/index.css</td><td>~937</td><td>Complete dark green theme, all component styles, mobile responsive</td></tr>
+  <tr><td>dashboard/src/main.jsx</td><td>~7</td><td>React 19 entry point</td></tr>
+  <tr><td>dashboard/public/manifest.json</td><td>&mdash;</td><td>PWA manifest: standalone display, dark green theme</td></tr>
+  <tr><td>dashboard/public/icon-192.png</td><td>&mdash;</td><td>PWA icon (192x192) &mdash; TA shield on dark green</td></tr>
+  <tr><td>dashboard/public/icon-512.png</td><td>&mdash;</td><td>PWA icon (512x512)</td></tr>
+  <tr><td>desktop/main.js</td><td>~164</td><td>Electron entry, .env loading, health check polling, backend spawn, window config</td></tr>
+  <tr><td>desktop/backend-runner.js</td><td>~36</td><td>CJS&rarr;ESM bridge, Prisma migration, dynamic import of server.js</td></tr>
+  <tr><td>desktop/assets/icon.icns</td><td>&mdash;</td><td>macOS app icon (TA shield, multi-resolution, proper padding)</td></tr>
+</table>
+
+<h2>Database Models (16 total)</h2>
+<table>
+  <tr><th>Model</th><th>Purpose</th><th>Key Fields</th></tr>
+  <tr><td>User</td><td>Tech accounts</td><td>username (unique), passwordHash (SHA-256), displayName, role (admin/tech), zipCode</td></tr>
+  <tr><td>Session</td><td>3-hour auth sessions</td><td>userId, expiresAt</td></tr>
+  <tr><td>WorkOrder</td><td>Core WO record</td><td>woNumber (unique), type (1&ndash;4), status, priority (1&ndash;3), scheduledDate, dueDate, serialNumber, accountName, accountAddress, partsRequired, partsCompleted, swPushed, sfId (future Salesforce ID)</td></tr>
+  <tr><td>LineItem</td><td>Checkable tasks per WO</td><td>workOrderId (FK, cascade), lineNumber, description, trackingNum, completed</td></tr>
+  <tr><td>WoImage</td><td>Image uploads per WO</td><td>workOrderId (FK, cascade), slot (system1, damage, install1&ndash;10, oob1&ndash;10, part1&ndash;2), fileName, filePath</td></tr>
+  <tr><td>PartEntry</td><td>Parts used per WO</td><td>workOrderId (FK, cascade), rowNumber, partName, partNumber, quantity, confirmed</td></tr>
+  <tr><td>PartsCatalog</td><td>Dropdown options</td><td>partName, partNumber (unique), category</td></tr>
+  <tr><td>OutOfBoxIssue</td><td>OOB damage report</td><td>workOrderId, issueDate, systemNumber, shippingDamage, systemIssue, missingItems, otherNotes</td></tr>
+  <tr><td>ScheduleEntry</td><td>Calendar entries</td><td>workOrderId, woNumber, title, scheduledDate, accountName</td></tr>
+  <tr><td>Notification</td><td>Alert feed (max 20)</td><td>title, body, type (info/warning/urgent), read</td></tr>
+  <tr><td>EquipmentData</td><td>System specs per WO</td><td>serialNumber, modelName, firmware, specJson (capacity, voltage, phase, refrigerant, airflow, SEER, weight), pdfUrl, videoUrl</td></tr>
+  <tr><td>ReturnLabel</td><td>FedEx return labels</td><td>workOrderId, trackingNum, labelUrl, carrier</td></tr>
+  <tr><td>Thread</td><td>Chat sessions</td><td>title, createdAt, updatedAt</td></tr>
+  <tr><td>Message</td><td>Chat messages</td><td>threadId (FK, cascade), role (user/assistant), content</td></tr>
+  <tr><td>ActionLog</td><td>Audit trail</td><td>type (wo_close, etc.), label, detail, ok</td></tr>
+  <tr><td>SystemState</td><td>Global app state</td><td>metaJson (tracks seeded status)</td></tr>
+</table>
+
+<h2>API Endpoints (25+ total)</h2>
+
+<h3>Health &amp; Auth</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/health</td><td>Health check + mock status, LMS URL, System Site URL</td></tr>
+  <tr><td>POST</td><td>/api/auth/login</td><td>Validate credentials, create 3-hour session, set <code>ta_auth</code> cookie</td></tr>
+  <tr><td>GET</td><td>/api/auth/check</td><td>Check session validity, return user data (id, username, displayName, role, zipCode)</td></tr>
+  <tr><td>POST</td><td>/api/auth/logout</td><td>Clear auth cookie</td></tr>
+</table>
+
+<h3>Work Orders</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/work-orders</td><td>List all WOs sorted by due date, includes lineItems + images</td></tr>
+  <tr><td>GET</td><td>/api/work-orders/overdue</td><td>WOs past due date that aren't closed</td></tr>
+  <tr><td>GET</td><td>/api/work-orders/:id</td><td>Single WO with lineItems, images, parts</td></tr>
+  <tr><td>PATCH</td><td>/api/work-orders/:id</td><td>Update notes, timeCompleted, swPushed. <strong>Priority: admin-only</strong> (server-side role check, returns 403 for non-admin)</td></tr>
+  <tr><td>POST</td><td>/api/work-orders/:id/close</td><td>Close WO. Validates parts completion for service types (1, 4). Sets dateCompleted + timeCompleted. Logs to ActionLog.</td></tr>
+</table>
+
+<h3>Line Items, Images, Parts</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>PATCH</td><td>/api/line-items/:id</td><td>Toggle line item completed status</td></tr>
+  <tr><td>POST</td><td>/api/images/upload</td><td>Base64 image upload (10MB limit), slot-based naming, stored in uploads/</td></tr>
+  <tr><td>GET</td><td>/api/images/:workOrderId</td><td>List all images for a WO</td></tr>
+  <tr><td>GET</td><td>/api/images/file/:imageId</td><td>Serve image file</td></tr>
+  <tr><td>GET</td><td>/api/parts/catalog</td><td>Full parts catalog (50 items, sorted by name)</td></tr>
+  <tr><td>GET</td><td>/api/parts/:workOrderId</td><td>Parts entries for a WO</td></tr>
+  <tr><td>POST</td><td>/api/parts/:workOrderId</td><td>Save parts (delete + recreate), mark partsCompleted on WO</td></tr>
+</table>
+
+<h3>Equipment, Schedule, Notifications, FedEx, OOB</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/equipment/:serialNumber</td><td>Equipment specs + parsed specJson</td></tr>
+  <tr><td>POST</td><td>/api/equipment/:serialNumber/sw-push</td><td>Mock SW push (2s simulated delay)</td></tr>
+  <tr><td>GET</td><td>/api/schedule</td><td>All schedule entries sorted by date</td></tr>
+  <tr><td>GET</td><td>/api/notifications</td><td>Latest 20 notifications, newest first</td></tr>
+  <tr><td>PATCH</td><td>/api/notifications/:id/read</td><td>Mark notification as read</td></tr>
+  <tr><td>POST</td><td>/api/fedex/return-label</td><td>Generate mock FedEx tracking number + ReturnLabel record</td></tr>
+  <tr><td>GET</td><td>/api/out-of-box/:workOrderId</td><td>Get or auto-create OOB record for WO</td></tr>
+  <tr><td>POST</td><td>/api/out-of-box/:workOrderId</td><td>Save OOB assessment (damage, issues, missing items, notes)</td></tr>
+</table>
+
+<h3>Chat &amp; Docs</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/threads</td><td>List chat threads (50 most recent)</td></tr>
+  <tr><td>POST</td><td>/api/threads</td><td>Create new thread</td></tr>
+  <tr><td>PATCH</td><td>/api/threads/:id</td><td>Rename thread</td></tr>
+  <tr><td>DELETE</td><td>/api/threads/:id</td><td>Delete thread + cascade messages</td></tr>
+  <tr><td>GET</td><td>/api/chat/thread?threadId=X</td><td>Load thread messages</td></tr>
+  <tr><td>POST</td><td>/api/chat</td><td>Send message + get GPT reply. System prompt includes all WOs, schedule, and repair docs.</td></tr>
+  <tr><td>GET</td><td>/api/docs</td><td>List available repair PDFs (scans docs/ folder)</td></tr>
+  <tr><td>GET</td><td>/api/docs/:fileName</td><td>Serve PDF file inline</td></tr>
+</table>
+
+<h3>Actions</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/actions?take=20</td><td>Recent action log entries</td></tr>
+</table>
+
+<h2>Environment (.env)</h2>
+<table>
+  <tr><th>Variable</th><th>Value / Status</th></tr>
+  <tr><td>PORT</td><td>4300</td></tr>
+  <tr><td>DATABASE_URL</td><td>file:./ta.db</td></tr>
+  <tr><td>USE_MOCK</td><td>true (set to false when real APIs available)</td></tr>
+  <tr><td>OPENAI_API_KEY</td><td>xxxxx (GPT-4.1-mini for chat)</td></tr>
+  <tr><td>OPENAI_MODEL</td><td>gpt-4.1-mini</td></tr>
+  <tr><td>OPENAI_BASE_URL</td><td>https://api.openai.com/v1</td></tr>
+  <tr><td>ANTHROPIC_API_KEY</td><td>xxxxx (reserved for future use)</td></tr>
+  <tr><td>ANTHROPIC_MODEL</td><td>claude-sonnet-4-6 (reserved)</td></tr>
+  <tr><td>LMS_URL</td><td>https://example.com/lms (external training link)</td></tr>
+  <tr><td>SYSTEM_SITE_URL</td><td>https://example.com/system (external system link)</td></tr>
+  <tr><td>SF_CLIENT_ID</td><td>Future &mdash; Salesforce OAuth</td></tr>
+  <tr><td>SF_CLIENT_SECRET</td><td>Future &mdash; Salesforce OAuth</td></tr>
+  <tr><td>FEDEX_API_KEY</td><td>Future &mdash; FedEx Ship API</td></tr>
+  <tr><td>FEDEX_ACCOUNT_NUMBER</td><td>Future &mdash; FedEx account</td></tr>
+</table>
+
+<h2>Theme &amp; Design</h2>
+<table>
+  <tr><th>Element</th><th>Color</th><th>CSS Variable</th></tr>
+  <tr><td>Background</td><td>#0f1a0f (darkest green)</td><td>--bg</td></tr>
+  <tr><td>Panel / Cards</td><td>#1a2a1a (dark green)</td><td>--panel</td></tr>
+  <tr><td>Panel Hover</td><td>#1f331f</td><td>--panel-hover</td></tr>
+  <tr><td>Primary Text</td><td>#e8e4d9 (off-white)</td><td>--text</td></tr>
+  <tr><td>Muted Text</td><td>#8aaa8a</td><td>--text-muted</td></tr>
+  <tr><td>Accent</td><td>#6aaa6a (green)</td><td>--accent</td></tr>
+  <tr><td>Accent Bright</td><td>#8cd98c</td><td>--accent-bright</td></tr>
+  <tr><td>Input Background</td><td>#f5f0e8 (off-white)</td><td>--input-bg</td></tr>
+  <tr><td>Input Text</td><td>#1a1a1a (dark)</td><td>--input-text</td></tr>
+  <tr><td>Button Background</td><td>#f5f0e8</td><td>--btn-bg</td></tr>
+  <tr><td>Button Text</td><td>#1a3a1a</td><td>--btn-text</td></tr>
+  <tr><td>Danger</td><td>#d66a6a (red)</td><td>--danger</td></tr>
+  <tr><td>Warning</td><td>#d6a06a (orange)</td><td>--warning</td></tr>
+  <tr><td>Success</td><td>#6ad66a (green)</td><td>--success</td></tr>
+  <tr><td>Priority LOW</td><td>#2a5a2a bg / #6ad66a text</td><td>--priority-low</td></tr>
+  <tr><td>Priority MED</td><td>#5a5a2a bg / #d6d66a text</td><td>--priority-med</td></tr>
+  <tr><td>Priority HIGH</td><td>#5a2a2a bg / #d66a6a text</td><td>--priority-high</td></tr>
+</table>
+
+<h2>Build + Deploy</h2>
+<pre># Rebuild dashboard
+cd ~/Desktop/technician-assistant/dashboard && npm run build
+
+# Rebuild Electron app (unsigned)
+cd ~/Desktop/technician-assistant/desktop && npm run dist:unsigned
+
+# Deploy
+pkill -f "Technician Assistant"
+rm -rf "/Applications/Technician Assistant.app"
+cp -R desktop/release/mac-arm64/Technician\ Assistant.app /Applications/
+open "/Applications/Technician Assistant.app"
+
+# Delete DB and re-seed (if seed data changes)
+rm -f backend/ta.db
+cd backend && npx prisma db push --force-reset
+node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './src/seed.js'; const p=new PrismaClient(); await runSeed(p); await p.$disconnect();"
+
+# Tailscale access (iPhone PWA)
+# Mac: 100.84.51.101 | URL: http://100.84.51.101:4300</pre>
+
+<h2>Role-Based Access Control</h2>
+<table>
+  <tr><th>Feature</th><th>Admin</th><th>Tech</th></tr>
+  <tr><td>View work orders</td><td class="complete">Yes</td><td class="complete">Yes</td></tr>
+  <tr><td>Complete line items</td><td class="complete">Yes</td><td class="complete">Yes</td></tr>
+  <tr><td>Upload images</td><td class="complete">Yes</td><td class="complete">Yes</td></tr>
+  <tr><td>Submit parts</td><td class="complete">Yes</td><td class="complete">Yes</td></tr>
+  <tr><td>Close work orders</td><td class="complete">Yes</td><td class="complete">Yes</td></tr>
+  <tr><td>Change priority/severity</td><td class="complete">Yes</td><td style="color: #e65100; font-weight: 600;">No (read-only, server-enforced 403)</td></tr>
+  <tr><td>AI Chat</td><td class="complete">Yes</td><td class="complete">Yes</td></tr>
+  <tr><td>View schedule/notifications</td><td class="complete">Yes</td><td class="complete">Yes</td></tr>
+</table>
+
+<h2>Known Gotchas</h2>
+<ul>
+  <li>Backend is ESM (<code>"type": "module"</code>) &mdash; use dynamic <code>import()</code> not <code>require()</code>. backend-runner.js is CJS bridge.</li>
+  <li>Express 5 + new path-to-regexp: NO <code>app.get("*")</code> wildcards. Use <code>app.use()</code> middleware for SPA fallback.</li>
+  <li>SQLite does NOT support <code>createMany</code> with <code>skipDuplicates</code>. Seed uses <code>findUnique</code> + <code>create</code> loop or <code>upsert</code> instead.</li>
+  <li><code>process.env</code> is NOT available in the browser. External links (LMS, System Site) are served from the <code>/api/health</code> endpoint and stored in React state.</li>
+  <li>Electron loads from <code>file://</code> &mdash; <code>window.location.hostname</code> is empty. API_BASE checks for empty string and falls back to localhost:4300.</li>
+  <li>Dashboard dist path: dev=<code>../../dashboard/dist</code>, packaged=<code>process.resourcesPath/dashboard/dist</code>. Server checks both.</li>
+  <li>Docs path: dev=<code>../docs</code>, packaged=<code>process.resourcesPath/backend/docs</code>. Server checks both.</li>
+  <li><code>.env</code> is gitignored. Packaged app reads from <code>~/Library/Application Support/Technician Assistant/.env</code>.</li>
+  <li>Auto-migration in backend-runner.js via <code>execFileSync</code> of prisma migrate deploy before server start.</li>
+  <li>Dashboard uses Vite 7. Rebuild dashboard BEFORE rebuilding Electron (dashboard/dist gets bundled).</li>
+  <li>macOS caches app icons aggressively. After icon changes, run <code>lsregister -kill -r</code> and <code>killall Dock</code> to force refresh.</li>
+  <li>Auth middleware bypasses localhost requests (for Electron). Remote (Tailscale) requests require valid session cookie.</li>
+  <li>Chat system prompt grows with WO count. At 45 WOs, prompt is ~4K tokens. Monitor if WO count grows significantly.</li>
+  <li>Image uploads are base64 encoded in JSON body (10MB limit). For production, switch to multipart form upload.</li>
+  <li>CORS is open (<code>origin: "*"</code>) &mdash; Tailscale provides network-level security.</li>
+  <li>After changing PWA meta tags or manifest, user must delete and re-add PWA on iPhone home screen.</li>
+</ul>
+
+<h2>Roadmap Summary</h2>
+<table>
+  <tr><th>Phase</th><th>Status</th></tr>
+  <tr><td>Phase 1: Scaffold + Foundation (packages, Prisma, Express, Electron, Vite, theme)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 2: Auth + Login (User/Session models, cookie auth, login page with shield logo)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 3: Mock Adapters + Seed Data (45 WOs, 50 parts, 20 notifications, equipment)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 4: Main Dashboard + Weather (wttr.in, nav grid, overdue alerts, external links)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 5: Chat AI (GPT-4.1-mini, thread/message CRUD, full data context injection)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 6: Notifications + Schedule (20 notifications, 8-week calendar, clickable WOs)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 7: Work Order Hub + Service Template (WO navigation, case info, line items, images, SW push)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 8: Install + Maintenance Templates (OOB button, PDF/video guides, 10 images)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 9: Parts Page (10-row form, catalog dropdown, FedEx label, submit)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 10: Out of Box Page (Y/N toggles, notes, 10 image uploads)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 11: Image Upload System (base64, slot-based, thumbnails, mobile camera)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 12: PWA + Tailscale + Electron Build (manifest, icon, unsigned .app)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 13: Polish (bottom bar, logout, admin-only priority, type cleanup, calendar fill)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 14: Repair Docs + Chat Context (6 PDFs, docs API, chat data injection, clickable links)</td><td class="complete"><span class="tag blue">NEW</span> COMPLETE</td></tr>
+  <tr><td>Phase 15: Custom Shield Icon (SVG login logo, macOS .icns, PWA icons)</td><td class="complete"><span class="tag blue">NEW</span> COMPLETE</td></tr>
+</table>
+
+<h2>Future Roadmap (When APIs Available)</h2>
+<table>
+  <tr><th>Integration</th><th>What Changes</th><th>Blocked By</th></tr>
+  <tr><td>Salesforce API</td><td>Implement <code>salesforce-real.js</code>, set <code>USE_MOCK=false</code>. WOs, schedule, notifications flow from SF. Bi-directional sync for status/notes/parts.</td><td class="pending">SF_CLIENT_ID + SF_CLIENT_SECRET</td></tr>
+  <tr><td>Equipment System API</td><td>Implement <code>equipment-real.js</code>. Real system specs, firmware versions, PDF/video URLs, actual SW push capability.</td><td class="pending">System API credentials</td></tr>
+  <tr><td>FedEx Ship API</td><td>Implement <code>fedex-real.js</code>. Real tracking numbers, downloadable shipping labels, pickup scheduling.</td><td class="pending">FEDEX_API_KEY + FEDEX_ACCOUNT_NUMBER</td></tr>
+  <tr><td>GitHub Repository</td><td>Push codebase to <code>hosagealexAxle/technician-assistant</code> (private)</td><td class="pending">Ready to push</td></tr>
+</table>
+
+<h2>Cost Summary</h2>
+<table>
+  <tr><th>Item</th><th>Per Month (estimated)</th></tr>
+  <tr><td>OpenAI GPT-4.1-mini (chat)</td><td>~$1&ndash;3</td></tr>
+  <tr><td>Anthropic API (reserved, not active)</td><td>$0</td></tr>
+  <tr><td>Salesforce licenses (eliminated)</td><td>Saves $25&ndash;$150/tech/month</td></tr>
+  <tr><td><strong>Total Running Cost</strong></td><td><strong>~$1&ndash;3/month</strong></td></tr>
+</table>
+
+<h2>Session History</h2>
+
+<h3>Session 1: February 28, 2026 <span class="tag">COMPLETE</span></h3>
+<ul>
+  <li><strong>Phase 1&ndash;12:</strong> Built entire application from scratch in single session. Express 5 backend, React 19 dashboard, Prisma/SQLite, Electron shell.</li>
+  <li><strong>Seed data:</strong> Initially 18 WOs with 8 types. Refactored to 45 WOs with 4 types (removed types 5&ndash;8 per user request).</li>
+  <li><strong>SQLite compatibility fix:</strong> <code>createMany</code> with <code>skipDuplicates</code> not supported &mdash; replaced with <code>findUnique</code> + <code>create</code> loop.</li>
+  <li><strong>Client-side env fix:</strong> <code>process.env</code> unavailable in browser &mdash; external links served via <code>/api/health</code> endpoint.</li>
+  <li><strong>Bottom bar + logout:</strong> Added BottomBar component with back-to-main + logout on every sub-page.</li>
+  <li><strong>Chat switched to GPT-only:</strong> Removed Claude-first logic, GPT-4.1-mini is sole chat provider.</li>
+  <li><strong>Admin-only priority:</strong> Frontend renders read-only priority meter for tech role. Server returns 403 on non-admin priority PATCH.</li>
+  <li><strong>Calendar filled:</strong> Expanded from 18 to 45 WOs distributed across 8 weeks (Mon&ndash;Sat, 1&ndash;2/day).</li>
+  <li><strong>Chat data context:</strong> System prompt now includes all WOs (number, type, status, priority, account, dates, line items, parts) + full schedule + repair docs list. Queried from Prisma on every message.</li>
+  <li><strong>Repair PDFs:</strong> Created 6 professional placeholder PDFs (service manual, installation guide, safety procedures, troubleshooting, parts cross-reference, warranty claims). Served via <code>/api/docs</code> endpoints.</li>
+  <li><strong>Clickable links in chat:</strong> <code>renderChatContent()</code> function detects URLs and <code>/api/docs/</code> paths in assistant responses, renders as clickable green links.</li>
+  <li><strong>Custom shield icon:</strong> SVG shield logo on login page + top bar. macOS .icns with proper 80px padding + rounded rect (matching Hondo/Axle/Spectra style). PWA icons for iPhone.</li>
+  <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Feb 28, 2:30 AM. 45 WOs, 4 types, 3 templates, AI chat with full context, 6 repair PDFs, admin-only priority, custom icon, image uploads, parts management, FedEx labels, 8-week calendar.</li>
+</ul>
+
+<div class="footer">
+  <p>Technician Assistant v1.0 &mdash; Mock Adapter Architecture &mdash; GPT-4.1-mini Chat &mdash; 45 Work Orders &mdash; 6 Repair PDFs &mdash; Admin/Tech RBAC &mdash; Port 4300</p>
+  <p>Updated February 28, 2026</p>
+</div>
+
+</body>
+</html>
