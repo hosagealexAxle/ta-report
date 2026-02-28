@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technician Assistant — Project Report</title>
+<style>
+  /* Auth gate */
+  body.locked { overflow: hidden; }
+  #auth-gate {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #0a120a; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .gate-box {
+    background: #162016; border: 1px solid #2d5a2d; border-radius: 16px;
+    padding: 40px; text-align: center; max-width: 360px; width: 90%;
+  }
+  .gate-box .gate-logo {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, #4a8c4a, #2d5a2d);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px; font-size: 24px; font-weight: 700; color: #e8e4d9;
+    border: 2px solid #6aaa6a;
+  }
+  .gate-box h2 { color: #b8e0b8; font-size: 20px; margin-bottom: 6px; }
+  .gate-box p { color: #6a8a6a; font-size: 13px; margin-bottom: 20px; }
+  .gate-box input {
+    width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid #2d5a2d;
+    background: #1a2a1a; color: #e8e4d9; font-size: 15px; text-align: center;
+    outline: none; margin-bottom: 12px;
+  }
+  .gate-box input:focus { border-color: #4a8c4a; }
+  .gate-box button {
+    width: 100%; padding: 12px; border-radius: 8px; border: none;
+    background: linear-gradient(135deg, #4a8c4a, #2d5a2d); color: #e8e4d9;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .gate-box button:hover { opacity: 0.9; }
+  #gate-error { display: none; color: #d66a6a; font-size: 13px; margin-top: 10px; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1a0f;
+    color: #e8e4d9;
+    line-height: 1.7;
+    padding: 40px 20px;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 50px 30px;
+    background: linear-gradient(135deg, #1a3a1a 0%, #0d2b0d 50%, #1a3a1a 100%);
+    border-radius: 20px;
+    border: 1px solid #2d5a2d;
+    margin-bottom: 40px;
+  }
+  .header .logo {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, #4a8c4a, #2d5a2d);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 32px; font-weight: 700; color: #e8e4d9;
+    border: 3px solid #6aaa6a;
+  }
+  .header h1 { font-size: 36px; color: #b8e0b8; margin-bottom: 8px; }
+  .header .subtitle { font-size: 16px; color: #8aaa8a; }
+  .header .date { font-size: 13px; color: #5a7a5a; margin-top: 12px; }
+
+  /* Section */
+  .section {
+    background: #162016;
+    border: 1px solid #2d4a2d;
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 24px;
+  }
+  .section h2 {
+    font-size: 22px;
+    color: #8cd98c;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2d4a2d;
+  }
+  .section h3 {
+    font-size: 17px;
+    color: #a0d0a0;
+    margin: 18px 0 8px;
+  }
+  .section p, .section li {
+    font-size: 15px;
+    color: #c8d4c0;
+  }
+  .section ul { padding-left: 20px; }
+  .section li { margin-bottom: 6px; }
+
+  /* Tag/badge */
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+  .tag-read { background: #1a3a2a; color: #6ad6a0; border: 1px solid #2a5a3a; }
+  .tag-write { background: #3a2a1a; color: #d6a06a; border: 1px solid #5a3a2a; }
+  .tag-external { background: #1a2a3a; color: #6aa0d6; border: 1px solid #2a3a5a; }
+  .tag-nav { background: #2a1a3a; color: #a06ad6; border: 1px solid #3a2a5a; }
+
+  /* Page card */
+  .page-card {
+    background: #1a2a1a;
+    border: 1px solid #2d5a2d;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .page-card .page-label {
+    font-size: 12px;
+    color: #5a8a5a;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .page-card h3 {
+    font-size: 18px;
+    color: #b8e0b8;
+    margin: 0 0 10px;
+  }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid #2d4a2d;
+    font-size: 14px;
+  }
+  th { color: #8cd98c; font-weight: 600; background: #1a2a1a; }
+  td { color: #c8d4c0; }
+
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .flow-box {
+    background: #1a3a1a;
+    border: 1px solid #3a6a3a;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #b8e0b8;
+    font-weight: 600;
+  }
+  .flow-arrow { color: #4a8a4a; font-size: 18px; }
+
+  /* Grid */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 12px 0;
+  }
+  .grid-item {
+    background: #1a2a1a;
+    border: 1px solid #2d4a2d;
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .grid-item h4 { color: #8cd98c; font-size: 14px; margin-bottom: 6px; }
+  .grid-item p { font-size: 13px; color: #a0b8a0; }
+
+  /* Callout */
+  .callout {
+    background: #2a3a1a;
+    border-left: 4px solid #6aaa4a;
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 14px;
+    color: #c8d8b8;
+  }
+
+  .callout-warn {
+    background: #3a2a1a;
+    border-left-color: #d6a04a;
+    color: #d8ccb0;
+  }
+
+  /* Priority meter visual */
+  .priority-bar {
+    display: flex; gap: 4px; margin: 8px 0;
+  }
+  .priority-bar span {
+    width: 60px; height: 24px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+  }
+  .p-low { background: #2a5a2a; color: #6ad66a; }
+  .p-med { background: #5a5a2a; color: #d6d66a; }
+  .p-high { background: #5a2a2a; color: #d66a6a; }
+
+  .footer {
+    text-align: center;
+    padding: 30px;
+    color: #3a5a3a;
+    font-size: 13px;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 600px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .header h1 { font-size: 26px; }
+    .section { padding: 20px; }
+  }
+</style>
+</head>
+<body class="locked">
+
+<!-- AUTH GATE -->
+<div id="auth-gate">
+  <div class="gate-box">
+    <div class="gate-logo">TA</div>
+    <h2>Technician Assistant</h2>
+    <p>Enter password to view this report</p>
+    <input type="password" id="gate-pass" placeholder="Password" onkeydown="if(event.key==='Enter')checkPass()">
+    <button onclick="checkPass()">Unlock</button>
+    <div id="gate-error">Incorrect password</div>
+  </div>
+</div>
+
+<script>
+function checkPass(){var h=0,s=document.getElementById('gate-pass').value;for(var i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0;}if(h===1377894183){document.getElementById('auth-gate').style.display='none';document.body.classList.remove('locked');sessionStorage.setItem('ta-auth','1');}else{document.getElementById('gate-error').style.display='block';}}
+if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate').style.display='none';document.body.classList.remove('locked');}
+</script>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">TA</div>
+    <h1>Technician Assistant</h1>
+    <div class="subtitle">Field Technician Work Order & Reporting App</div>
+    <div class="date">Project Report — February 28, 2026</div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="section">
+    <h2>1. Project Overview</h2>
+    <p>A mobile-first field technician app that provides a controlled, secure interface to Salesforce data. Technicians never access Salesforce or any SaaS platform directly — instead they interact with specific read/write fields through this app, reducing friction and ensuring clean, safe data transfer back to the home office.</p>
+
+    <h3>Core Goals</h3>
+    <ul>
+      <li><strong>Controlled Access</strong> — Techs only see and touch the fields they need. No SaaS logins.</li>
+      <li><strong>Real-Time Reporting</strong> — Work orders, parts, images, and notes sync back to Salesforce instantly.</li>
+      <li><strong>Frictionless UX</strong> — Click-heavy (not type-heavy). Dropdowns, Y/N toggles, image uploads, pre-filled data.</li>
+      <li><strong>AI Assistant</strong> — Built-in chat UI for looking up old work orders, getting help, and quick answers.</li>
+    </ul>
+
+    <h3>Design Language</h3>
+    <div class="grid-2">
+      <div class="grid-item">
+        <h4>Background</h4>
+        <p>Dark green across all pages</p>
+      </div>
+      <div class="grid-item">
+        <h4>Form Elements</h4>
+        <p>Off-white fields, buttons, and click boxes on all pages</p>
+      </div>
+      <div class="grid-item">
+        <h4>Branding</h4>
+        <p>TA heart logo on login and main page</p>
+      </div>
+      <div class="grid-item">
+        <h4>Navigation</h4>
+        <p>Return-to-main button (bottom-left) on every sub-page</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE MAP -->
+  <div class="section">
+    <h2>2. Full Page Map (15 Screens)</h2>
+    <table>
+      <tr><th>Page</th><th>Name</th><th>Purpose</th></tr>
+      <tr><td>P1</td><td>Login / PW Gate</td><td>Username + password auth, 3-hour session</td></tr>
+      <tr><td>P2</td><td>Main Dashboard</td><td>Home hub: nav, weather, chat AI, overdue WO alerts</td></tr>
+      <tr><td>P3</td><td>Notifications</td><td>SaaS-injected notification feed (up to 20)</td></tr>
+      <tr><td>P4</td><td>Schedule</td><td>Weekly calendar (M-S), 8-week scroll, clickable WOs</td></tr>
+      <tr><td>P5</td><td>Work Orders</td><td>WO detail hub: case info, priority, type selector, system data</td></tr>
+      <tr><td>P6</td><td>Type 1 — Service</td><td>Service WO: line items, images, parts required, SW push</td></tr>
+      <tr><td>P7</td><td>Type 2 — Install</td><td>Install WO: out-of-box check, 9-10 image uploads, video/PDF guides</td></tr>
+      <tr><td>P8</td><td>Type 3 — Maintenance</td><td>Same as Install but no out-of-box button</td></tr>
+      <tr><td>P9–P13</td><td>Types 4–8</td><td>Same as Type 1 (Service)</td></tr>
+      <tr><td>P14</td><td>Parts Page</td><td>10 part rows with dropdowns, notes, images, FedEx label request</td></tr>
+      <tr><td>P15</td><td>Out of Box Issue</td><td>Shipping damage/system issue/missing items + 10 image uploads</td></tr>
+    </table>
+  </div>
+
+  <!-- NAVIGATION FLOW -->
+  <div class="section">
+    <h2>3. Navigation Flow</h2>
+
+    <h3>Primary Flow</h3>
+    <div class="flow">
+      <div class="flow-box">P1 Login</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P2 Main Dashboard</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P5 Work Orders</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P6-P13 WO Type</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">Submit/Close</div>
+    </div>
+
+    <h3>Branch Flows</h3>
+    <div class="flow">
+      <div class="flow-box">P2 Main</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P3 Notifications</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">&larr; Return</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box">P2 Main</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P4 Schedule</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P5 Work Order</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box">P6 Service WO</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P14 Parts (required)</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">&larr; Back to WO &rarr; Close</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box">P7 Install WO</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P15 Out of Box</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box">P7 Install WO</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P14 Parts (optional)</div>
+    </div>
+
+    <div class="callout">
+      <strong>Auto-Load Rule:</strong> If a work order is past due by 1+ day, it automatically loads when the main dashboard opens — tech can't miss it.
+    </div>
+  </div>
+
+  <!-- PAGE DETAILS -->
+  <div class="section">
+    <h2>4. Page-by-Page Breakdown</h2>
+
+    <!-- P1 -->
+    <div class="page-card">
+      <div class="page-label">Page 1</div>
+      <h3>Login / Password Gate</h3>
+      <ul>
+        <li>TA heart logo centered at top</li>
+        <li>Off-white login card: <strong>Username</strong> field, <strong>Password</strong> field, <strong>Enter</strong> button</li>
+        <li>Session valid for <strong>3 hours</strong> before re-authentication required</li>
+        <li>First screen on every app open</li>
+      </ul>
+    </div>
+
+    <!-- P2 -->
+    <div class="page-card">
+      <div class="page-label">Page 2</div>
+      <h3>Main Dashboard</h3>
+      <p><strong>Top Bar:</strong></p>
+      <ul>
+        <li>Calendar date/time display</li>
+        <li>Weather check by zip code <span class="tag tag-external">Weather API</span></li>
+      </ul>
+      <p><strong>Navigation Buttons:</strong></p>
+      <ul>
+        <li><strong>Notifications</strong> <span class="tag tag-nav">&rarr; P3</span></li>
+        <li><strong>Work Orders</strong> <span class="tag tag-nav">&rarr; P5</span></li>
+        <li><strong>Schedule</strong> <span class="tag tag-nav">&rarr; P4</span></li>
+        <li><strong>System Site</strong> <span class="tag tag-external">External URL</span></li>
+        <li><strong>LMS</strong> <span class="tag tag-external">External URL</span></li>
+      </ul>
+      <p><strong>Center:</strong> AI Chat Interface — search old WOs, get help, quick lookups</p>
+      <p><strong>Logo:</strong> TA logo carried from login screen</p>
+      <div class="callout-warn callout">Past-due work orders (1+ day) auto-load on dashboard open.</div>
+    </div>
+
+    <!-- P3 -->
+    <div class="page-card">
+      <div class="page-label">Page 3</div>
+      <h3>Notifications</h3>
+      <ul>
+        <li>Web injection placeholders for SaaS API notifications <span class="tag tag-read">API Read</span></li>
+        <li>Scrolling card list, centered, rolling downward</li>
+        <li>Max <strong>20 notifications</strong> — newest at top, oldest auto-removed</li>
+        <li>Return to main button (bottom-left)</li>
+      </ul>
+    </div>
+
+    <!-- P4 -->
+    <div class="page-card">
+      <div class="page-label">Page 4</div>
+      <h3>Schedule</h3>
+      <ul>
+        <li>Weekly calendar view: <strong>Monday &rarr; Sunday</strong> <span class="tag tag-read">Salesforce API Read</span></li>
+        <li>Actual dates displayed — today's date highlighted</li>
+        <li>Scroll forward <strong>8 weeks</strong></li>
+        <li>Work orders appear on their scheduled date — click to open WO detail (P5)</li>
+        <li>Return to main button (bottom-left)</li>
+      </ul>
+    </div>
+
+    <!-- P5 -->
+    <div class="page-card">
+      <div class="page-label">Page 5</div>
+      <h3>Work Orders (Hub Page)</h3>
+      <p><strong>Top Banner:</strong></p>
+      <ul>
+        <li>Work Order # — click right/left to navigate between orders</li>
+        <li>Oldest due orders always at top</li>
+      </ul>
+      <p><strong>Case Info (Read-Only from Salesforce):</strong></p>
+      <ul>
+        <li>System Serial Number <span class="tag tag-read">API Read</span></li>
+        <li>Account Name (auto-sizing bubble) <span class="tag tag-read">API Read</span></li>
+        <li>Account Address (auto-sizing bubble) <span class="tag tag-read">API Read</span></li>
+        <li>Time Requested <span class="tag tag-read">API Read</span></li>
+      </ul>
+      <p><strong>Priority Meter:</strong></p>
+      <div class="priority-bar">
+        <span class="p-low">1 Low</span>
+        <span class="p-med">2 Med</span>
+        <span class="p-high">3 High</span>
+      </div>
+      <p><strong>Work Order Type Selector (8 types):</strong></p>
+      <ul>
+        <li>Types 1–8 load their respective page into the middle area</li>
+        <li>SaaS selects the type and supplies the appropriate read/write API fields</li>
+      </ul>
+      <p><strong>Bottom Split Dashboard:</strong></p>
+      <div class="grid-2">
+        <div class="grid-item">
+          <h4>Left — System Data</h4>
+          <p>API calls for system specs (7+ data fields), PDF upload from system, system images from last startup, Return to Main button</p>
+        </div>
+        <div class="grid-item">
+          <h4>Right — Instructions</h4>
+          <p>Case interactions from system API, PDF guides (file load from system API), Video guides (video load from system API)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- P6 -->
+    <div class="page-card">
+      <div class="page-label">Page 6</div>
+      <h3>Type 1 — Service Work Order</h3>
+      <p><strong>Top:</strong> Parts/Supplies button <span class="tag tag-nav">&rarr; P14</span></p>
+      <p><strong>Left Column:</strong></p>
+      <ul>
+        <li>Date / Time Requested <span class="tag tag-read">API Read</span></li>
+        <li>Time Scheduled <span class="tag tag-read">API Read</span></li>
+        <li>Time Completed <span class="tag tag-write">API Write</span></li>
+      </ul>
+      <p><strong>Image Uploads (4):</strong></p>
+      <ul>
+        <li>System Image 1, System Image 2, Damage Image, Wide View of System <span class="tag tag-write">Upload to SaaS</span></li>
+      </ul>
+      <p><strong>Action:</strong> Push latest SW to equipment <span class="tag tag-external">System API</span></p>
+      <p><strong>Line Items 1–8:</strong></p>
+      <ul>
+        <li>Details <span class="tag tag-read">API Read</span> | Completion Y/N <span class="tag tag-write">API Write</span></li>
+        <li>Each line item has a tracking number</li>
+        <li>If "parts required" = Yes &rarr; must complete Parts Page (P14) before closing</li>
+      </ul>
+      <p><strong>Bottom:</strong> Notes field <span class="tag tag-write">API Write</span> + Submit/Close button</p>
+    </div>
+
+    <!-- P7 -->
+    <div class="page-card">
+      <div class="page-label">Page 7</div>
+      <h3>Type 2 — Install Work Order</h3>
+      <p><strong>Top:</strong> Out of Box Issue button <span class="tag tag-nav">&rarr; P15</span></p>
+      <p><strong>Left Column:</strong></p>
+      <ul>
+        <li>Order Type, Date/Time Requested <span class="tag tag-read">API Read</span></li>
+        <li>Time/Date Completed <span class="tag tag-write">API Write</span></li>
+        <li>Video / PDF from system <span class="tag tag-external">System API</span></li>
+        <li>Install instruction links</li>
+      </ul>
+      <p><strong>Line Items (4–5):</strong> Similar to Type 1 — details read, Y/N write</p>
+      <p><strong>Parts:</strong> Optional — button to P14 if a part was used for tracking</p>
+      <p><strong>Notes:</strong> Large notes field <span class="tag tag-write">API Write</span></p>
+      <p><strong>Bottom:</strong> 9–10 image upload boxes <span class="tag tag-write">Upload to SaaS</span></p>
+      <div class="callout">Can close work order without visiting Parts page (unlike Type 1).</div>
+    </div>
+
+    <!-- P8 -->
+    <div class="page-card">
+      <div class="page-label">Page 8</div>
+      <h3>Type 3 — Maintenance</h3>
+      <p>Identical to Type 2 (Install) with two differences:</p>
+      <ul>
+        <li><strong>No</strong> Out of Box Issue button</li>
+        <li>Page labeled <strong>"Maintenance"</strong> instead of "Install"</li>
+      </ul>
+    </div>
+
+    <!-- P9-P13 -->
+    <div class="page-card">
+      <div class="page-label">Pages 9–13</div>
+      <h3>Types 4–8 — Same as Service (Type 1)</h3>
+      <p>All five pages follow the exact same layout and logic as the Type 1 Service Work Order (P6). Parts page visit required if parts marked "Yes".</p>
+    </div>
+
+    <!-- P14 -->
+    <div class="page-card">
+      <div class="page-label">Page 14</div>
+      <h3>Parts Page</h3>
+      <p><strong>Context:</strong> Always tied to a specific work order line item tracking number.</p>
+      <div class="callout-warn callout"><strong>Type 1 (Service):</strong> MUST visit to close WO. <strong>Type 2/3 (Install/Maintenance):</strong> Optional, button available if parts used.</div>
+      <p><strong>10 Part Entry Rows, each with:</strong></p>
+      <ul>
+        <li>Parts Used: quantity (user enters manually)</li>
+        <li>Part Name & Number: dropdown selector <span class="tag tag-read">API Read</span></li>
+        <li>Confirm checkbox <span class="tag tag-write">API Write</span></li>
+      </ul>
+      <p><strong>Below Parts:</strong></p>
+      <ul>
+        <li>Notes field <span class="tag tag-write">API Write to SaaS</span></li>
+        <li>Part Image 1 & Part Image 2 uploads <span class="tag tag-write">Upload to SaaS</span></li>
+        <li>Request Return Label <span class="tag tag-external">FedEx API</span> or display shipping account number</li>
+      </ul>
+      <p><strong>Submit:</strong> Returns to work order for final close.</p>
+    </div>
+
+    <!-- P15 -->
+    <div class="page-card">
+      <div class="page-label">Page 15</div>
+      <h3>Out of Box Issue</h3>
+      <p><strong>Read-Only Fields (4):</strong></p>
+      <ul>
+        <li>Issue Date <span class="tag tag-read">API Read</span></li>
+        <li>System Number <span class="tag tag-read">API Read</span></li>
+      </ul>
+      <p><strong>Issue Assessment (Write):</strong></p>
+      <ul>
+        <li>Shipping Damage — Y / N <span class="tag tag-write">API Write</span></li>
+        <li>System Issue — Y / N <span class="tag tag-write">API Write</span></li>
+        <li>Other — Notes field <span class="tag tag-write">API Write</span></li>
+        <li>Missing Items — Y / N <span class="tag tag-write">API Write</span></li>
+      </ul>
+      <p><strong>Bottom:</strong> 10 image upload boxes <span class="tag tag-write">Upload to SaaS</span></p>
+    </div>
+  </div>
+
+  <!-- API INTEGRATIONS -->
+  <div class="section">
+    <h2>5. API Integrations Required</h2>
+    <table>
+      <tr><th>#</th><th>Integration</th><th>Direction</th><th>Used For</th></tr>
+      <tr>
+        <td>1</td>
+        <td><strong>Salesforce API</strong></td>
+        <td>Read + Write</td>
+        <td>Work orders, schedule, case info, parts, notifications, image uploads, line items, notes</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><strong>Equipment/System API</strong></td>
+        <td>Read + Write</td>
+        <td>System specs, startup images, PDF/video guides, SW push to equipment, case interactions</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><strong>Weather API</strong></td>
+        <td>Read</td>
+        <td>Weather by zip on main dashboard</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><strong>FedEx API</strong></td>
+        <td>Read</td>
+        <td>Request return shipping labels from Parts page</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><strong>AI/Chat API</strong></td>
+        <td>Read + Write</td>
+        <td>Chat assistant on main dashboard — old WO lookup, help, guidance</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td><strong>LMS</strong></td>
+        <td>External Link</td>
+        <td>Opens external LMS URL from main dashboard</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td><strong>System Site</strong></td>
+        <td>External Link</td>
+        <td>Opens external system site URL from main dashboard</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- SECURITY -->
+  <div class="section">
+    <h2>6. Security & Access Control</h2>
+    <ul>
+      <li><strong>No direct SaaS access</strong> — Techs never see Salesforce or any SaaS login</li>
+      <li><strong>Password gate</strong> — 3-hour session timeout, re-auth required</li>
+      <li><strong>Controlled fields only</strong> — Techs can only read/write specific fields per page</li>
+      <li><strong>Read-only where needed</strong> — Case info, serial numbers, account details are read-only</li>
+      <li><strong>Write only where needed</strong> — Completion Y/N, time completed, notes, image uploads</li>
+      <li><strong>No data export</strong> — Data flows through controlled API endpoints only</li>
+    </ul>
+  </div>
+
+  <!-- DATA FLOW -->
+  <div class="section">
+    <h2>7. Data Flow Summary</h2>
+    <h3>Reads (SaaS &rarr; App)</h3>
+    <ul>
+      <li>Work order details, case info, serial numbers, account names/addresses</li>
+      <li>Schedule / calendar entries</li>
+      <li>Part name/number dropdown lists</li>
+      <li>Notifications</li>
+      <li>System specs, PDF/video guides, startup images</li>
+      <li>Out of box issue pre-filled fields</li>
+    </ul>
+    <h3>Writes (App &rarr; SaaS)</h3>
+    <ul>
+      <li>Line item completion (Y/N)</li>
+      <li>Time/date completed</li>
+      <li>Image uploads (system, damage, wide view, parts, out-of-box — up to 10 per page)</li>
+      <li>Parts used (quantity, selection, confirmation)</li>
+      <li>Notes fields</li>
+      <li>Priority level</li>
+      <li>Out of box issue assessments (Y/N + notes)</li>
+      <li>SW push confirmation</li>
+    </ul>
+  </div>
+
+  <!-- WORK ORDER TYPE MATRIX -->
+  <div class="section">
+    <h2>8. Work Order Type Matrix</h2>
+    <table>
+      <tr><th>Type</th><th>Name</th><th>Template</th><th>Parts Required?</th><th>Out of Box?</th><th>Image Uploads</th></tr>
+      <tr><td>1</td><td>Service</td><td>Service (P6)</td><td>Yes — mandatory</td><td>No</td><td>4</td></tr>
+      <tr><td>2</td><td>Install</td><td>Install (P7)</td><td>Optional</td><td>Yes</td><td>9–10</td></tr>
+      <tr><td>3</td><td>Maintenance</td><td>Install (no OOB)</td><td>Optional</td><td>No</td><td>9–10</td></tr>
+      <tr><td>4</td><td>TBD</td><td>Service (P6)</td><td>Yes — mandatory</td><td>No</td><td>4</td></tr>
+      <tr><td>5</td><td>TBD</td><td>Service (P6)</td><td>Yes — mandatory</td><td>No</td><td>4</td></tr>
+      <tr><td>6</td><td>TBD</td><td>Service (P6)</td><td>Yes — mandatory</td><td>No</td><td>4</td></tr>
+      <tr><td>7</td><td>TBD</td><td>Service (P6)</td><td>Yes — mandatory</td><td>No</td><td>4</td></tr>
+      <tr><td>8</td><td>TBD</td><td>Service (P6)</td><td>Yes — mandatory</td><td>No</td><td>4</td></tr>
+    </table>
+    <div class="callout">Effectively 3 unique page templates: <strong>Service</strong> (Type 1 — used by 6 types), <strong>Install</strong> (Type 2), and <strong>Maintenance</strong> (Type 3 — Install without Out of Box).</div>
+  </div>
+
+  <!-- OPEN QUESTIONS -->
+  <div class="section">
+    <h2>9. Open Questions & Decisions</h2>
+    <table>
+      <tr><th>#</th><th>Question</th><th>Impact</th></tr>
+      <tr>
+        <td>1</td>
+        <td><strong>Platform target?</strong> — Mobile-only (iOS/Android PWA)? Or also desktop/tablet? Your wireframes suggest phone-first.</td>
+        <td>Tech stack, layout</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><strong>Tech stack?</strong> — Same Electron + React + Express pattern as Axle/Hondo/Spectra? Or a different approach for mobile-first (React Native, PWA, etc.)?</td>
+        <td>Architecture</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><strong>Salesforce API access</strong> — Do you have Salesforce API credentials / Connected App set up? Which Salesforce objects map to work orders, cases, parts?</td>
+        <td>Backend integration</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><strong>Equipment/System API</strong> — What system is this? Is there existing API documentation for the device data, SW push, PDF/video endpoints?</td>
+        <td>Backend integration</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><strong>User management</strong> — How are tech accounts created? Admin panel? Or you manage them directly?</td>
+        <td>Auth system</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td><strong>AI Chat model</strong> — Claude (like Axle) or GPT (like Hondo)? What context should it have access to?</td>
+        <td>Chat feature</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td><strong>Types 4–8 names</strong> — These are currently "same as Type 1" — do they have specific names/purposes yet?</td>
+        <td>UI labeling</td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td><strong>Offline support?</strong> — If techs are in the field with poor signal, should the app cache data and sync later?</td>
+        <td>Architecture</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- NEXT STEPS -->
+  <div class="section">
+    <h2>10. Suggested Next Steps</h2>
+    <table>
+      <tr><th>Phase</th><th>Deliverable</th><th>Details</th></tr>
+      <tr>
+        <td>1</td>
+        <td><strong>Answer open questions</strong></td>
+        <td>Lock in platform, tech stack, and API access before writing code</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><strong>Project scaffold</strong></td>
+        <td>Set up repo, folder structure, DB models, auth system</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><strong>Login + Main Dashboard</strong></td>
+        <td>P1 + P2 — auth gate, nav, weather, chat UI shell</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><strong>Schedule + Notifications</strong></td>
+        <td>P3 + P4 — calendar view, notification feed (mock data first)</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><strong>Work Order Hub</strong></td>
+        <td>P5 — case info display, type selector, system data panel</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td><strong>WO Type Templates</strong></td>
+        <td>P6 (Service), P7 (Install), P8 (Maintenance) — the 3 unique layouts</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td><strong>Parts + Out of Box</strong></td>
+        <td>P14 + P15 — parts entry, FedEx labels, OOB issue reporting</td>
+      </tr>
+      <tr>
+        <td>8</td>
+        <td><strong>Salesforce Integration</strong></td>
+        <td>Wire up real API read/write once SaaS credentials are available</td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td><strong>Polish + Deploy</strong></td>
+        <td>Image upload flows, chat AI tuning, testing, app build</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="footer">
+    Technician Assistant — Project Report v1.0<br>
+    Generated February 28, 2026
+  </div>
+
+</div>
+</body>
+</html>
