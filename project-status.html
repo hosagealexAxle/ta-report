@@ -75,6 +75,10 @@
 <strong>v1.1 UPDATE (Mar 1, 10:30 AM):</strong> Added Parts Stocking page with per-tech local inventory, QR code scanning (IN/OUT) with mock SaaS sync, QR part scanning on WO parts page with mock manufacturer API, Recommended Hardware catalog (12 Amazon items), desktop QR redirect ("Use iPhone via Tailscale"), updated notification card design, and 6th nav button on dashboard. 4 new Prisma models, 12 new API endpoints, 2 mock API helpers. Annotated demo video posted to GitHub Pages.
 </div>
 
+<div class="section-new">
+<strong>v1.1.1 PATCH (Mar 1, 12:30 PM):</strong> Fixed QR scanner crash on iPhone Safari &mdash; html5-qrcode was crashing the entire React tree when the scanner DOM was unmounted mid-cleanup. Scanner now fully stops (<code>await scanner.stop()</code> + <code>scanner.clear()</code>) before signaling parent. Moved QrScannerModal outside App component for stable React identity. Added React Error Boundary (<code>AppErrorBoundary</code>) wrapping the entire app. Replaced <code>alert()</code> with non-blocking toast notifications. Set up Tailscale HTTPS serving (port 8444) for camera access on iPhone. Added test QR codes in <code>qr-test/</code> folder. iPhone QR test video posted to GitHub Pages demo site.
+</div>
+
 <h2>System Architecture</h2>
 <table>
   <tr><th>Component</th><th>Technology</th><th>Details</th></tr>
@@ -508,6 +512,10 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <li><span class="tag blue">v1.1</span> QR scanner uses dynamic import (<code>import("html5-qrcode")</code>) so the library only loads when scanner opens. Desktop shows "Use iPhone" message instead of camera.</li>
   <li><span class="tag blue">v1.1</span> Seed v2 data uses <code>seededV2</code> flag in SystemState so it runs on existing installs without re-seeding everything.</li>
   <li><span class="tag blue">v1.1</span> LocalInventory uses compound unique constraint <code>@@unique([userId, partNumber])</code> &mdash; upsert handles increment/decrement.</li>
+  <li><span class="tag blue">v1.1.1</span> <code>html5-qrcode</code> manipulates the DOM directly (creates video/canvas elements). React unmounting the modal before the scanner finishes cleanup causes a fatal crash. Scanner must <code>await stop()</code> + <code>clear()</code> before parent sets <code>qrMode(null)</code>.</li>
+  <li><span class="tag blue">v1.1.1</span> <code>QrScannerModal</code> must be defined OUTSIDE the App component. If defined inside, React creates a new component identity on every render, causing remount issues with html5-qrcode's DOM manipulation.</li>
+  <li><span class="tag blue">v1.1.1</span> Mobile Safari blocks <code>alert()</code> during async React state updates &mdash; can leave component tree in broken state. Use React state-based toast notifications instead.</li>
+  <li><span class="tag blue">v1.1.1</span> Tailscale HTTPS serving: <code>tailscale serve --bg --https 8444 http://127.0.0.1:4300</code>. iPhone accesses via <code>https://alexs-mac-mini.tailb26e42.ts.net:8444</code>. Session cookies are separate from HTTP URL (must log in again).</li>
 </ul>
 
 <h2>Roadmap Summary</h2>
@@ -533,6 +541,7 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <tr><td>Phase 18: Mock Manufacturer &amp; SaaS APIs (mockSaasSync, mockManufacturerApi, 12 new endpoints)</td><td class="complete"><span class="tag blue">v1.1</span> COMPLETE</td></tr>
   <tr><td>Phase 19: Recommended Hardware Catalog (12 Amazon items, in-app sub-page with prices)</td><td class="complete"><span class="tag blue">v1.1</span> COMPLETE</td></tr>
   <tr><td>Phase 20: UI Polish + Demo Video (notification card update, annotated demo video, GitHub Pages)</td><td class="complete"><span class="tag blue">v1.1</span> COMPLETE</td></tr>
+  <tr><td>Phase 21: QR Scanner Stability + Tailscale HTTPS (scanner crash fix, Error Boundary, toast UI, HTTPS serving)</td><td class="complete"><span class="tag blue">v1.1.1</span> COMPLETE</td></tr>
 </table>
 
 <h2>Future Roadmap (When APIs Available)</h2>
@@ -589,8 +598,23 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Mar 1, 10:30 AM. All v1.0 features preserved + Parts Stocking, QR Scanning, Recommended Hardware, Mock APIs.</li>
 </ul>
 
+<h3>Session 3: March 1, 2026 <span class="tag blue">v1.1.1</span> <span class="tag">COMPLETE</span></h3>
+<ul>
+  <li><strong>QR scanner crash fix:</strong> iPhone Safari crashed the entire React component tree after successful QR scan. Root cause: <code>html5-qrcode</code> manipulates the DOM directly, and React unmounting the modal mid-cleanup caused a fatal JS error with no error boundary to catch it.</li>
+  <li><strong>Scanner lifecycle rewrite:</strong> Success callback now does <code>await scanner.stop()</code> + <code>scanner.clear()</code> before calling <code>onScan()</code>. DOM is fully clean before React unmounts the modal. Added <code>scannedRef</code> to prevent double-scan.</li>
+  <li><strong>Moved QrScannerModal outside App:</strong> Defining the component inside App() caused React to create a new component identity on every render (new function reference), leading to remount issues. Now a stable top-level function component.</li>
+  <li><strong>"Scanned! Processing..." state:</strong> After scan detection, camera view is replaced with a checkmark message while scanner shuts down, preventing a blank flash.</li>
+  <li><strong>Toast notifications:</strong> Replaced all <code>alert()</code> calls with non-blocking <code>scanToast</code> state. Green toast for success ("QR IN: Compressor Module A-7 — qty now 3"), red toast for errors. Auto-dismisses after 4 seconds.</li>
+  <li><strong>React Error Boundary:</strong> Added <code>AppErrorBoundary</code> class component wrapping the entire app in main.jsx. Catches unhandled render errors and shows "Something went wrong" with a Reload button instead of permanent blank screen.</li>
+  <li><strong>Tailscale HTTPS:</strong> Set up <code>tailscale serve --bg --https 8444 http://127.0.0.1:4300</code> for TA and <code>--https 8443</code> for Hondo. iPhone accesses via <code>https://alexs-mac-mini.tailb26e42.ts.net:8444</code> with valid HTTPS certificate for camera access.</li>
+  <li><strong>Test QR codes:</strong> Generated 4 QR code PNG images in <code>qr-test/</code> folder (Compressor A-7, Capacitor 40MFD, Bearing Hi-Temp, Belt Drive Kit) using Python qrcode library.</li>
+  <li><strong>iPhone QR test video:</strong> 35-second screen recording of QR scanning on iPhone posted to <a href="https://hosagealexaxle.github.io/ta-demo/" style="color:#1565c0">ta-demo GitHub Pages</a> below the desktop demo video.</li>
+  <li><strong>Project docs updated:</strong> Both Project Status and Project Report HTML files updated on local and <a href="https://hosagealexaxle.github.io/ta-report/" style="color:#1565c0">ta-report GitHub Pages</a>.</li>
+  <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Mar 1, 12:30 PM. QR scanning stable on iPhone, Error Boundary protection, toast UI, Tailscale HTTPS.</li>
+</ul>
+
 <div class="footer">
-  <p>Technician Assistant v1.1 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 45 Work Orders &mdash; 20 Models &mdash; 37+ Endpoints &mdash; QR Scanning &mdash; Port 4300</p>
+  <p>Technician Assistant v1.1.1 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 45 Work Orders &mdash; 20 Models &mdash; 37+ Endpoints &mdash; QR Scanning &mdash; Tailscale HTTPS &mdash; Port 4300</p>
   <p>Updated March 1, 2026</p>
 </div>
 

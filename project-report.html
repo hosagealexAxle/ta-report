@@ -216,7 +216,7 @@
     <div class="logo">TA</div>
     <h1>Technician Assistant</h1>
     <div class="subtitle">Field Technician Work Order & Reporting App</div>
-    <div class="date">Project Report — March 1, 2026 (v1.1)</div>
+    <div class="date">Project Report — March 1, 2026 (v1.1.1)</div>
   </div>
 
   <!-- OVERVIEW -->
@@ -811,6 +811,15 @@
     <div class="callout-new callout">
       <strong>QR Code Data:</strong> Each part's QR code contains the part number, name, and category. On desktop, QR buttons show a redirect message to use the mobile app for camera access.
     </div>
+
+    <h3>QR Scan Feedback <span class="tag tag-new">v1.1.1</span></h3>
+    <p>After a successful scan, the camera closes and a <strong>toast notification</strong> slides up from the bottom of the screen showing the result (e.g. "QR IN: Compressor Module A-7 — qty now 3"). The toast auto-dismisses after 4 seconds. If the scan fails, a red error toast appears instead. The technician remains on the same page (inventory or parts) throughout.</p>
+
+    <h3>iPhone Access <span class="tag tag-new">v1.1.1</span></h3>
+    <p>QR scanning requires HTTPS for camera access on iPhone Safari. The app is served over Tailscale HTTPS at <strong>https://alexs-mac-mini.tailb26e42.ts.net:8444</strong>. If something goes wrong during scanning, an error recovery screen appears with a Reload button instead of a blank page.</p>
+
+    <h3>Test QR Codes</h3>
+    <p>Pre-generated QR code images are available in the <code>qr-test/</code> folder for testing. Each QR code encodes a part number, name, and category. Display any QR image on a screen and scan it with the iPhone camera.</p>
   </div>
 
   <!-- OPEN QUESTIONS -->
@@ -857,7 +866,7 @@
   </div>
 
   <div class="footer">
-    Technician Assistant &mdash; Project Report v1.1<br>
+    Technician Assistant &mdash; Project Report v1.1.1<br>
     Updated March 1, 2026
   </div>
 
