@@ -2,44 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Technician Assistant Project Status — February 28, 2026</title>
+<title>Technician Assistant Project Status — March 1, 2026</title>
 <style>
-  /* Auth gate */
-  body.locked { overflow: hidden; }
-  #auth-gate {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #f8f8f8; z-index: 9999;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .gate-box {
-    background: #fff; border: 1px solid #ddd; border-radius: 12px;
-    padding: 40px; text-align: center; max-width: 360px; width: 90%;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  }
-  .gate-box .gate-logo {
-    width: 64px; height: 64px;
-    background: linear-gradient(135deg, #4a8c4a, #2d5a2d);
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 20px; font-size: 24px; font-weight: 700; color: #fff;
-    border: 2px solid #6aaa6a;
-  }
-  .gate-box h2 { color: #1a1a1a; font-size: 20px; margin-bottom: 6px; }
-  .gate-box p { color: #888; font-size: 13px; margin-bottom: 20px; }
-  .gate-box input {
-    width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid #ccc;
-    background: #f9f9f9; color: #1a1a1a; font-size: 15px; text-align: center;
-    outline: none; margin-bottom: 12px;
-  }
-  .gate-box input:focus { border-color: #4a8c4a; }
-  .gate-box button {
-    width: 100%; padding: 12px; border-radius: 8px; border: none;
-    background: linear-gradient(135deg, #4a8c4a, #2d5a2d); color: #fff;
-    font-size: 15px; font-weight: 600; cursor: pointer;
-  }
-  .gate-box button:hover { opacity: 0.9; }
-  #gate-error { display: none; color: #d66a6a; font-size: 13px; margin-top: 10px; }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a; padding: 48px 56px; max-width: 850px; margin: 0 auto; line-height: 1.5; }
   h1 { font-size: 32px; text-align: center; margin-bottom: 2px; }
@@ -65,35 +29,13 @@
   .tag.teal { background: #e0f2f1; color: #00695c; }
   .section-new { background: #f0f7ff; border-left: 3px solid #1565c0; padding: 12px 16px; margin: 12px 0; border-radius: 0 6px 6px 0; }
   .section-done { background: #f0fff0; border-left: 3px solid #2e7d32; padding: 12px 16px; margin: 12px 0; border-radius: 0 6px 6px 0; }
-  .back-link { display: inline-block; margin-bottom: 20px; color: #2e7d32; text-decoration: none; font-size: 14px; font-weight: 600; }
-  .back-link:hover { text-decoration: underline; }
   @media print { body { padding: 24px 36px; } }
-  @media (max-width: 600px) { body { padding: 20px 16px; } }
 </style>
 </head>
-<body class="locked">
-
-<!-- AUTH GATE -->
-<div id="auth-gate">
-  <div class="gate-box">
-    <div class="gate-logo">TA</div>
-    <h2>Technician Assistant</h2>
-    <p>Enter password to view this report</p>
-    <input type="password" id="gate-pass" placeholder="Password" onkeydown="if(event.key==='Enter')checkPass()">
-    <button onclick="checkPass()">Unlock</button>
-    <div id="gate-error">Incorrect password</div>
-  </div>
-</div>
-
-<script>
-function checkPass(){var h=0,s=document.getElementById('gate-pass').value;for(var i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0;}if(h===1377894183){document.getElementById('auth-gate').style.display='none';document.body.classList.remove('locked');sessionStorage.setItem('ta-auth','1');}else{document.getElementById('gate-error').style.display='block';}}
-if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate').style.display='none';document.body.classList.remove('locked');}
-</script>
-
-<a href="index.html" class="back-link">&larr; Back to Reports</a>
+<body>
 
 <h1>Technician Assistant</h1>
-<div class="subtitle">Project Status &mdash; February 28, 2026 (v1.0 &mdash; Full Mock Build + AI Chat + Repair Docs)</div>
+<div class="subtitle">Project Status &mdash; March 1, 2026 (v1.1 &mdash; Parts Stocking, QR Scanning, Mock Manufacturer APIs)</div>
 
 <h2>Executive Summary</h2>
 <p><strong>Technician Assistant (TA)</strong> is a field service management application that provides technicians with a controlled, read/write interface to Salesforce work order data &mdash; without giving them direct access to Salesforce or any other enterprise SaaS platform. The app is purpose-built for HVAC/mechanical field technicians who need to view assigned work orders, complete line items, upload site photos, track parts usage, report out-of-box issues, and manage their weekly schedule &mdash; all from a single mobile-friendly interface.</p>
@@ -112,32 +54,39 @@ if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate')
       <li><strong>Maintenance (Type 3):</strong> Same as Install but without OOB reporting.</li>
     </ul>
   </li>
-  <li><strong>Parts Page:</strong> 10-row parts form with quantity inputs, dropdown selection from 50-item parts catalog, confirmation checkboxes, 2 image uploads, FedEx return label generation for defective parts.</li>
+  <li><strong>Parts Page:</strong> 10-row parts form with quantity inputs, dropdown selection from 50-item parts catalog, confirmation checkboxes, 2 image uploads, FedEx return label generation for defective parts. QR Part Scanning section for scanning installed/removed parts with manufacturer API integration. <span class="tag blue">UPDATED v1.1</span></li>
+  <li><strong>Parts Stocking:</strong> <span class="tag blue">NEW v1.1</span> Per-tech local inventory page showing current stock quantities. Sidebar with Parts Order Platform link, Recommended Hardware catalog (12 Amazon items with prices), QR IN button (scan to add parts), QR OUT button (scan to remove parts with mandatory reason). Mock SaaS sync on every scan.</li>
   <li><strong>Out-of-Box Issues:</strong> Structured form for reporting shipping damage, system issues, or missing items with Y/N toggles, free-text notes, and 10 image upload slots.</li>
   <li><strong>Schedule:</strong> 8-week Monday&ndash;Sunday calendar view showing all scheduled WOs. Today is highlighted. Clicking a WO number navigates directly to that work order.</li>
-  <li><strong>Notifications:</strong> Scrolling feed of up to 20 notifications (new assignments, priority changes, overdue alerts, parts shipments, training reminders) with color-coded urgency.</li>
+  <li><strong>Notifications:</strong> Scrolling feed of up to 20 notifications (new assignments, priority changes, overdue alerts, parts shipments, training reminders) with color-coded urgency. Updated card design with larger padding, rounded corners, shadow, and hover effects. <span class="tag blue">UPDATED v1.1</span></li>
   <li><strong>AI Chat:</strong> GPT-4.1-mini powered assistant with full visibility into all work orders, the complete schedule, and 6 repair reference PDFs. Techs can ask "what's overdue?", "what's on my schedule this week?", "give me the troubleshooting guide", or "what's diagnostic code E-42?" and get specific, data-backed answers with clickable document links.</li>
   <li><strong>Image Uploads:</strong> Base64 upload system with slot-based naming (system1, damage, install1&ndash;10, oob1&ndash;10, part1&ndash;2). Supports mobile camera picker. Thumbnails preview in-app. Stored locally in uploads/ directory per work order.</li>
 </ul>
 
 <p><strong>Mock Adapter Architecture:</strong> Since Salesforce, Equipment System, and FedEx APIs are not yet available, the entire app runs on a <strong>mock adapter layer</strong> that simulates real API behavior using seeded data in a local SQLite database. The mock layer is functionally identical to what the real adapters will provide &mdash; same data shapes, same response patterns, same error handling. When real APIs are available, each integration swaps by changing one environment variable (<code>USE_MOCK=false</code>) and implementing one adapter file per service. Zero frontend changes required.</p>
 
-<p><strong>Current state:</strong> The app is fully functional with 45 seeded work orders spanning 8 weeks, 50 parts catalog entries, 20 notifications, equipment data per WO, 6 repair reference PDFs, and a context-aware AI assistant. It runs as a macOS Electron desktop app accessible locally and via Tailscale on iPhone as a PWA.</p>
+<p><strong>Current state:</strong> The app is fully functional with 45 seeded work orders spanning 8 weeks, 50 parts catalog entries, 20 notifications, 15 local inventory items, 12 recommended hardware items, equipment data per WO, 6 repair reference PDFs, QR code scanning for parts in/out, and a context-aware AI assistant. It runs as a macOS Electron desktop app accessible locally and via Tailscale on iPhone as a PWA.</p>
 
 <div class="section-done">
-<strong>BUILD COMPLETE (Feb 28, 2:30 AM):</strong> Full application built and deployed in a single session. 45 work orders across 8 weeks (3 overdue), 4 WO types with 3 template workflows, AI chat with full data context + 6 repair PDFs, admin-only priority control, custom shield icon, image uploads, parts management, FedEx label generation, and 8-week schedule calendar. Deployed to /Applications/Technician Assistant.app.
+<strong>v1.0 BUILD COMPLETE (Feb 28, 2:30 AM):</strong> Full application built and deployed in a single session. 45 work orders across 8 weeks (3 overdue), 4 WO types with 3 template workflows, AI chat with full data context + 6 repair PDFs, admin-only priority control, custom shield icon, image uploads, parts management, FedEx label generation, and 8-week schedule calendar.
+</div>
+
+<div class="section-new">
+<strong>v1.1 UPDATE (Mar 1, 10:30 AM):</strong> Added Parts Stocking page with per-tech local inventory, QR code scanning (IN/OUT) with mock SaaS sync, QR part scanning on WO parts page with mock manufacturer API, Recommended Hardware catalog (12 Amazon items), desktop QR redirect ("Use iPhone via Tailscale"), updated notification card design, and 6th nav button on dashboard. 4 new Prisma models, 12 new API endpoints, 2 mock API helpers. Annotated demo video posted to GitHub Pages.
 </div>
 
 <h2>System Architecture</h2>
 <table>
   <tr><th>Component</th><th>Technology</th><th>Details</th></tr>
   <tr><td>Desktop App</td><td>Electron 33</td><td>macOS ARM64, unsigned build, custom TA shield icon</td></tr>
-  <tr><td>Backend</td><td>Express 5 (ESM)</td><td>Port 4300, binds 0.0.0.0. Single server.js (~682 lines). Cookie-based auth, 3-hour sessions.</td></tr>
-  <tr><td>Dashboard</td><td>React 19 + Vite 7</td><td>Single monolithic App.jsx (~923 lines). State-based page navigation, no router. 15 page states.</td></tr>
-  <tr><td>Database</td><td>SQLite + Prisma 6</td><td>16 models (~212 lines schema), auto-migrates on startup</td></tr>
-  <tr><td>Chat LLM</td><td>OpenAI GPT-4.1-mini</td><td>Full WO + schedule + docs context injected into system prompt. Clickable PDF links in responses.</td></tr>
+  <tr><td>Backend</td><td>Express 5 (ESM)</td><td>Port 4300, binds 0.0.0.0. Single server.js (~880 lines). Cookie-based auth, 3-hour sessions. 2 mock API helpers.</td></tr>
+  <tr><td>Dashboard</td><td>React 19 + Vite 7</td><td>Single monolithic App.jsx (~1100 lines). State-based page navigation, no router. 16 page states. QR scanner component.</td></tr>
+  <tr><td>Database</td><td>SQLite + Prisma 6</td><td>20 models (~280 lines schema), auto-migrates on startup via db push</td></tr>
+  <tr><td>Chat LLM</td><td>Claude Sonnet 4.6 (primary) / GPT-4.1-mini (fallback)</td><td>Full WO + schedule + docs context injected into system prompt. Clickable PDF links in responses.</td></tr>
   <tr><td>Weather</td><td>wttr.in API</td><td>No API key needed. Shows temp, condition for tech's zip code.</td></tr>
-  <tr><td>Mock Layer</td><td>Prisma/SQLite</td><td>USE_MOCK=true. 45 WOs, 50 parts, 20 notifications, equipment data. Swap-ready for real APIs.</td></tr>
+  <tr><td>Mock Layer</td><td>Prisma/SQLite</td><td>USE_MOCK=true. 45 WOs, 50 parts, 20 notifications, 15 inventory items, 12 recommended parts, equipment data. Swap-ready for real APIs.</td></tr>
+  <tr><td>QR Scanner</td><td>html5-qrcode</td><td>Rear camera (facingMode: environment), 250x250 scan box, JSON data format. Desktop redirect to iPhone.</td></tr>
+  <tr><td>Mock APIs</td><td>SaaS + Manufacturer</td><td>mockSaasSync (200ms delay) for inventory sync, mockManufacturerApi (300ms delay) for part tracking.</td></tr>
   <tr><td>Color Theme</td><td>Dark Green</td><td>Background: #0f1a0f, Panel: #1a2a1a, Accent: #6aaa6a, Text: #e8e4d9</td></tr>
 </table>
 
@@ -157,7 +106,7 @@ if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate')
 <ul>
   <li><strong>Top bar:</strong> Mini shield logo, app name, current date (full weekday format), weather (temp + condition), MOCK badge, logout button</li>
   <li><strong>Overdue alerts:</strong> Red-bordered cards auto-loaded on login. Shows WO number, account name, due date. Click to navigate directly to WO.</li>
-  <li><strong>Navigation grid:</strong> 5 buttons &mdash; Notifications (with unread count badge), Work Orders, Schedule, System Site (external link), LMS (external link)</li>
+  <li><strong>Navigation grid:</strong> 6 buttons (2x3 grid) &mdash; Notifications (with unread count badge), Work Orders, Schedule, Parts Stocking <span class="tag blue">NEW v1.1</span>, System Site (external link), LMS (external link)</li>
   <li><strong>AI Chat:</strong> 400px message area, text input with Enter-to-send, assistant responses with clickable PDF/URL links. System prompt includes all WOs, full schedule, and available repair documents.</li>
 </ul>
 
@@ -225,9 +174,34 @@ if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate')
   <li>10-row parts form, each row: quantity input (0&ndash;99), dropdown (50-item catalog), part name display, confirmation checkbox</li>
   <li>Parts catalog organized by category: Compressor, Filter, Electronics, Sensor, Motor, Drive, Bearing, Valve, Gasket, Wiring, Power, Cooling, Hardware, Seal, Supply, Plumbing, Control, Duct, Insulation, Air Quality, Safety, Ignition</li>
   <li>Free-text notes field for additional parts information</li>
+  <li><span class="tag blue">NEW v1.1</span> <strong>QR Part Scanning section:</strong>
+    <ul>
+      <li><strong>Scan NEW Part Installed:</strong> Opens QR scanner, scans part QR code (JSON format), writes to mock Manufacturer API, logs to ManufacturerPartLog</li>
+      <li><strong>Reason textarea:</strong> Required before scanning removed/failed parts</li>
+      <li><strong>Scan REMOVED / FAILED Part:</strong> Opens QR scanner (red/danger button), writes to mock SaaS with reason, logs to PartScanLog</li>
+    </ul>
+  </li>
   <li>2 image upload slots for parts photos</li>
   <li>FedEx Return Label button &mdash; generates mock tracking number (794XXXXXXXXX), creates ReturnLabel record</li>
   <li>Submit button saves all parts, marks <code>partsCompleted=true</code> on WO, returns to WO page</li>
+</ul>
+
+<h3>P16: Parts Stocking <span class="tag blue">NEW v1.1</span></h3>
+<ul>
+  <li><strong>Header:</strong> Tech display name + "Local Inventory" subtitle</li>
+  <li><strong>Left sidebar:</strong>
+    <ul>
+      <li><strong>Parts Order Platform:</strong> Button opens external parts ordering URL in new tab</li>
+      <li><strong>Recommended Hardware:</strong> Button opens in-app sub-page showing 12 Amazon items (HVAC tools, meters, hand tools, safety gear) with descriptions, categories, and prices. Each card links to Amazon.</li>
+      <li><strong>QR IN:</strong> Green button opens camera scanner &rarr; scans part QR code &rarr; adds/increments quantity in local inventory &rarr; syncs to mock SaaS</li>
+      <li><strong>Reason textarea:</strong> Required text input for removal reason</li>
+      <li><strong>QR OUT:</strong> Red button (disabled until reason entered) opens scanner &rarr; scans part QR code &rarr; decrements quantity &rarr; syncs to mock SaaS with reason</li>
+    </ul>
+  </li>
+  <li><strong>Center:</strong> Scrollable parts inventory list showing part name, part number/category, and quantity badge</li>
+  <li><strong>Desktop behavior:</strong> QR buttons show "Use iPhone via Tailscale" message with Go Back button instead of camera</li>
+  <li><strong>QR Data Format:</strong> JSON string <code>{"pn":"CMP-A007","name":"Compressor Module A-7","cat":"Compressor"}</code></li>
+  <li><strong>Mobile responsive:</strong> Sidebar collapses to horizontal row on small screens</li>
 </ul>
 
 <h3>P15: Out of Box Issue</h3>
@@ -282,6 +256,8 @@ if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate')
   <tr><td>Salesforce</td><td>WO CRUD, schedule queries, notifications, parts catalog, line items &mdash; all from SQLite seed data</td><td>Set <code>USE_MOCK=false</code>, implement <code>salesforce-real.js</code> with SF REST API using <code>SF_CLIENT_ID</code> / <code>SF_CLIENT_SECRET</code></td></tr>
   <tr><td>Equipment System</td><td>System specs, firmware, PDF/video URLs, SW push (simulated 2s delay + success response)</td><td>Implement <code>equipment-real.js</code> with real system API endpoints</td></tr>
   <tr><td>FedEx</td><td>Generates fake tracking numbers (794XXXXXXXXX), creates ReturnLabel records in DB</td><td>Implement <code>fedex-real.js</code> with FedEx Ship API using <code>FEDEX_API_KEY</code> / <code>FEDEX_ACCOUNT_NUMBER</code></td></tr>
+  <tr><td>SaaS Inventory <span class="tag blue">v1.1</span></td><td><code>mockSaasSync()</code> &mdash; 200ms delay, console log. Called on every QR IN/OUT scan.</td><td>Implement real SaaS inventory API endpoint for bidirectional stock sync</td></tr>
+  <tr><td>Manufacturer API <span class="tag blue">v1.1</span></td><td><code>mockManufacturerApi()</code> &mdash; 300ms delay, console log. Called when scanning parts installed on equipment.</td><td>Implement real manufacturer part tracking API for warranty/recall tracking</td></tr>
 </table>
 
 <h3>Seed Data (auto-runs on first boot)</h3>
@@ -294,6 +270,8 @@ if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate')
   <tr><td>Equipment Data</td><td>45</td><td>One per WO: model, firmware, specs (JSON), location, warranty</td></tr>
   <tr><td>Parts Catalog</td><td>50</td><td>Organized across 22 categories with realistic HVAC part names/numbers</td></tr>
   <tr><td>Notifications</td><td>20</td><td>Mix of info, warning, urgent types spanning 20 days</td></tr>
+  <tr><td>Local Inventory <span class="tag blue">v1.1</span></td><td>15</td><td>Per-tech stock items for tech1 (filters, sensors, capacitors, etc.) with varying quantities</td></tr>
+  <tr><td>Recommended Parts <span class="tag blue">v1.1</span></td><td>12</td><td>Amazon hardware items: HVAC tools, meters, hand tools, measuring, safety gear with prices</td></tr>
   <tr><td>Accounts</td><td>45</td><td>Realistic business names, addresses across 20+ US cities, unique serial numbers</td></tr>
 </table>
 
@@ -302,13 +280,13 @@ if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate')
 
 <table>
   <tr><th>File / Folder</th><th>Lines</th><th>Contents</th></tr>
-  <tr><td>backend/src/server.js</td><td>~682</td><td>Express 5 API, 25+ endpoints, auth middleware, weather, WOs, parts, images, schedule, notifications, equipment, FedEx, chat (with full data context), docs serving</td></tr>
-  <tr><td>backend/src/seed.js</td><td>~297</td><td>Seed 2 users, 45 WOs, 50 parts catalog, 20 notifications, equipment data, schedule entries</td></tr>
-  <tr><td>backend/prisma/schema.prisma</td><td>~212</td><td>16 models: User, Session, WorkOrder, LineItem, WoImage, PartEntry, PartsCatalog, OutOfBoxIssue, ScheduleEntry, Notification, EquipmentData, ReturnLabel, Thread, Message, ActionLog, SystemState</td></tr>
+  <tr><td>backend/src/server.js</td><td>~880</td><td>Express 5 API, 37+ endpoints, auth middleware, weather, WOs, parts, images, schedule, notifications, equipment, FedEx, inventory, QR scanning, recommended parts, mock SaaS/manufacturer APIs, chat, docs serving</td></tr>
+  <tr><td>backend/src/seed.js</td><td>~400</td><td>Seed 2 users, 45 WOs, 50 parts catalog, 20 notifications, equipment data, schedule entries + v1.1: 15 inventory items, 12 recommended parts (seededV2 flag)</td></tr>
+  <tr><td>backend/prisma/schema.prisma</td><td>~280</td><td>20 models: User, Session, WorkOrder, LineItem, WoImage, PartEntry, PartsCatalog, OutOfBoxIssue, ScheduleEntry, Notification, EquipmentData, ReturnLabel, Thread, Message, ActionLog, SystemState + <span class="tag blue">v1.1</span> LocalInventory, PartScanLog, ManufacturerPartLog, RecommendedPart</td></tr>
   <tr><td>backend/docs/</td><td>&mdash;</td><td>6 repair reference PDFs (service manual, installation guide, safety, troubleshooting, parts xref, warranty)</td></tr>
   <tr><td>backend/uploads/</td><td>&mdash;</td><td>Per-WO image storage (slot-based naming, gitignored)</td></tr>
-  <tr><td>dashboard/src/App.jsx</td><td>~923</td><td>Single monolithic component: login, main dashboard, notifications, schedule, WO hub, 3 type templates, parts, OOB, chat with link rendering</td></tr>
-  <tr><td>dashboard/src/index.css</td><td>~937</td><td>Complete dark green theme, all component styles, mobile responsive</td></tr>
+  <tr><td>dashboard/src/App.jsx</td><td>~1100</td><td>Single monolithic component: login, main dashboard, notifications, schedule, WO hub, 3 type templates, parts, OOB, parts stocking, QR scanner modal, recommended hardware, chat with link rendering</td></tr>
+  <tr><td>dashboard/src/index.css</td><td>~1100</td><td>Complete dark green theme, all component styles, QR modal, parts stocking, recommended hardware cards, mobile responsive</td></tr>
   <tr><td>dashboard/src/main.jsx</td><td>~7</td><td>React 19 entry point</td></tr>
   <tr><td>dashboard/public/manifest.json</td><td>&mdash;</td><td>PWA manifest: standalone display, dark green theme</td></tr>
   <tr><td>dashboard/public/icon-192.png</td><td>&mdash;</td><td>PWA icon (192x192) &mdash; TA shield on dark green</td></tr>
@@ -318,7 +296,7 @@ if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate')
   <tr><td>desktop/assets/icon.icns</td><td>&mdash;</td><td>macOS app icon (TA shield, multi-resolution, proper padding)</td></tr>
 </table>
 
-<h2>Database Models (16 total)</h2>
+<h2>Database Models (20 total)</h2>
 <table>
   <tr><th>Model</th><th>Purpose</th><th>Key Fields</th></tr>
   <tr><td>User</td><td>Tech accounts</td><td>username (unique), passwordHash (SHA-256), displayName, role (admin/tech), zipCode</td></tr>
@@ -336,15 +314,19 @@ if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate')
   <tr><td>Thread</td><td>Chat sessions</td><td>title, createdAt, updatedAt</td></tr>
   <tr><td>Message</td><td>Chat messages</td><td>threadId (FK, cascade), role (user/assistant), content</td></tr>
   <tr><td>ActionLog</td><td>Audit trail</td><td>type (wo_close, etc.), label, detail, ok</td></tr>
-  <tr><td>SystemState</td><td>Global app state</td><td>metaJson (tracks seeded status)</td></tr>
+  <tr><td>SystemState</td><td>Global app state</td><td>metaJson (tracks seeded/seededV2 status)</td></tr>
+  <tr><td>LocalInventory <span class="tag blue">v1.1</span></td><td>Per-tech parts stock</td><td>userId, partNumber, partName, category, quantity, lastUpdated. @@unique([userId, partNumber])</td></tr>
+  <tr><td>PartScanLog <span class="tag blue">v1.1</span></td><td>QR scan audit trail</td><td>userId, partNumber, partName, direction (in/out), reason, woNumber, serialNumber, syncedToSaas</td></tr>
+  <tr><td>ManufacturerPartLog <span class="tag blue">v1.1</span></td><td>Parts installed/removed on equipment</td><td>serialNumber, partNumber, partName, action (installed/removed), scannedBy, woNumber, syncedToMfg</td></tr>
+  <tr><td>RecommendedPart <span class="tag blue">v1.1</span></td><td>Amazon hardware catalog</td><td>name, description, url, category, price</td></tr>
 </table>
 
-<h2>API Endpoints (25+ total)</h2>
+<h2>API Endpoints (37+ total)</h2>
 
 <h3>Health &amp; Auth</h3>
 <table>
   <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
-  <tr><td>GET</td><td>/api/health</td><td>Health check + mock status, LMS URL, System Site URL</td></tr>
+  <tr><td>GET</td><td>/api/health</td><td>Health check + mock status, LMS URL, System Site URL, Parts Order URL <span class="tag blue">v1.1</span></td></tr>
   <tr><td>POST</td><td>/api/auth/login</td><td>Validate credentials, create 3-hour session, set <code>ta_auth</code> cookie</td></tr>
   <tr><td>GET</td><td>/api/auth/check</td><td>Check session validity, return user data (id, username, displayName, role, zipCode)</td></tr>
   <tr><td>POST</td><td>/api/auth/logout</td><td>Clear auth cookie</td></tr>
@@ -398,6 +380,30 @@ if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate')
   <tr><td>GET</td><td>/api/docs/:fileName</td><td>Serve PDF file inline</td></tr>
 </table>
 
+<h3>Local Inventory / Parts Stocking <span class="tag blue">NEW v1.1</span></h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/inventory</td><td>Get current user's local parts inventory (15 seeded items)</td></tr>
+  <tr><td>POST</td><td>/api/inventory/qr-in</td><td>Scan QR &rarr; add/increment part in stock &rarr; mock SaaS sync &rarr; log to PartScanLog</td></tr>
+  <tr><td>POST</td><td>/api/inventory/qr-out</td><td>Scan QR &rarr; decrement part (reason required, 400 if missing) &rarr; mock SaaS sync &rarr; log</td></tr>
+  <tr><td>GET</td><td>/api/inventory/scan-log</td><td>Get scan history for current user</td></tr>
+</table>
+
+<h3>WO Parts QR Scanning <span class="tag blue">NEW v1.1</span></h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>POST</td><td>/api/parts/:woId/scan-installed</td><td>Scan new part QR &rarr; write to mock Manufacturer API &rarr; log to ManufacturerPartLog</td></tr>
+  <tr><td>POST</td><td>/api/parts/:woId/scan-removed</td><td>Scan failed part QR (reason required) &rarr; write to mock SaaS &rarr; log to PartScanLog</td></tr>
+  <tr><td>GET</td><td>/api/parts/:woId/scan-history</td><td>Get scan history for a work order</td></tr>
+</table>
+
+<h3>Supporting / Catalog <span class="tag blue">NEW v1.1</span></h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/recommended-parts</td><td>List 12 recommended Amazon hardware items (name, description, url, category, price)</td></tr>
+  <tr><td>GET</td><td>/api/test-qr-codes</td><td>Generate test QR data from parts catalog (JSON format for testing)</td></tr>
+</table>
+
 <h3>Actions</h3>
 <table>
   <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
@@ -417,6 +423,7 @@ if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate')
   <tr><td>ANTHROPIC_MODEL</td><td>claude-sonnet-4-6 (reserved)</td></tr>
   <tr><td>LMS_URL</td><td>https://example.com/lms (external training link)</td></tr>
   <tr><td>SYSTEM_SITE_URL</td><td>https://example.com/system (external system link)</td></tr>
+  <tr><td>PARTS_ORDER_URL</td><td>https://example.com/parts-order (external parts ordering) <span class="tag blue">v1.1</span></td></tr>
   <tr><td>SF_CLIENT_ID</td><td>Future &mdash; Salesforce OAuth</td></tr>
   <tr><td>SF_CLIENT_SECRET</td><td>Future &mdash; Salesforce OAuth</td></tr>
   <tr><td>FEDEX_API_KEY</td><td>Future &mdash; FedEx Ship API</td></tr>
@@ -461,7 +468,7 @@ open "/Applications/Technician Assistant.app"
 # Delete DB and re-seed (if seed data changes)
 rm -f backend/ta.db
 cd backend && npx prisma db push --force-reset
-node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './src/seed.js'; const p=new PrismaClient(); await runSeed(p); await p.$disconnect();"
+node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './src/seed.js'; const p=new PrismaClient(); await runSeed(p); await p.\$disconnect();"
 
 # Tailscale access (iPhone PWA)
 # Mac: 100.84.51.101 | URL: http://100.84.51.101:4300</pre>
@@ -489,7 +496,7 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <li>Dashboard dist path: dev=<code>../../dashboard/dist</code>, packaged=<code>process.resourcesPath/dashboard/dist</code>. Server checks both.</li>
   <li>Docs path: dev=<code>../docs</code>, packaged=<code>process.resourcesPath/backend/docs</code>. Server checks both.</li>
   <li><code>.env</code> is gitignored. Packaged app reads from <code>~/Library/Application Support/Technician Assistant/.env</code>.</li>
-  <li>Auto-migration in backend-runner.js via <code>execFileSync</code> of prisma migrate deploy before server start.</li>
+  <li>Auto-migration in backend-runner.js via <code>execFileSync</code> of prisma db push (not migrate deploy) before server start. DB created with db push has no migration history.</li>
   <li>Dashboard uses Vite 7. Rebuild dashboard BEFORE rebuilding Electron (dashboard/dist gets bundled).</li>
   <li>macOS caches app icons aggressively. After icon changes, run <code>lsregister -kill -r</code> and <code>killall Dock</code> to force refresh.</li>
   <li>Auth middleware bypasses localhost requests (for Electron). Remote (Tailscale) requests require valid session cookie.</li>
@@ -497,6 +504,10 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <li>Image uploads are base64 encoded in JSON body (10MB limit). For production, switch to multipart form upload.</li>
   <li>CORS is open (<code>origin: "*"</code>) &mdash; Tailscale provides network-level security.</li>
   <li>After changing PWA meta tags or manifest, user must delete and re-add PWA on iPhone home screen.</li>
+  <li><span class="tag blue">v1.1</span> <code>getUserMedia</code> (camera for QR scanning) requires HTTPS on iPhone Safari. Plain HTTP over Tailscale IP will block camera. Use <code>tailscale serve</code> for HTTPS or test QR on desktop with test data.</li>
+  <li><span class="tag blue">v1.1</span> QR scanner uses dynamic import (<code>import("html5-qrcode")</code>) so the library only loads when scanner opens. Desktop shows "Use iPhone" message instead of camera.</li>
+  <li><span class="tag blue">v1.1</span> Seed v2 data uses <code>seededV2</code> flag in SystemState so it runs on existing installs without re-seeding everything.</li>
+  <li><span class="tag blue">v1.1</span> LocalInventory uses compound unique constraint <code>@@unique([userId, partNumber])</code> &mdash; upsert handles increment/decrement.</li>
 </ul>
 
 <h2>Roadmap Summary</h2>
@@ -515,8 +526,13 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <tr><td>Phase 11: Image Upload System (base64, slot-based, thumbnails, mobile camera)</td><td class="complete">COMPLETE</td></tr>
   <tr><td>Phase 12: PWA + Tailscale + Electron Build (manifest, icon, unsigned .app)</td><td class="complete">COMPLETE</td></tr>
   <tr><td>Phase 13: Polish (bottom bar, logout, admin-only priority, type cleanup, calendar fill)</td><td class="complete">COMPLETE</td></tr>
-  <tr><td>Phase 14: Repair Docs + Chat Context (6 PDFs, docs API, chat data injection, clickable links)</td><td class="complete"><span class="tag blue">NEW</span> COMPLETE</td></tr>
-  <tr><td>Phase 15: Custom Shield Icon (SVG login logo, macOS .icns, PWA icons)</td><td class="complete"><span class="tag blue">NEW</span> COMPLETE</td></tr>
+  <tr><td>Phase 14: Repair Docs + Chat Context (6 PDFs, docs API, chat data injection, clickable links)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 15: Custom Shield Icon (SVG login logo, macOS .icns, PWA icons)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 16: Parts Stocking + Local Inventory (4 new Prisma models, per-tech stock, seed data)</td><td class="complete"><span class="tag blue">v1.1</span> COMPLETE</td></tr>
+  <tr><td>Phase 17: QR Code Scanning (html5-qrcode, QR IN/OUT, WO part scanning, desktop redirect)</td><td class="complete"><span class="tag blue">v1.1</span> COMPLETE</td></tr>
+  <tr><td>Phase 18: Mock Manufacturer &amp; SaaS APIs (mockSaasSync, mockManufacturerApi, 12 new endpoints)</td><td class="complete"><span class="tag blue">v1.1</span> COMPLETE</td></tr>
+  <tr><td>Phase 19: Recommended Hardware Catalog (12 Amazon items, in-app sub-page with prices)</td><td class="complete"><span class="tag blue">v1.1</span> COMPLETE</td></tr>
+  <tr><td>Phase 20: UI Polish + Demo Video (notification card update, annotated demo video, GitHub Pages)</td><td class="complete"><span class="tag blue">v1.1</span> COMPLETE</td></tr>
 </table>
 
 <h2>Future Roadmap (When APIs Available)</h2>
@@ -556,9 +572,26 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Feb 28, 2:30 AM. 45 WOs, 4 types, 3 templates, AI chat with full context, 6 repair PDFs, admin-only priority, custom icon, image uploads, parts management, FedEx labels, 8-week calendar.</li>
 </ul>
 
+<h3>Session 2: March 1, 2026 <span class="tag blue">v1.1</span> <span class="tag">COMPLETE</span></h3>
+<ul>
+  <li><strong>Phase 16&ndash;20:</strong> Added Parts Stocking page, QR scanning, mock manufacturer/SaaS APIs, recommended hardware, notification updates.</li>
+  <li><strong>4 new Prisma models:</strong> LocalInventory (compound unique userId+partNumber), PartScanLog (audit trail), ManufacturerPartLog (equipment part tracking), RecommendedPart (Amazon catalog).</li>
+  <li><strong>12 new API endpoints:</strong> Inventory CRUD, QR IN/OUT, WO scan-installed/removed, scan-history, recommended-parts, test-qr-codes.</li>
+  <li><strong>2 mock API helpers:</strong> <code>mockSaasSync()</code> (200ms delay) and <code>mockManufacturerApi()</code> (300ms delay) simulate real integrations with console logging.</li>
+  <li><strong>QR scanner component:</strong> <code>QrScannerModal</code> using html5-qrcode with rear camera, desktop detection (shows "Use iPhone via Tailscale" message + Go Back button), mobile camera error handling.</li>
+  <li><strong>Parts Stocking page:</strong> Sidebar layout with Parts Order Platform link, Recommended Hardware sub-page (12 items), QR IN/OUT buttons with mandatory reason for OUT. Inventory list with quantity badges.</li>
+  <li><strong>WO Parts QR update:</strong> Added "Scan NEW Part Installed" and "Scan REMOVED/FAILED Part" buttons to existing parts page with reason field.</li>
+  <li><strong>Notification card polish:</strong> Increased padding (14&rarr;20px), border-radius (10&rarr;16px), border width (4&rarr;5px), font sizes bumped, added shadow + hover scale effect.</li>
+  <li><strong>Dashboard nav:</strong> Added 6th button "Parts Stocking" to main navigation grid (now 2x3).</li>
+  <li><strong>DB migration fix:</strong> Changed backend-runner.js from <code>prisma migrate deploy</code> to <code>prisma db push --skip-generate</code> since DB was created with db push (no migration history).</li>
+  <li><strong>Seed data:</strong> Added 15 initial inventory items for tech1 and 12 recommended Amazon hardware items under <code>seededV2</code> flag.</li>
+  <li><strong>Annotated demo video:</strong> 7:18 screen recording with 20 text overlay sections explaining each feature. Posted to <a href="https://hosagealexaxle.github.io/ta-demo/" style="color:#1565c0">hosagealexaxle.github.io/ta-demo</a>.</li>
+  <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Mar 1, 10:30 AM. All v1.0 features preserved + Parts Stocking, QR Scanning, Recommended Hardware, Mock APIs.</li>
+</ul>
+
 <div class="footer">
-  <p>Technician Assistant v1.0 &mdash; Mock Adapter Architecture &mdash; GPT-4.1-mini Chat &mdash; 45 Work Orders &mdash; 6 Repair PDFs &mdash; Admin/Tech RBAC &mdash; Port 4300</p>
-  <p>Updated February 28, 2026</p>
+  <p>Technician Assistant v1.1 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 45 Work Orders &mdash; 20 Models &mdash; 37+ Endpoints &mdash; QR Scanning &mdash; Port 4300</p>
+  <p>Updated March 1, 2026</p>
 </div>
 
 </body>
