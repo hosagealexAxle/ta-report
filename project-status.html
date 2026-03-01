@@ -35,7 +35,7 @@
 <body>
 
 <h1>Technician Assistant</h1>
-<div class="subtitle">Project Status &mdash; March 1, 2026 (v1.1 &mdash; Parts Stocking, QR Scanning, Mock Manufacturer APIs)</div>
+<div class="subtitle">Project Status &mdash; March 1, 2026 (v1.2 &mdash; Editable Time, Auto-Refresh Close, QR Swap Test, 7 Overdue WOs)</div>
 
 <h2>Executive Summary</h2>
 <p><strong>Technician Assistant (TA)</strong> is a field service management application that provides technicians with a controlled, read/write interface to Salesforce work order data &mdash; without giving them direct access to Salesforce or any other enterprise SaaS platform. The app is purpose-built for HVAC/mechanical field technicians who need to view assigned work orders, complete line items, upload site photos, track parts usage, report out-of-box issues, and manage their weekly schedule &mdash; all from a single mobile-friendly interface.</p>
@@ -65,7 +65,7 @@
 
 <p><strong>Mock Adapter Architecture:</strong> Since Salesforce, Equipment System, and FedEx APIs are not yet available, the entire app runs on a <strong>mock adapter layer</strong> that simulates real API behavior using seeded data in a local SQLite database. The mock layer is functionally identical to what the real adapters will provide &mdash; same data shapes, same response patterns, same error handling. When real APIs are available, each integration swaps by changing one environment variable (<code>USE_MOCK=false</code>) and implementing one adapter file per service. Zero frontend changes required.</p>
 
-<p><strong>Current state:</strong> The app is fully functional with 45 seeded work orders spanning 8 weeks, 50 parts catalog entries, 20 notifications, 15 local inventory items, 12 recommended hardware items, equipment data per WO, 6 repair reference PDFs, QR code scanning for parts in/out, and a context-aware AI assistant. It runs as a macOS Electron desktop app accessible locally and via Tailscale on iPhone as a PWA.</p>
+<p><strong>Current state:</strong> The app is fully functional with 49 seeded work orders (7 overdue) spanning 8 weeks, 50 parts catalog entries, 20 notifications, 15 local inventory items, 12 recommended hardware items, equipment data per WO, 6 repair reference PDFs, QR code scanning for parts in/out with part-level serial tracking, and a context-aware AI assistant. It runs as a macOS Electron desktop app accessible locally and via Tailscale on iPhone as a PWA.</p>
 
 <div class="section-done">
 <strong>v1.0 BUILD COMPLETE (Feb 28, 2:30 AM):</strong> Full application built and deployed in a single session. 45 work orders across 8 weeks (3 overdue), 4 WO types with 3 template workflows, AI chat with full data context + 6 repair PDFs, admin-only priority control, custom shield icon, image uploads, parts management, FedEx label generation, and 8-week schedule calendar.
@@ -147,13 +147,13 @@
   </li>
   <li><strong>System Data / Instructions:</strong> Split panel with equipment specs (capacity, voltage, phase, refrigerant, airflow, SEER, weight, model, firmware, install date, warranty, location) on left, PDF/video guide links on right.</li>
   <li><strong>Notes:</strong> Free-text textarea that saves per WO via PATCH endpoint.</li>
-  <li><strong>Close button:</strong> Validates parts completion for service types before allowing close. Sets dateCompleted + timeCompleted automatically. Logs to ActionLog.</li>
+  <li><strong>Close button:</strong> Validates parts completion for service types before allowing close. Sets dateCompleted + timeCompleted automatically. Logs to ActionLog. Auto-refreshes overdue banner on main screen after close. <span class="tag blue">UPDATED v1.2</span></li>
 </ul>
 
 <h3>Service Template (Types 1, 4)</h3>
 <ul>
   <li><strong>Action buttons:</strong> Parts/Supplies (navigates to parts page), Push SW Update (simulated 2s delay, marks <code>swPushed=true</code>)</li>
-  <li><strong>Time section:</strong> Date/Time Requested (read-only), Time Completed (time picker input)</li>
+  <li><strong>Time section:</strong> Date/Time Requested (read-only), Time Completed (time picker input &mdash; always editable until WO is closed, then read-only) <span class="tag blue">UPDATED v1.2</span></li>
   <li><strong>Image uploads:</strong> 4 slots &mdash; System 1, System 2, Damage, Wide View. Click to open file picker. Thumbnail preview after upload.</li>
   <li><strong>Line items:</strong> 8 checkable items (Inspect system, Check refrigerant, Clean coils, Test electrical, Verify thermostat, Inspect ductwork, Replace filters, Document readings). Toggle YES/NO per item.</li>
   <li><strong>Close validation:</strong> Parts page must be completed (<code>partsCompleted=true</code>) before closing. Server returns 400 with message if parts not done.</li>
@@ -204,7 +204,7 @@
   </li>
   <li><strong>Center:</strong> Scrollable parts inventory list showing part name, part number/category, and quantity badge</li>
   <li><strong>Desktop behavior:</strong> QR buttons show "Use iPhone via Tailscale" message with Go Back button instead of camera</li>
-  <li><strong>QR Data Format:</strong> JSON string <code>{"pn":"CMP-A007","name":"Compressor Module A-7","cat":"Compressor"}</code></li>
+  <li><strong>QR Data Format:</strong> JSON string <code>{"pn":"CMP-A007","name":"Compressor Module A-7","cat":"Compressor"}</code>. Optional <code>sn</code> field for part-level serial tracking. <span class="tag blue">UPDATED v1.2</span></li>
   <li><strong>Mobile responsive:</strong> Sidebar collapses to horizontal row on small screens</li>
 </ul>
 
@@ -268,7 +268,7 @@
 <table>
   <tr><th>Data Type</th><th>Quantity</th><th>Details</th></tr>
   <tr><td>Users</td><td>2</td><td>admin (Alex Hosage, admin role) + tech1 (Jordan Mitchell, tech role)</td></tr>
-  <tr><td>Work Orders</td><td>45</td><td>Types 1&ndash;4 distributed ~40% service, 20% install, 20% maintenance, 20% service. 3 overdue. Spread across 8 weeks (Mon&ndash;Sat, 1&ndash;2/day).</td></tr>
+  <tr><td>Work Orders</td><td>49</td><td>Types 1&ndash;4 distributed ~40% service, 20% install, 20% maintenance, 20% service. 7 overdue (offsets -1 to -7 days). Spread across 8 weeks (Mon&ndash;Sat, 1&ndash;2/day). <span class="tag blue">UPDATED v1.2</span></td></tr>
   <tr><td>Line Items</td><td>~270</td><td>8 per service WO, 5 per install/maintenance WO</td></tr>
   <tr><td>Schedule Entries</td><td>45</td><td>One per WO, matching scheduled dates</td></tr>
   <tr><td>Equipment Data</td><td>45</td><td>One per WO: model, firmware, specs (JSON), location, warranty</td></tr>
@@ -396,8 +396,8 @@
 <h3>WO Parts QR Scanning <span class="tag blue">NEW v1.1</span></h3>
 <table>
   <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
-  <tr><td>POST</td><td>/api/parts/:woId/scan-installed</td><td>Scan new part QR &rarr; write to mock Manufacturer API &rarr; log to ManufacturerPartLog</td></tr>
-  <tr><td>POST</td><td>/api/parts/:woId/scan-removed</td><td>Scan failed part QR (reason required) &rarr; write to mock SaaS &rarr; log to PartScanLog</td></tr>
+  <tr><td>POST</td><td>/api/parts/:woId/scan-installed</td><td>Scan new part QR &rarr; write to mock Manufacturer API &rarr; log to ManufacturerPartLog. Accepts optional <code>serialNumber</code> for part-level tracking. <span class="tag blue">UPDATED v1.2</span></td></tr>
+  <tr><td>POST</td><td>/api/parts/:woId/scan-removed</td><td>Scan failed part QR (reason required) &rarr; write to mock SaaS &rarr; log to PartScanLog. Accepts optional <code>serialNumber</code> for part-level tracking. <span class="tag blue">UPDATED v1.2</span></td></tr>
   <tr><td>GET</td><td>/api/parts/:woId/scan-history</td><td>Get scan history for a work order</td></tr>
 </table>
 
@@ -405,7 +405,7 @@
 <table>
   <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
   <tr><td>GET</td><td>/api/recommended-parts</td><td>List 12 recommended Amazon hardware items (name, description, url, category, price)</td></tr>
-  <tr><td>GET</td><td>/api/test-qr-codes</td><td>Generate test QR data from parts catalog (JSON format for testing)</td></tr>
+  <tr><td>GET</td><td>/api/test-qr-codes</td><td>Generate test QR data from parts catalog (JSON format for testing) + 2 swap test QR entries with part serial numbers <span class="tag blue">UPDATED v1.2</span></td></tr>
 </table>
 
 <h3>Actions</h3>
@@ -542,6 +542,7 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <tr><td>Phase 19: Recommended Hardware Catalog (12 Amazon items, in-app sub-page with prices)</td><td class="complete"><span class="tag blue">v1.1</span> COMPLETE</td></tr>
   <tr><td>Phase 20: UI Polish + Demo Video (notification card update, annotated demo video, GitHub Pages)</td><td class="complete"><span class="tag blue">v1.1</span> COMPLETE</td></tr>
   <tr><td>Phase 21: QR Scanner Stability + Tailscale HTTPS (scanner crash fix, Error Boundary, toast UI, HTTPS serving)</td><td class="complete"><span class="tag blue">v1.1.1</span> COMPLETE</td></tr>
+  <tr><td>Phase 22: Editable Time Fields + Auto-Refresh Close + QR Swap Test + More Overdue WOs</td><td class="complete"><span class="tag blue">v1.2</span> COMPLETE</td></tr>
 </table>
 
 <h2>Future Roadmap (When APIs Available)</h2>
@@ -613,8 +614,19 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Mar 1, 12:30 PM. QR scanning stable on iPhone, Error Boundary protection, toast UI, Tailscale HTTPS.</li>
 </ul>
 
+<h3>Session 4: March 1, 2026 <span class="tag blue">v1.2</span> <span class="tag">COMPLETE</span></h3>
+<ul>
+  <li><strong>Editable time fields:</strong> Time Completed input on Service and Install WO templates is now always editable (shows <code>&lt;input type="time"&gt;</code> with current value pre-filled). Techs can correct mistakes after setting a time. Input becomes read-only plain text only after WO is closed.</li>
+  <li><strong>Auto-refresh overdue banner:</strong> <code>closeWorkOrder()</code> now calls <code>loadOverdue()</code> after <code>loadWorkOrders()</code> so the overdue alert banner on the main dashboard updates immediately when a WO is closed &mdash; no full page reload needed.</li>
+  <li><strong>More overdue WOs in seed data:</strong> Expanded from 3 to 7 overdue work orders with day offsets -1 through -7. Total seeded WOs increased from 45 to 49. Overdue banner now shows 7 alerts on fresh install.</li>
+  <li><strong>QR swap test pair:</strong> Added 2 "SWAP TEST" entries to <code>/api/test-qr-codes</code> endpoint &mdash; same part (Compressor Module A-7 / CMP-A007) with different serial numbers (<code>CMP-NEW-20260301</code> for new replacement, <code>CMP-OLD-20240815</code> for old failed part). Simulates a real part swap on a work order.</li>
+  <li><strong>Part-level serial tracking:</strong> QR data now supports optional <code>sn</code> (serial number) field. <code>processScan()</code> passes <code>serialNumber</code> to scan-installed/scan-removed endpoints. Part serial is included in ActionLog detail strings and mock manufacturer API calls. No schema changes needed.</li>
+  <li><strong>Toast feedback updated:</strong> Scan success toasts now show part serial number when present (e.g. "Installed: Compressor Module A-7 (CMP-A007) [SN: CMP-NEW-20260301] logged to manufacturer.").</li>
+  <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Mar 1. 49 WOs (7 overdue), editable time until close, auto-refresh overdue banner, QR swap test with part serial tracking.</li>
+</ul>
+
 <div class="footer">
-  <p>Technician Assistant v1.1.1 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 45 Work Orders &mdash; 20 Models &mdash; 37+ Endpoints &mdash; QR Scanning &mdash; Tailscale HTTPS &mdash; Port 4300</p>
+  <p>Technician Assistant v1.2 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 49 Work Orders &mdash; 20 Models &mdash; 37+ Endpoints &mdash; QR Scanning + Part Serial Tracking &mdash; Tailscale HTTPS &mdash; Port 4300</p>
   <p>Updated March 1, 2026</p>
 </div>
 
