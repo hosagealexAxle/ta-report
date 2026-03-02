@@ -92,6 +92,22 @@
 </ul>
 </div>
 
+<div class="section-done">
+<strong>v1.3.1 SECURITY HARDENING (Mar 2, 12:00 AM):</strong> Full security audit and 10-point hardening pass across both TA and Spectra:
+<ul style="margin-top: 8px;">
+  <li><strong>HttpOnly Session Cookie</strong> &mdash; <code>ta_auth</code> cookie now includes <code>HttpOnly</code> flag, preventing JavaScript from reading the session token.</li>
+  <li><strong>Auth Bypass Fix</strong> &mdash; Localhost detection changed from <code>req.hostname</code> (client-spoofable Host header) to <code>req.ip</code> (actual remote address). Matches Spectra's implementation.</li>
+  <li><strong>Login Rate Limiting</strong> &mdash; Added <code>express-rate-limit</code> to login endpoints on both TA and Spectra. 5 attempts per minute per IP.</li>
+  <li><strong>CORS Restricted</strong> &mdash; Changed from <code>origin: "*"</code> to allowlist of known origins (localhost, 127.0.0.1, Tailscale IP) on both apps.</li>
+  <li><strong>bcrypt Password Hashing</strong> &mdash; TA passwords now hashed with <code>bcryptjs</code> (salted, 10 rounds) instead of plain SHA-256. Seed data updated. DB must be re-created.</li>
+  <li><strong>Generic Error Responses</strong> &mdash; All 37 API error handlers in TA now return <code>"server_error"</code> instead of leaking <code>err.message</code> to clients. Errors logged server-side.</li>
+  <li><strong>Zip Code Validation</strong> &mdash; Weather endpoint validates <code>/^\d{5}$/</code> pattern before passing to wttr.in URL.</li>
+  <li><strong>Security Headers (helmet)</strong> &mdash; Added <code>helmet</code> middleware to both TA and Spectra for X-Content-Type-Options, X-Frame-Options, Referrer-Policy, etc.</li>
+  <li><strong>Hardcoded Credentials Removed (Spectra)</strong> &mdash; Moved <code>GATE_HASH</code> fallback and <code>ReportMe26</code> admin override to <code>.env</code> variables. <code>ADMIN_OVERRIDE_HASH</code> uses SHA-256 comparison.</li>
+  <li><strong>minimatch Vulnerability Fixed (Spectra)</strong> &mdash; <code>npm audit fix</code> resolved 1 high-severity ReDoS in minimatch.</li>
+</ul>
+</div>
+
 <h2>System Architecture</h2>
 <table>
   <tr><th>Component</th><th>Technology</th><th>Details</th></tr>
@@ -531,6 +547,10 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <li><span class="tag blue">v1.1.1</span> <code>QrScannerModal</code> must be defined OUTSIDE the App component. If defined inside, React creates a new component identity on every render, causing remount issues with html5-qrcode's DOM manipulation.</li>
   <li><span class="tag blue">v1.1.1</span> Mobile Safari blocks <code>alert()</code> during async React state updates &mdash; can leave component tree in broken state. Use React state-based toast notifications instead.</li>
   <li><span class="tag blue">v1.1.1</span> Tailscale HTTPS serving: <code>tailscale serve --bg --https 8444 http://127.0.0.1:4300</code>. iPhone accesses via <code>https://alexs-mac-mini.tailb26e42.ts.net:8444</code>. Session cookies are separate from HTTP URL (must log in again).</li>
+  <li><span class="tag blue">v1.3.1</span> Passwords now use bcrypt (salted). DB must be deleted and re-seeded after upgrading from SHA-256. Old <code>ta.db</code> files with SHA-256 hashes will fail login.</li>
+  <li><span class="tag blue">v1.3.1</span> CORS is restricted to known origins. If accessing from a new Tailscale IP or URL, add it to <code>ALLOWED_ORIGINS</code> in server.js.</li>
+  <li><span class="tag blue">v1.3.1</span> Login rate-limited to 5 attempts/minute. If locked out during testing, wait 60 seconds.</li>
+  <li><span class="tag blue">v1.3.1</span> <code>ta_auth</code> cookie is HttpOnly — cannot be read by <code>document.cookie</code>. Session check must use <code>/api/auth/check</code> endpoint.</li>
 </ul>
 
 <h2>Roadmap Summary</h2>
@@ -559,6 +579,7 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <tr><td>Phase 21: QR Scanner Stability + Tailscale HTTPS (scanner crash fix, Error Boundary, toast UI, HTTPS serving)</td><td class="complete"><span class="tag blue">v1.1.1</span> COMPLETE</td></tr>
   <tr><td>Phase 22: Editable Time Fields + Auto-Refresh Close + QR Swap Test + More Overdue WOs</td><td class="complete"><span class="tag blue">v1.2</span> COMPLETE</td></tr>
   <tr><td>Phase 23: Parts/Inventory Sync + QR Scan Log + SW Push All Types</td><td class="complete"><span class="tag blue">v1.3</span> COMPLETE</td></tr>
+  <tr><td>Phase 24: Security Hardening (HttpOnly, bcrypt, rate limiting, helmet, CORS, error masking)</td><td class="complete"><span class="tag blue">v1.3.1</span> COMPLETE</td></tr>
 </table>
 
 <h2>Future Roadmap (When APIs Available)</h2>
@@ -654,7 +675,7 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
 </ul>
 
 <div class="footer">
-  <p>Technician Assistant v1.3 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 49 Work Orders &mdash; 20 Models &mdash; 37+ Endpoints &mdash; QR Scanning + Parts/Inventory Sync &mdash; Tailscale HTTPS &mdash; Port 4300</p>
+  <p>Technician Assistant v1.3.1 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 49 Work Orders &mdash; 20 Models &mdash; 37+ Endpoints &mdash; QR Scanning + Parts/Inventory Sync &mdash; Security Hardened &mdash; Tailscale HTTPS &mdash; Port 4300</p>
   <p>Updated March 1, 2026</p>
 </div>
 

@@ -733,6 +733,18 @@
       <li><strong>No data export</strong> &mdash; Data flows through controlled API endpoints only</li>
       <li><strong>QR scan audit trail</strong> &mdash; Every QR scan (in/out) is logged with timestamp, user, and reason</li>
     </ul>
+
+    <h3>Security Hardening <span class="tag tag-new">v1.3.1</span></h3>
+    <ul>
+      <li><strong>bcrypt password hashing</strong> &mdash; Salted, 10 rounds via bcryptjs (replaced SHA-256)</li>
+      <li><strong>HttpOnly session cookie</strong> &mdash; Session token cannot be read by client-side JavaScript</li>
+      <li><strong>Login rate limiting</strong> &mdash; 5 attempts per minute per IP via express-rate-limit</li>
+      <li><strong>CORS restricted</strong> &mdash; Only localhost, 127.0.0.1, and Tailscale IPs allowed (was <code>origin: *</code>)</li>
+      <li><strong>Security headers</strong> &mdash; helmet middleware: X-Content-Type-Options, X-Frame-Options, Referrer-Policy</li>
+      <li><strong>Auth bypass fix</strong> &mdash; Localhost detection uses <code>req.ip</code> (actual remote address) not <code>req.hostname</code> (client-spoofable)</li>
+      <li><strong>Generic error responses</strong> &mdash; API errors return <code>"server_error"</code> instead of leaking internal error messages</li>
+      <li><strong>Zip code validation</strong> &mdash; Weather endpoint validates <code>/^\d{5}$/</code> before making external request</li>
+    </ul>
   </div>
 
   <!-- DATA FLOW -->
@@ -909,7 +921,7 @@
   </div>
 
   <div class="footer">
-    Technician Assistant &mdash; Project Report v1.3<br>
+    Technician Assistant &mdash; Project Report v1.3.1<br>
     Updated March 1, 2026
   </div>
 
