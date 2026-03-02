@@ -35,7 +35,7 @@
 <body>
 
 <h1>Technician Assistant</h1>
-<div class="subtitle">Project Status &mdash; March 1, 2026 (v1.2 &mdash; Editable Time, Auto-Refresh Close, QR Swap Test, 7 Overdue WOs)</div>
+<div class="subtitle">Project Status &mdash; March 1, 2026 (v1.3 &mdash; Parts/Inventory Sync, QR Scan Log, SW Push All Types)</div>
 
 <h2>Executive Summary</h2>
 <p><strong>Technician Assistant (TA)</strong> is a field service management application that provides technicians with a controlled, read/write interface to Salesforce work order data &mdash; without giving them direct access to Salesforce or any other enterprise SaaS platform. The app is purpose-built for HVAC/mechanical field technicians who need to view assigned work orders, complete line items, upload site photos, track parts usage, report out-of-box issues, and manage their weekly schedule &mdash; all from a single mobile-friendly interface.</p>
@@ -65,7 +65,7 @@
 
 <p><strong>Mock Adapter Architecture:</strong> Since Salesforce, Equipment System, and FedEx APIs are not yet available, the entire app runs on a <strong>mock adapter layer</strong> that simulates real API behavior using seeded data in a local SQLite database. The mock layer is functionally identical to what the real adapters will provide &mdash; same data shapes, same response patterns, same error handling. When real APIs are available, each integration swaps by changing one environment variable (<code>USE_MOCK=false</code>) and implementing one adapter file per service. Zero frontend changes required.</p>
 
-<p><strong>Current state:</strong> The app is fully functional with 49 seeded work orders (7 overdue) spanning 8 weeks, 50 parts catalog entries, 20 notifications, 15 local inventory items, 12 recommended hardware items, equipment data per WO, 6 repair reference PDFs, QR code scanning for parts in/out with part-level serial tracking, and a context-aware AI assistant. It runs as a macOS Electron desktop app accessible locally and via Tailscale on iPhone as a PWA.</p>
+<p><strong>Current state:</strong> The app is fully functional with 49 seeded work orders (7 overdue) spanning 8 weeks, 50 parts catalog entries, 20 notifications, 15 local inventory items per user, 12 recommended hardware items, equipment data per WO, 6 repair reference PDFs, QR code scanning for parts in/out with part-level serial tracking, parts/inventory sync with auto-depletion, and a context-aware AI assistant. It runs as a macOS Electron desktop app accessible locally and via Tailscale on iPhone as a PWA.</p>
 
 <div class="section-done">
 <strong>v1.0 BUILD COMPLETE (Feb 28, 2:30 AM):</strong> Full application built and deployed in a single session. 45 work orders across 8 weeks (3 overdue), 4 WO types with 3 template workflows, AI chat with full data context + 6 repair PDFs, admin-only priority control, custom shield icon, image uploads, parts management, FedEx label generation, and 8-week schedule calendar.
@@ -79,13 +79,26 @@
 <strong>v1.1.1 PATCH (Mar 1, 12:30 PM):</strong> Fixed QR scanner crash on iPhone Safari &mdash; html5-qrcode was crashing the entire React tree when the scanner DOM was unmounted mid-cleanup. Scanner now fully stops (<code>await scanner.stop()</code> + <code>scanner.clear()</code>) before signaling parent. Moved QrScannerModal outside App component for stable React identity. Added React Error Boundary (<code>AppErrorBoundary</code>) wrapping the entire app. Replaced <code>alert()</code> with non-blocking toast notifications. Set up Tailscale HTTPS serving (port 8444) for camera access on iPhone. Added test QR codes in <code>qr-test/</code> folder. iPhone QR test video posted to GitHub Pages demo site.
 </div>
 
+<div class="section-new">
+<strong>v1.3 UPDATE (Mar 1, 10:30 PM):</strong> Major parts page overhaul and cross-system sync:
+<ul style="margin-top: 8px;">
+  <li><strong>SW Push on All WO Types</strong> &mdash; Software push button now available on Install (Type 2) and Maintenance (Type 3) templates, not just Service. All WO types can push firmware updates to equipment.</li>
+  <li><strong>Parts/Inventory Sync</strong> &mdash; Each part row on the WO parts page now shows two checkboxes: <em>"Shipped to site"</em> (part came from a shipment) and <em>"Local inventory (qty)"</em> (part pulled from tech's local stock). Mutually exclusive &mdash; checking one unchecks the other. When "Local inventory" is checked and parts are submitted, the backend auto-depletes inventory by the quantity used and creates a scan log entry.</li>
+  <li><strong>QR Scan Log on Parts Page</strong> &mdash; After scanning an installed or removed part via QR on the WO parts page, a "Scan Log" section now appears showing all scan entries for that WO. Color-coded: green for IN (installed), red for OUT (removed), with part name, number, and timestamp. Log persists on page so tech knows scans were recorded before scanning again.</li>
+  <li><strong>Parts Page State Reset</strong> &mdash; Notes, QR reason text, return labels, and scan history now properly reset when navigating between different work orders' parts pages. Previously these carried over.</li>
+  <li><strong>Inventory Seeded for All Users</strong> &mdash; Local inventory now seeded for both admin and tech users (was tech1 only). 15 parts per user.</li>
+  <li><strong>Prisma Schema</strong> &mdash; Added <code>shipped</code> (Boolean) and <code>fromInventory</code> (Boolean) fields to PartEntry model. Prisma client regenerated.</li>
+  <li><strong>iPhone Demo Video</strong> &mdash; New 1:42 annotated screen recording posted to GitHub Pages showing QR IN/OUT on inventory, Belt Drive Kit flow through WO parts page, scan log, SW push, and inventory depletion.</li>
+</ul>
+</div>
+
 <h2>System Architecture</h2>
 <table>
   <tr><th>Component</th><th>Technology</th><th>Details</th></tr>
   <tr><td>Desktop App</td><td>Electron 33</td><td>macOS ARM64, unsigned build, custom TA shield icon</td></tr>
   <tr><td>Backend</td><td>Express 5 (ESM)</td><td>Port 4300, binds 0.0.0.0. Single server.js (~880 lines). Cookie-based auth, 3-hour sessions. 2 mock API helpers.</td></tr>
   <tr><td>Dashboard</td><td>React 19 + Vite 7</td><td>Single monolithic App.jsx (~1100 lines). State-based page navigation, no router. 16 page states. QR scanner component.</td></tr>
-  <tr><td>Database</td><td>SQLite + Prisma 6</td><td>20 models (~280 lines schema), auto-migrates on startup via db push</td></tr>
+  <tr><td>Database</td><td>SQLite + Prisma 6</td><td>20 models (~280 lines schema, PartEntry updated with shipped/fromInventory), auto-migrates on startup via db push</td></tr>
   <tr><td>Chat LLM</td><td>Claude Sonnet 4.6 (primary) / GPT-4.1-mini (fallback)</td><td>Full WO + schedule + docs context injected into system prompt. Clickable PDF links in responses.</td></tr>
   <tr><td>Weather</td><td>wttr.in API</td><td>No API key needed. Shows temp, condition for tech's zip code.</td></tr>
   <tr><td>Mock Layer</td><td>Prisma/SQLite</td><td>USE_MOCK=true. 45 WOs, 50 parts, 20 notifications, 15 inventory items, 12 recommended parts, equipment data. Swap-ready for real APIs.</td></tr>
@@ -161,7 +174,7 @@
 
 <h3>Install Template (Type 2)</h3>
 <ul>
-  <li><strong>Action buttons:</strong> Out of Box Issue (navigates to OOB page), Parts/Supplies</li>
+  <li><strong>Action buttons:</strong> Out of Box Issue (navigates to OOB page), Parts/Supplies, Push SW Update <span class="tag blue">NEW v1.3</span></li>
   <li><strong>PDF/Video guides:</strong> Model-specific installation manual + setup walkthrough links</li>
   <li><strong>Line items:</strong> 5 items (Verify site readiness, Unbox/inspect, Mount unit, Connect electrical, Connect plumbing)</li>
   <li><strong>Image uploads:</strong> 10 slots (Install 1&ndash;10)</li>
@@ -170,12 +183,12 @@
 
 <h3>Maintenance Template (Type 3)</h3>
 <ul>
-  <li>Identical to Install template but <strong>without</strong> the Out of Box Issue button</li>
+  <li>Identical to Install template but <strong>without</strong> the Out of Box Issue button. Includes Push SW Update button. <span class="tag blue">UPDATED v1.3</span></li>
 </ul>
 
 <h3>P14: Parts Page</h3>
 <ul>
-  <li>10-row parts form, each row: quantity input (0&ndash;99), dropdown (50-item catalog), part name display, confirmation checkbox</li>
+  <li>10-row parts form, each row: quantity input (0&ndash;99), dropdown (50-item catalog), part name display</li>
   <li>Parts catalog organized by category: Compressor, Filter, Electronics, Sensor, Motor, Drive, Bearing, Valve, Gasket, Wiring, Power, Cooling, Hardware, Seal, Supply, Plumbing, Control, Duct, Insulation, Air Quality, Safety, Ignition</li>
   <li>Free-text notes field for additional parts information</li>
   <li><span class="tag blue">NEW v1.1</span> <strong>QR Part Scanning section:</strong>
@@ -185,9 +198,11 @@
       <li><strong>Scan REMOVED / FAILED Part:</strong> Opens QR scanner (red/danger button), writes to mock SaaS with reason, logs to PartScanLog</li>
     </ul>
   </li>
+  <li><span class="tag blue">NEW v1.3</span> <strong>Dual source checkboxes:</strong> Each part row shows <em>"Shipped to site"</em> (yellow when checked) and <em>"Local inventory (qty)"</em> (green when checked, displays current stock count). Mutually exclusive &mdash; checking one unchecks the other.</li>
+  <li><span class="tag blue">NEW v1.3</span> <strong>Scan Log section:</strong> After any QR scan (install or remove), a color-coded log appears on the parts page showing all scan entries for this WO. Green = IN (installed), red = OUT (removed), with part name, number, and timestamp. Persists so tech can verify scans were recorded.</li>
   <li>2 image upload slots for parts photos</li>
   <li>FedEx Return Label button &mdash; generates mock tracking number (794XXXXXXXXX), creates ReturnLabel record</li>
-  <li>Submit button saves all parts, marks <code>partsCompleted=true</code> on WO, returns to WO page</li>
+  <li>Submit button saves all parts, marks <code>partsCompleted=true</code> on WO. If any parts marked "Local inventory", backend auto-depletes stock by quantity used and logs to PartScanLog. Returns to WO page.</li>
 </ul>
 
 <h3>P16: Parts Stocking <span class="tag blue">NEW v1.1</span></h3>
@@ -274,7 +289,7 @@
   <tr><td>Equipment Data</td><td>45</td><td>One per WO: model, firmware, specs (JSON), location, warranty</td></tr>
   <tr><td>Parts Catalog</td><td>50</td><td>Organized across 22 categories with realistic HVAC part names/numbers</td></tr>
   <tr><td>Notifications</td><td>20</td><td>Mix of info, warning, urgent types spanning 20 days</td></tr>
-  <tr><td>Local Inventory <span class="tag blue">v1.1</span></td><td>15</td><td>Per-tech stock items for tech1 (filters, sensors, capacitors, etc.) with varying quantities</td></tr>
+  <tr><td>Local Inventory <span class="tag blue">v1.1</span></td><td>15 per user</td><td>Per-tech stock items seeded for all users (filters, sensors, capacitors, etc.) with varying quantities <span class="tag blue">UPDATED v1.3</span></td></tr>
   <tr><td>Recommended Parts <span class="tag blue">v1.1</span></td><td>12</td><td>Amazon hardware items: HVAC tools, meters, hand tools, measuring, safety gear with prices</td></tr>
   <tr><td>Accounts</td><td>45</td><td>Realistic business names, addresses across 20+ US cities, unique serial numbers</td></tr>
 </table>
@@ -308,7 +323,7 @@
   <tr><td>WorkOrder</td><td>Core WO record</td><td>woNumber (unique), type (1&ndash;4), status, priority (1&ndash;3), scheduledDate, dueDate, serialNumber, accountName, accountAddress, partsRequired, partsCompleted, swPushed, sfId (future Salesforce ID)</td></tr>
   <tr><td>LineItem</td><td>Checkable tasks per WO</td><td>workOrderId (FK, cascade), lineNumber, description, trackingNum, completed</td></tr>
   <tr><td>WoImage</td><td>Image uploads per WO</td><td>workOrderId (FK, cascade), slot (system1, damage, install1&ndash;10, oob1&ndash;10, part1&ndash;2), fileName, filePath</td></tr>
-  <tr><td>PartEntry</td><td>Parts used per WO</td><td>workOrderId (FK, cascade), rowNumber, partName, partNumber, quantity, confirmed</td></tr>
+  <tr><td>PartEntry</td><td>Parts used per WO</td><td>workOrderId (FK, cascade), rowNumber, partName, partNumber, quantity, confirmed, shipped, fromInventory <span class="tag blue">v1.3</span></td></tr>
   <tr><td>PartsCatalog</td><td>Dropdown options</td><td>partName, partNumber (unique), category</td></tr>
   <tr><td>OutOfBoxIssue</td><td>OOB damage report</td><td>workOrderId, issueDate, systemNumber, shippingDamage, systemIssue, missingItems, otherNotes</td></tr>
   <tr><td>ScheduleEntry</td><td>Calendar entries</td><td>workOrderId, woNumber, title, scheduledDate, accountName</td></tr>
@@ -543,6 +558,7 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <tr><td>Phase 20: UI Polish + Demo Video (notification card update, annotated demo video, GitHub Pages)</td><td class="complete"><span class="tag blue">v1.1</span> COMPLETE</td></tr>
   <tr><td>Phase 21: QR Scanner Stability + Tailscale HTTPS (scanner crash fix, Error Boundary, toast UI, HTTPS serving)</td><td class="complete"><span class="tag blue">v1.1.1</span> COMPLETE</td></tr>
   <tr><td>Phase 22: Editable Time Fields + Auto-Refresh Close + QR Swap Test + More Overdue WOs</td><td class="complete"><span class="tag blue">v1.2</span> COMPLETE</td></tr>
+  <tr><td>Phase 23: Parts/Inventory Sync + QR Scan Log + SW Push All Types</td><td class="complete"><span class="tag blue">v1.3</span> COMPLETE</td></tr>
 </table>
 
 <h2>Future Roadmap (When APIs Available)</h2>
@@ -625,8 +641,20 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Mar 1. 49 WOs (7 overdue), editable time until close, auto-refresh overdue banner, QR swap test with part serial tracking.</li>
 </ul>
 
+<h3>Session 5: March 1, 2026 <span class="tag blue">v1.3</span> <span class="tag">COMPLETE</span></h3>
+<ul>
+  <li><strong>SW Push on all WO types:</strong> Push SW Update button and "SW Pushed" badge added to Install (Type 2) and Maintenance (Type 3) templates. Was previously only on Service. All work order types can now push firmware updates to equipment.</li>
+  <li><strong>Parts/Inventory Sync:</strong> Parts page rewritten with dual-checkbox system. Each part row shows "Shipped to site" (yellow) and "Local inventory (qty)" (green + stock count). Mutually exclusive &mdash; checking one unchecks the other. When "Local inventory" is checked and parts are submitted, backend auto-depletes stock by quantity and creates a PartScanLog entry.</li>
+  <li><strong>QR Scan Log on parts page:</strong> After scanning an installed or removed part via QR, a color-coded Scan Log section appears showing all scan entries for that WO. Green for IN, red for OUT, with part name, number, and timestamp. Persists so tech can verify scans before scanning again.</li>
+  <li><strong>Parts page state reset:</strong> Notes, QR reason text, return labels, and scan history now properly reset when navigating between different work orders' parts pages.</li>
+  <li><strong>Inventory seeded for all users:</strong> Local inventory now seeded for both admin and tech users (was tech1 only). 15 parts per user.</li>
+  <li><strong>Prisma schema update:</strong> Added <code>shipped</code> (Boolean) and <code>fromInventory</code> (Boolean) fields to PartEntry model.</li>
+  <li><strong>Annotated iPhone demo:</strong> New 1:42 screen recording with 41 text overlay sections posted to <a href="https://hosagealexaxle.github.io/ta-demo/" style="color:#1565c0">ta-demo GitHub Pages</a>. Shows QR IN/OUT on inventory, Belt Drive Kit flow, scan log, SW push, and inventory depletion.</li>
+  <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Mar 1, 10:30 PM. Parts/Inventory sync, QR scan log, SW push on all types.</li>
+</ul>
+
 <div class="footer">
-  <p>Technician Assistant v1.2 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 49 Work Orders &mdash; 20 Models &mdash; 37+ Endpoints &mdash; QR Scanning + Part Serial Tracking &mdash; Tailscale HTTPS &mdash; Port 4300</p>
+  <p>Technician Assistant v1.3 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 49 Work Orders &mdash; 20 Models &mdash; 37+ Endpoints &mdash; QR Scanning + Parts/Inventory Sync &mdash; Tailscale HTTPS &mdash; Port 4300</p>
   <p>Updated March 1, 2026</p>
 </div>
 

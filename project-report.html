@@ -216,7 +216,7 @@
     <div class="logo">TA</div>
     <h1>Technician Assistant</h1>
     <div class="subtitle">Field Technician Work Order & Reporting App</div>
-    <div class="date">Project Report — March 1, 2026 (v1.2)</div>
+    <div class="date">Project Report — March 1, 2026 (v1.3)</div>
   </div>
 
   <!-- OVERVIEW -->
@@ -362,6 +362,31 @@
       <div class="flow-box new">SaaS Sync</div>
     </div>
 
+    <h3>New v1.3 Flows</h3>
+    <div class="flow">
+      <div class="flow-box">P14 Parts Page</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">Select "Local Inventory"</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">Submit Parts</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">Inventory Auto-Depleted</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box">P14 Parts Page</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">QR Scan (Install/Remove)</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">Scan Log Updated</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box">P7/P8 Install/Maint WO</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">Push SW Update</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">SW Pushed Badge</div>
+    </div>
+
     <div class="callout">
       <strong>Auto-Load Rule:</strong> If a work order is past due by 1+ day, it automatically loads when the main dashboard opens &mdash; tech can't miss it.
     </div>
@@ -502,6 +527,7 @@
       <div class="page-label">Page 7</div>
       <h3>Type 2 &mdash; Install Work Order</h3>
       <p><strong>Top:</strong> Out of Box Issue button <span class="tag tag-nav">&rarr; P15</span> + Parts/Supplies button <span class="tag tag-nav">&rarr; P14</span></p>
+      <p><strong>Action:</strong> Push latest SW to equipment <span class="tag tag-external">System API</span> <span class="tag tag-new">NEW v1.3</span></p>
       <p><strong>Left Column:</strong></p>
       <ul>
         <li>Order Type, Date/Time Requested <span class="tag tag-read">API Read</span></li>
@@ -524,6 +550,7 @@
       <ul>
         <li><strong>No</strong> Out of Box Issue button</li>
         <li>Page labeled <strong>"Maintenance"</strong> instead of "Install"</li>
+        <li>Includes Push SW Update button <span class="tag tag-new">NEW v1.3</span></li>
       </ul>
     </div>
 
@@ -544,7 +571,9 @@
       <ul>
         <li>Parts Used: quantity (user enters manually)</li>
         <li>Part Name & Number: dropdown selector <span class="tag tag-read">API Read</span></li>
-        <li>Confirm checkbox <span class="tag tag-write">API Write</span></li>
+        <li><strong>Shipped to site</strong> checkbox &mdash; marks part as used from a shipment <span class="tag tag-write">API Write</span> <span class="tag tag-new">NEW v1.3</span></li>
+        <li><strong>Local inventory (qty)</strong> checkbox &mdash; marks part as pulled from tech's local stock. Shows current stock count. Auto-depletes inventory by quantity on submit <span class="tag tag-write">Inventory Write</span> <span class="tag tag-new">NEW v1.3</span></li>
+        <li>Shipped and Inventory are mutually exclusive &mdash; checking one unchecks the other</li>
       </ul>
       <p><strong>QR Part Scanning:</strong> <span class="tag tag-new">NEW v1.1</span></p>
       <ul>
@@ -552,13 +581,19 @@
         <li><strong>Reason field</strong> &mdash; required text explanation before scanning failed/removed parts</li>
         <li><strong>Scan REMOVED / FAILED Part</strong> &mdash; opens phone camera, scans part QR code, records removal to SaaS with reason <span class="tag tag-write">SaaS Write</span></li>
       </ul>
+      <p><strong>Scan Log:</strong> <span class="tag tag-new">NEW v1.3</span></p>
+      <ul>
+        <li>After any QR scan (install or remove), a <strong>Scan Log</strong> section appears showing all scan entries for this WO</li>
+        <li>Color-coded: green for IN (installed), red for OUT (removed) with part name, number, and timestamp</li>
+        <li>Persists on page so tech can verify scans before scanning again</li>
+      </ul>
       <p><strong>Below Parts:</strong></p>
       <ul>
         <li>Notes field <span class="tag tag-write">API Write to SaaS</span></li>
         <li>Part Image 1 & Part Image 2 uploads <span class="tag tag-write">Upload to SaaS</span></li>
         <li>Request Return Label <span class="tag tag-external">FedEx API</span> or display shipping account number</li>
       </ul>
-      <p><strong>Submit:</strong> Returns to work order for final close.</p>
+      <p><strong>Submit:</strong> Returns to work order for final close. If any parts marked "Local inventory", stock is auto-depleted.</p>
     </div>
 
     <!-- P15 -->
@@ -734,14 +769,14 @@
   <div class="section">
     <h2>8. Work Order Type Matrix</h2>
     <table>
-      <tr><th>Type</th><th>Name</th><th>Template</th><th>Parts Required?</th><th>Out of Box?</th><th>QR Scanning?</th><th>Image Uploads</th></tr>
-      <tr><td>1</td><td>Service</td><td>Service (P6)</td><td>Yes &mdash; mandatory</td><td>No</td><td>Yes</td><td>4</td></tr>
-      <tr><td>2</td><td>Install</td><td>Install (P7)</td><td>Optional</td><td>Yes</td><td>Yes</td><td>9&ndash;10</td></tr>
-      <tr><td>3</td><td>Maintenance</td><td>Install (no OOB)</td><td>Optional</td><td>No</td><td>Yes</td><td>9&ndash;10</td></tr>
-      <tr><td>4</td><td>Service</td><td>Service (P6)</td><td>Yes &mdash; mandatory</td><td>No</td><td>Yes</td><td>4</td></tr>
-      <tr><td>5&ndash;8</td><td>TBD</td><td>Service (P6)</td><td>Yes &mdash; mandatory</td><td>No</td><td>Yes</td><td>4</td></tr>
+      <tr><th>Type</th><th>Name</th><th>Template</th><th>Parts Required?</th><th>Out of Box?</th><th>SW Push?</th><th>QR Scanning?</th><th>Image Uploads</th></tr>
+      <tr><td>1</td><td>Service</td><td>Service (P6)</td><td>Yes &mdash; mandatory</td><td>No</td><td>Yes</td><td>Yes</td><td>4</td></tr>
+      <tr><td>2</td><td>Install</td><td>Install (P7)</td><td>Optional</td><td>Yes</td><td>Yes <span class="tag tag-new">v1.3</span></td><td>Yes</td><td>9&ndash;10</td></tr>
+      <tr><td>3</td><td>Maintenance</td><td>Install (no OOB)</td><td>Optional</td><td>No</td><td>Yes <span class="tag tag-new">v1.3</span></td><td>Yes</td><td>9&ndash;10</td></tr>
+      <tr><td>4</td><td>Service</td><td>Service (P6)</td><td>Yes &mdash; mandatory</td><td>No</td><td>Yes</td><td>Yes</td><td>4</td></tr>
+      <tr><td>5&ndash;8</td><td>TBD</td><td>Service (P6)</td><td>Yes &mdash; mandatory</td><td>No</td><td>Yes</td><td>Yes</td><td>4</td></tr>
     </table>
-    <div class="callout">Effectively 3 unique page templates: <strong>Service</strong> (Type 1 &mdash; used by 6 types), <strong>Install</strong> (Type 2), and <strong>Maintenance</strong> (Type 3 &mdash; Install without Out of Box). All types now include QR Part Scanning on the Parts page.</div>
+    <div class="callout">Effectively 3 unique page templates: <strong>Service</strong> (Type 1 &mdash; used by 6 types), <strong>Install</strong> (Type 2), and <strong>Maintenance</strong> (Type 3 &mdash; Install without Out of Box). All types now include QR Part Scanning on the Parts page and SW Push capability.</div>
   </div>
 
   <!-- QR SCANNING WORKFLOW -->
@@ -874,7 +909,7 @@
   </div>
 
   <div class="footer">
-    Technician Assistant &mdash; Project Report v1.2<br>
+    Technician Assistant &mdash; Project Report v1.3<br>
     Updated March 1, 2026
   </div>
 
