@@ -216,7 +216,7 @@
     <div class="logo">TA</div>
     <h1>Technician Assistant</h1>
     <div class="subtitle">Field Technician Work Order & Reporting App</div>
-    <div class="date">Project Report — March 1, 2026 (v1.3)</div>
+    <div class="date">Project Report — March 2, 2026 (v1.4)</div>
   </div>
 
   <!-- OVERVIEW -->
@@ -256,7 +256,7 @@
 
   <!-- PAGE MAP -->
   <div class="section">
-    <h2>2. Full Page Map (17 Screens)</h2>
+    <h2>2. Full Page Map (19 Screens)</h2>
     <table>
       <tr><th>Page</th><th>Name</th><th>Purpose</th></tr>
       <tr><td>P1</td><td>Login / PW Gate</td><td>Username + password auth, 3-hour session</td></tr>
@@ -272,6 +272,8 @@
       <tr><td>P15</td><td>Out of Box Issue</td><td>Shipping damage/system issue/missing items + 10 image uploads</td></tr>
       <tr><td>P16</td><td>Parts Stocking <span class="tag tag-new">NEW</span></td><td>Per-tech local inventory, QR IN/OUT, recommended hardware, parts ordering</td></tr>
       <tr><td>P16a</td><td>Recommended Hardware <span class="tag tag-new">NEW</span></td><td>Catalog of Amazon hardware items with prices and purchase links</td></tr>
+      <tr><td>P17</td><td>Expenses — Receipt Logging <span class="tag tag-new">NEW v1.4</span></td><td>Receipt photo upload, WO attachment (30-day), expense type, department, vendor, cost, date</td></tr>
+      <tr><td>P17a</td><td>Expenses — Mileage Reimbursement <span class="tag tag-new">NEW v1.4</span></td><td>Odometer IN/OUT photos, mileage tracking, auto-calculated total miles, WO attachment</td></tr>
     </table>
   </div>
 
@@ -387,6 +389,33 @@
       <div class="flow-box new">SW Pushed Badge</div>
     </div>
 
+    <h3>New v1.4 Flows</h3>
+    <div class="flow">
+      <div class="flow-box">P2 Main</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">P17 Expenses</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">Receipt Tab / Mileage Tab</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box new">Receipt Tab</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">Upload Receipt Photo</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">Fill Fields</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">Submit &rarr; NetSuite Sync</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box new">Mileage Tab</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">Odometer IN Photo + Reading</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">Odometer OUT Photo + Reading</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box new">Submit &rarr; NetSuite Sync</div>
+    </div>
+
     <div class="callout">
       <strong>Auto-Load Rule:</strong> If a work order is past due by 1+ day, it automatically loads when the main dashboard opens &mdash; tech can't miss it.
     </div>
@@ -417,12 +446,13 @@
         <li>Calendar date/time display</li>
         <li>Weather check by zip code <span class="tag tag-external">Weather API</span></li>
       </ul>
-      <p><strong>Navigation Buttons (6-button grid):</strong></p>
+      <p><strong>Navigation Buttons (7-button grid):</strong></p>
       <ul>
         <li><strong>Notifications</strong> (with unread count badge) <span class="tag tag-nav">&rarr; P3</span></li>
         <li><strong>Work Orders</strong> <span class="tag tag-nav">&rarr; P5</span></li>
         <li><strong>Schedule</strong> <span class="tag tag-nav">&rarr; P4</span></li>
         <li><strong>Parts Stocking</strong> <span class="tag tag-nav">&rarr; P16</span> <span class="tag tag-new">NEW</span></li>
+        <li><strong>Expenses</strong> <span class="tag tag-nav">&rarr; P17</span> <span class="tag tag-new">NEW v1.4</span></li>
         <li><strong>System Site</strong> <span class="tag tag-external">External URL</span></li>
         <li><strong>LMS</strong> <span class="tag tag-external">External URL</span></li>
       </ul>
@@ -650,6 +680,47 @@
         <li>&larr; Inventory button returns to Parts Stocking page</li>
       </ul>
     </div>
+
+    <!-- P17 -->
+    <div class="page-card">
+      <div class="page-label">Page 17 <span class="tag tag-new">NEW v1.4</span></div>
+      <h3>Expenses &mdash; Receipt Logging</h3>
+      <p><strong>30-Day Rule:</strong> Only work orders from the last 30 days appear in the dropdown. Older WOs get no reimbursement &mdash; enforces on-time accounting.</p>
+      <p><strong>Receipt Photo:</strong></p>
+      <ul>
+        <li>Tap-to-upload image slot for receipt photo <span class="tag tag-write">Upload to NetSuite</span></li>
+      </ul>
+      <p><strong>Form Fields (all editable before submit):</strong></p>
+      <ul>
+        <li>Work Order dropdown &mdash; WOs from last 30 days + tech's calendar <span class="tag tag-read">Schedule Read</span></li>
+        <li>Expense Type dropdown &mdash; Travel, Food, Misc <span class="tag tag-write">NetSuite Write</span></li>
+        <li>Department dropdown &mdash; 100 or 200 <span class="tag tag-write">NetSuite Write</span></li>
+        <li>Date picker <span class="tag tag-write">NetSuite Write</span></li>
+        <li>Vendor name (text input) <span class="tag tag-write">NetSuite Write</span></li>
+        <li>Receipt cost (dollar amount) <span class="tag tag-write">NetSuite Write</span></li>
+      </ul>
+      <p><strong>Submit:</strong> Syncs to NetSuite (mock). Creates ActionLog entry. Resets form for next receipt.</p>
+      <p><strong>History:</strong> Submitted receipts displayed below form as cards showing WO#, expense type badge, department badge, vendor, amount, and date.</p>
+    </div>
+
+    <!-- P17a -->
+    <div class="page-card">
+      <div class="page-label">Page 17a <span class="tag tag-new">NEW v1.4</span></div>
+      <h3>Expenses &mdash; Mileage Reimbursement</h3>
+      <p><strong>30-Day Rule:</strong> Same as receipts &mdash; only recent WOs in dropdown.</p>
+      <p><strong>Form Fields (all editable before submit):</strong></p>
+      <ul>
+        <li>Work Order dropdown &mdash; WOs from last 30 days + tech's calendar <span class="tag tag-read">Schedule Read</span></li>
+        <li>Mileage IN &mdash; number field for starting odometer reading</li>
+        <li>Odometer IN Photo &mdash; tap-to-upload photo of odometer <span class="tag tag-write">Upload to NetSuite</span></li>
+        <li>Mileage OUT &mdash; number field for ending odometer reading</li>
+        <li>Odometer OUT Photo &mdash; tap-to-upload photo of odometer <span class="tag tag-write">Upload to NetSuite</span></li>
+        <li><strong>Total Miles</strong> &mdash; auto-calculated (OUT &minus; IN), displayed in accent highlight box</li>
+      </ul>
+      <p><strong>Validation:</strong> Mileage OUT must be greater than Mileage IN.</p>
+      <p><strong>Submit:</strong> Syncs to NetSuite (mock). Creates ActionLog entry. Resets form.</p>
+      <p><strong>History:</strong> Submitted mileage entries displayed below form as cards showing WO#, IN &rarr; OUT, total miles, and date.</p>
+    </div>
   </div>
 
   <!-- API INTEGRATIONS -->
@@ -717,6 +788,12 @@
         <td>External Link</td>
         <td>Opens external parts ordering site from Parts Stocking page</td>
       </tr>
+      <tr>
+        <td>11</td>
+        <td><strong>NetSuite API</strong> <span class="tag tag-new">NEW v1.4</span></td>
+        <td>Write</td>
+        <td>Expense receipts and mileage reimbursement data synced to NetSuite account</td>
+      </tr>
     </table>
   </div>
 
@@ -774,6 +851,8 @@
       <li>QR IN / QR OUT inventory changes &rarr; SaaS inventory sync</li>
       <li>QR part installed on equipment &rarr; Manufacturer API tracking</li>
       <li>QR part removed/failed with reason &rarr; SaaS audit log</li>
+      <li>Expense receipts (photo, type, department, vendor, amount, date) &rarr; NetSuite <span class="tag tag-new">v1.4</span></li>
+      <li>Mileage reimbursement (odometer IN/OUT photos, readings, total miles) &rarr; NetSuite <span class="tag tag-new">v1.4</span></li>
     </ul>
   </div>
 
@@ -921,8 +1000,8 @@
   </div>
 
   <div class="footer">
-    Technician Assistant &mdash; Project Report v1.3.1<br>
-    Updated March 1, 2026
+    Technician Assistant &mdash; Project Report v1.4<br>
+    Updated March 2, 2026
   </div>
 
 </div>

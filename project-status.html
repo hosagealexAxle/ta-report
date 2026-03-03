@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Technician Assistant Project Status — March 1, 2026</title>
+<title>Technician Assistant Project Status — March 2, 2026</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a; padding: 48px 56px; max-width: 850px; margin: 0 auto; line-height: 1.5; }
@@ -35,7 +35,7 @@
 <body>
 
 <h1>Technician Assistant</h1>
-<div class="subtitle">Project Status &mdash; March 1, 2026 (v1.3 &mdash; Parts/Inventory Sync, QR Scan Log, SW Push All Types)</div>
+<div class="subtitle">Project Status &mdash; March 2, 2026 (v1.4 &mdash; Expenses &amp; Mileage Reimbursement with NetSuite Sync)</div>
 
 <h2>Executive Summary</h2>
 <p><strong>Technician Assistant (TA)</strong> is a field service management application that provides technicians with a controlled, read/write interface to Salesforce work order data &mdash; without giving them direct access to Salesforce or any other enterprise SaaS platform. The app is purpose-built for HVAC/mechanical field technicians who need to view assigned work orders, complete line items, upload site photos, track parts usage, report out-of-box issues, and manage their weekly schedule &mdash; all from a single mobile-friendly interface.</p>
@@ -65,7 +65,7 @@
 
 <p><strong>Mock Adapter Architecture:</strong> Since Salesforce, Equipment System, and FedEx APIs are not yet available, the entire app runs on a <strong>mock adapter layer</strong> that simulates real API behavior using seeded data in a local SQLite database. The mock layer is functionally identical to what the real adapters will provide &mdash; same data shapes, same response patterns, same error handling. When real APIs are available, each integration swaps by changing one environment variable (<code>USE_MOCK=false</code>) and implementing one adapter file per service. Zero frontend changes required.</p>
 
-<p><strong>Current state:</strong> The app is fully functional with 49 seeded work orders (7 overdue) spanning 8 weeks, 50 parts catalog entries, 20 notifications, 15 local inventory items per user, 12 recommended hardware items, equipment data per WO, 6 repair reference PDFs, QR code scanning for parts in/out with part-level serial tracking, parts/inventory sync with auto-depletion, and a context-aware AI assistant. It runs as a macOS Electron desktop app accessible locally and via Tailscale on iPhone as a PWA.</p>
+<p><strong>Current state:</strong> The app is fully functional with 45 seeded work orders (3 overdue) spanning 8 weeks, 50 parts catalog entries, 20 notifications, 15 local inventory items per user, 12 recommended hardware items, equipment data per WO, 6 repair reference PDFs, QR code scanning for parts in/out with part-level serial tracking, parts/inventory sync with auto-depletion, an Expenses page with receipt logging and mileage reimbursement (NetSuite sync), and a context-aware AI assistant. It runs as a macOS Electron desktop app accessible locally and via Tailscale on iPhone as a PWA.</p>
 
 <div class="section-done">
 <strong>v1.0 BUILD COMPLETE (Feb 28, 2:30 AM):</strong> Full application built and deployed in a single session. 45 work orders across 8 weeks (3 overdue), 4 WO types with 3 template workflows, AI chat with full data context + 6 repair PDFs, admin-only priority control, custom shield icon, image uploads, parts management, FedEx label generation, and 8-week schedule calendar.
@@ -108,13 +108,25 @@
 </ul>
 </div>
 
+<div class="section-new">
+<strong>v1.4 UPDATE (Mar 2, 2026):</strong> Added Expenses page with two tabs &mdash; Receipt Logging and Mileage Reimbursement. Both write to NetSuite (mock):
+<ul style="margin-top: 8px;">
+  <li><strong>Receipt Logging</strong> &mdash; Upload receipt photo, attach to work order (30-day dropdown from tech's calendar), select expense type (Travel/Food/Misc), department (100/200), enter date, vendor name, and cost. All fields editable before submission. Submitted receipts shown in history list below form.</li>
+  <li><strong>Mileage Reimbursement</strong> &mdash; Attach to work order (same 30-day rule), enter mileage IN + upload odometer photo, mileage OUT + upload odometer photo. Total miles auto-calculated (OUT &minus; IN). All fields editable before submission. Submitted mileage entries shown in history list.</li>
+  <li><strong>30-Day Enforcement</strong> &mdash; Work order dropdown only shows WOs scheduled within last 30 days from the tech's calendar. Older WOs are excluded, forcing on-time expense accounting.</li>
+  <li><strong>NetSuite Sync (mock)</strong> &mdash; Both receipts and mileage entries sync to NetSuite via <code>mockSaasSync()</code>. Each submission creates an ActionLog entry.</li>
+  <li><strong>3 New Prisma Models</strong> &mdash; Expense, MileageEntry, ExpenseImage. 7 new API endpoints. Seed data: 4 sample expenses + 3 mileage entries.</li>
+  <li><strong>Navigation</strong> &mdash; New "Expenses" button on main dashboard nav grid (now 7 buttons). Tab switcher between Receipt and Mileage views.</li>
+</ul>
+</div>
+
 <h2>System Architecture</h2>
 <table>
   <tr><th>Component</th><th>Technology</th><th>Details</th></tr>
   <tr><td>Desktop App</td><td>Electron 33</td><td>macOS ARM64, unsigned build, custom TA shield icon</td></tr>
-  <tr><td>Backend</td><td>Express 5 (ESM)</td><td>Port 4300, binds 0.0.0.0. Single server.js (~880 lines). Cookie-based auth, 3-hour sessions. 2 mock API helpers.</td></tr>
-  <tr><td>Dashboard</td><td>React 19 + Vite 7</td><td>Single monolithic App.jsx (~1100 lines). State-based page navigation, no router. 16 page states. QR scanner component.</td></tr>
-  <tr><td>Database</td><td>SQLite + Prisma 6</td><td>20 models (~280 lines schema, PartEntry updated with shipped/fromInventory), auto-migrates on startup via db push</td></tr>
+  <tr><td>Backend</td><td>Express 5 (ESM)</td><td>Port 4300, binds 0.0.0.0. Single server.js (~1080 lines). Cookie-based auth, 3-hour sessions. 2 mock API helpers.</td></tr>
+  <tr><td>Dashboard</td><td>React 19 + Vite 7</td><td>Single monolithic App.jsx (~1550 lines). State-based page navigation, no router. 17 page states. QR scanner component.</td></tr>
+  <tr><td>Database</td><td>SQLite + Prisma 6</td><td>23 models (~320 lines schema), auto-migrates on startup via db push</td></tr>
   <tr><td>Chat LLM</td><td>Claude Sonnet 4.6 (primary) / GPT-4.1-mini (fallback)</td><td>Full WO + schedule + docs context injected into system prompt. Clickable PDF links in responses.</td></tr>
   <tr><td>Weather</td><td>wttr.in API</td><td>No API key needed. Shows temp, condition for tech's zip code.</td></tr>
   <tr><td>Mock Layer</td><td>Prisma/SQLite</td><td>USE_MOCK=true. 45 WOs, 50 parts, 20 notifications, 15 inventory items, 12 recommended parts, equipment data. Swap-ready for real APIs.</td></tr>
@@ -139,7 +151,7 @@
 <ul>
   <li><strong>Top bar:</strong> Mini shield logo, app name, current date (full weekday format), weather (temp + condition), MOCK badge, logout button</li>
   <li><strong>Overdue alerts:</strong> Red-bordered cards auto-loaded on login. Shows WO number, account name, due date. Click to navigate directly to WO.</li>
-  <li><strong>Navigation grid:</strong> 6 buttons (2x3 grid) &mdash; Notifications (with unread count badge), Work Orders, Schedule, Parts Stocking <span class="tag blue">NEW v1.1</span>, System Site (external link), LMS (external link)</li>
+  <li><strong>Navigation grid:</strong> 7 buttons &mdash; Notifications (with unread count badge), Work Orders, Schedule, Parts Stocking <span class="tag blue">NEW v1.1</span>, Expenses <span class="tag blue">NEW v1.4</span>, System Site (external link), LMS (external link)</li>
   <li><strong>AI Chat:</strong> 400px message area, text input with Enter-to-send, assistant responses with clickable PDF/URL links. System prompt includes all WOs, full schedule, and available repair documents.</li>
 </ul>
 
@@ -239,6 +251,38 @@
   <li><strong>Mobile responsive:</strong> Sidebar collapses to horizontal row on small screens</li>
 </ul>
 
+<h3>P17: Expenses <span class="tag blue">NEW v1.4</span></h3>
+<ul>
+  <li><strong>Tab Switcher:</strong> Two tabs at top &mdash; "Receipt Logging" and "Mileage Reimbursement"</li>
+  <li><strong>30-Day WO Rule:</strong> Only work orders from the last 30 days (from the tech's calendar/schedule entries) appear in dropdowns. Enforces on-time expense accounting.</li>
+</ul>
+
+<h3>P17 — Receipt Logging Tab <span class="tag blue">NEW v1.4</span></h3>
+<ul>
+  <li><strong>Receipt photo upload:</strong> Dashed-border image slot, tap to capture/upload receipt photo. Preview shown after upload. Image stored via <code>/api/expense-images/upload</code>.</li>
+  <li><strong>Work Order dropdown:</strong> Select from WOs on tech's calendar within last 30 days (WO number + account name) <span class="tag blue">Schedule Read</span></li>
+  <li><strong>Expense Type dropdown:</strong> Travel, Food, Misc</li>
+  <li><strong>Department dropdown:</strong> 100 or 200</li>
+  <li><strong>Date picker:</strong> Defaults to today, editable</li>
+  <li><strong>Vendor name:</strong> Free text input</li>
+  <li><strong>Receipt cost:</strong> Number input (step 0.01)</li>
+  <li><strong>All fields editable</strong> before pressing Submit</li>
+  <li><strong>Submit:</strong> Creates Expense record, links receipt image, syncs to NetSuite (mock), logs to ActionLog, resets form</li>
+  <li><strong>History list:</strong> Below form &mdash; cards showing WO#, expense type badge (color-coded: blue/Travel, green/Food, orange/Misc), department badge, vendor, dollar amount, and date</li>
+</ul>
+
+<h3>P17a — Mileage Reimbursement Tab <span class="tag blue">NEW v1.4</span></h3>
+<ul>
+  <li><strong>Work Order dropdown:</strong> Same 30-day calendar filter as receipts</li>
+  <li><strong>Mileage IN row:</strong> Number input for starting odometer + tap-to-upload odometer photo (side by side)</li>
+  <li><strong>Mileage OUT row:</strong> Number input for ending odometer + tap-to-upload odometer photo (side by side)</li>
+  <li><strong>Total Miles display:</strong> Auto-calculated (OUT &minus; IN) shown in accent-colored highlight box with large text</li>
+  <li><strong>Validation:</strong> Mileage OUT must exceed Mileage IN (server-enforced 400 error)</li>
+  <li><strong>All fields editable</strong> before pressing Submit</li>
+  <li><strong>Submit:</strong> Creates MileageEntry record (with computed totalMiles), links odometer images, syncs to NetSuite (mock), logs to ActionLog, resets form</li>
+  <li><strong>History list:</strong> Below form &mdash; cards showing WO#, IN &rarr; OUT readings, total miles, and date</li>
+</ul>
+
 <h3>P15: Out of Box Issue</h3>
 <ul>
   <li><strong>Read-only fields:</strong> Issue Date (auto-populated), System Number (from WO serial)</li>
@@ -293,6 +337,7 @@
   <tr><td>FedEx</td><td>Generates fake tracking numbers (794XXXXXXXXX), creates ReturnLabel records in DB</td><td>Implement <code>fedex-real.js</code> with FedEx Ship API using <code>FEDEX_API_KEY</code> / <code>FEDEX_ACCOUNT_NUMBER</code></td></tr>
   <tr><td>SaaS Inventory <span class="tag blue">v1.1</span></td><td><code>mockSaasSync()</code> &mdash; 200ms delay, console log. Called on every QR IN/OUT scan.</td><td>Implement real SaaS inventory API endpoint for bidirectional stock sync</td></tr>
   <tr><td>Manufacturer API <span class="tag blue">v1.1</span></td><td><code>mockManufacturerApi()</code> &mdash; 300ms delay, console log. Called when scanning parts installed on equipment.</td><td>Implement real manufacturer part tracking API for warranty/recall tracking</td></tr>
+  <tr><td>NetSuite <span class="tag blue">v1.4</span></td><td><code>mockSaasSync()</code> &mdash; 200ms delay, console log. Called on expense/mileage submission. Creates ActionLog entry.</td><td>Implement real NetSuite API for expense + mileage record creation</td></tr>
 </table>
 
 <h3>Seed Data (auto-runs on first boot)</h3>
@@ -308,6 +353,8 @@
   <tr><td>Local Inventory <span class="tag blue">v1.1</span></td><td>15 per user</td><td>Per-tech stock items seeded for all users (filters, sensors, capacitors, etc.) with varying quantities <span class="tag blue">UPDATED v1.3</span></td></tr>
   <tr><td>Recommended Parts <span class="tag blue">v1.1</span></td><td>12</td><td>Amazon hardware items: HVAC tools, meters, hand tools, measuring, safety gear with prices</td></tr>
   <tr><td>Accounts</td><td>45</td><td>Realistic business names, addresses across 20+ US cities, unique serial numbers</td></tr>
+  <tr><td>Expenses <span class="tag blue">v1.4</span></td><td>4</td><td>Sample receipts (Shell Gas, Subway, Home Depot, ExxonMobil) tied to recent WOs with varied expense types and departments</td></tr>
+  <tr><td>Mileage Entries <span class="tag blue">v1.4</span></td><td>3</td><td>Realistic odometer readings (45230&rarr;45280, 45280&rarr;45340, 45340&rarr;45395) with computed total miles</td></tr>
 </table>
 
 <h2>Repository + File Structure</h2>
@@ -315,13 +362,13 @@
 
 <table>
   <tr><th>File / Folder</th><th>Lines</th><th>Contents</th></tr>
-  <tr><td>backend/src/server.js</td><td>~880</td><td>Express 5 API, 37+ endpoints, auth middleware, weather, WOs, parts, images, schedule, notifications, equipment, FedEx, inventory, QR scanning, recommended parts, mock SaaS/manufacturer APIs, chat, docs serving</td></tr>
-  <tr><td>backend/src/seed.js</td><td>~400</td><td>Seed 2 users, 45 WOs, 50 parts catalog, 20 notifications, equipment data, schedule entries + v1.1: 15 inventory items, 12 recommended parts (seededV2 flag)</td></tr>
-  <tr><td>backend/prisma/schema.prisma</td><td>~280</td><td>20 models: User, Session, WorkOrder, LineItem, WoImage, PartEntry, PartsCatalog, OutOfBoxIssue, ScheduleEntry, Notification, EquipmentData, ReturnLabel, Thread, Message, ActionLog, SystemState + <span class="tag blue">v1.1</span> LocalInventory, PartScanLog, ManufacturerPartLog, RecommendedPart</td></tr>
+  <tr><td>backend/src/server.js</td><td>~1080</td><td>Express 5 API, 44+ endpoints, auth middleware, weather, WOs, parts, images, schedule, notifications, equipment, FedEx, inventory, QR scanning, recommended parts, mock SaaS/manufacturer APIs, expenses, mileage, expense images, chat, docs serving</td></tr>
+  <tr><td>backend/src/seed.js</td><td>~450</td><td>Seed 2 users, 45 WOs, 50 parts catalog, 20 notifications, equipment data, schedule entries + v1.1: 15 inventory items, 12 recommended parts + v1.4: 4 expenses, 3 mileage entries</td></tr>
+  <tr><td>backend/prisma/schema.prisma</td><td>~320</td><td>23 models: User, Session, WorkOrder, LineItem, WoImage, PartEntry, PartsCatalog, OutOfBoxIssue, ScheduleEntry, Notification, EquipmentData, ReturnLabel, Thread, Message, ActionLog, SystemState + <span class="tag blue">v1.1</span> LocalInventory, PartScanLog, ManufacturerPartLog, RecommendedPart + <span class="tag blue">v1.4</span> Expense, MileageEntry, ExpenseImage</td></tr>
   <tr><td>backend/docs/</td><td>&mdash;</td><td>6 repair reference PDFs (service manual, installation guide, safety, troubleshooting, parts xref, warranty)</td></tr>
   <tr><td>backend/uploads/</td><td>&mdash;</td><td>Per-WO image storage (slot-based naming, gitignored)</td></tr>
-  <tr><td>dashboard/src/App.jsx</td><td>~1100</td><td>Single monolithic component: login, main dashboard, notifications, schedule, WO hub, 3 type templates, parts, OOB, parts stocking, QR scanner modal, recommended hardware, chat with link rendering</td></tr>
-  <tr><td>dashboard/src/index.css</td><td>~1100</td><td>Complete dark green theme, all component styles, QR modal, parts stocking, recommended hardware cards, mobile responsive</td></tr>
+  <tr><td>dashboard/src/App.jsx</td><td>~1550</td><td>Single monolithic component: login, main dashboard, notifications, schedule, WO hub, 3 type templates, parts, OOB, parts stocking, QR scanner modal, recommended hardware, expenses (receipt + mileage tabs), chat with link rendering</td></tr>
+  <tr><td>dashboard/src/index.css</td><td>~1280</td><td>Complete dark green theme, all component styles, QR modal, parts stocking, recommended hardware cards, expense forms + tabs + history cards, mobile responsive</td></tr>
   <tr><td>dashboard/src/main.jsx</td><td>~7</td><td>React 19 entry point</td></tr>
   <tr><td>dashboard/public/manifest.json</td><td>&mdash;</td><td>PWA manifest: standalone display, dark green theme</td></tr>
   <tr><td>dashboard/public/icon-192.png</td><td>&mdash;</td><td>PWA icon (192x192) &mdash; TA shield on dark green</td></tr>
@@ -331,7 +378,7 @@
   <tr><td>desktop/assets/icon.icns</td><td>&mdash;</td><td>macOS app icon (TA shield, multi-resolution, proper padding)</td></tr>
 </table>
 
-<h2>Database Models (20 total)</h2>
+<h2>Database Models (23 total)</h2>
 <table>
   <tr><th>Model</th><th>Purpose</th><th>Key Fields</th></tr>
   <tr><td>User</td><td>Tech accounts</td><td>username (unique), passwordHash (SHA-256), displayName, role (admin/tech), zipCode</td></tr>
@@ -354,9 +401,12 @@
   <tr><td>PartScanLog <span class="tag blue">v1.1</span></td><td>QR scan audit trail</td><td>userId, partNumber, partName, direction (in/out), reason, woNumber, serialNumber, syncedToSaas</td></tr>
   <tr><td>ManufacturerPartLog <span class="tag blue">v1.1</span></td><td>Parts installed/removed on equipment</td><td>serialNumber, partNumber, partName, action (installed/removed), scannedBy, woNumber, syncedToMfg</td></tr>
   <tr><td>RecommendedPart <span class="tag blue">v1.1</span></td><td>Amazon hardware catalog</td><td>name, description, url, category, price</td></tr>
+  <tr><td>Expense <span class="tag blue">v1.4</span></td><td>Receipt expense entries</td><td>userId, workOrderId, woNumber, expenseType (Travel/Food/Misc), department (100/200), vendor, amount (Float), expenseDate, receiptImageId, syncedToNetsuite</td></tr>
+  <tr><td>MileageEntry <span class="tag blue">v1.4</span></td><td>Mileage reimbursement entries</td><td>userId, workOrderId, woNumber, mileageIn, mileageOut, totalMiles (computed), odometerInImageId, odometerOutImageId, syncedToNetsuite</td></tr>
+  <tr><td>ExpenseImage <span class="tag blue">v1.4</span></td><td>Receipt/odometer photos</td><td>expenseType (receipt/odometer-in/odometer-out), refId, fileName, filePath, uploadedAt</td></tr>
 </table>
 
-<h2>API Endpoints (37+ total)</h2>
+<h2>API Endpoints (44+ total)</h2>
 
 <h3>Health &amp; Auth</h3>
 <table>
@@ -372,6 +422,7 @@
   <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
   <tr><td>GET</td><td>/api/work-orders</td><td>List all WOs sorted by due date, includes lineItems + images</td></tr>
   <tr><td>GET</td><td>/api/work-orders/overdue</td><td>WOs past due date that aren't closed</td></tr>
+  <tr><td>GET</td><td>/api/work-orders/recent</td><td>WOs from last 30 days on tech's calendar for expense dropdowns <span class="tag blue">v1.4</span></td></tr>
   <tr><td>GET</td><td>/api/work-orders/:id</td><td>Single WO with lineItems, images, parts</td></tr>
   <tr><td>PATCH</td><td>/api/work-orders/:id</td><td>Update notes, timeCompleted, swPushed. <strong>Priority: admin-only</strong> (server-side role check, returns 403 for non-admin)</td></tr>
   <tr><td>POST</td><td>/api/work-orders/:id/close</td><td>Close WO. Validates parts completion for service types (1, 4). Sets dateCompleted + timeCompleted. Logs to ActionLog.</td></tr>
@@ -437,6 +488,18 @@
   <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
   <tr><td>GET</td><td>/api/recommended-parts</td><td>List 12 recommended Amazon hardware items (name, description, url, category, price)</td></tr>
   <tr><td>GET</td><td>/api/test-qr-codes</td><td>Generate test QR data from parts catalog (JSON format for testing) + 2 swap test QR entries with part serial numbers <span class="tag blue">UPDATED v1.2</span></td></tr>
+</table>
+
+<h3>Expenses &amp; Mileage <span class="tag blue">NEW v1.4</span></h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/work-orders/recent</td><td>WOs from last 30 days on tech's calendar (ScheduleEntry + date filter) for expense dropdowns</td></tr>
+  <tr><td>POST</td><td>/api/expense-images/upload</td><td>Upload receipt/odometer image (base64), returns image ID. Types: receipt, odometer-in, odometer-out</td></tr>
+  <tr><td>GET</td><td>/api/expense-images/file/:imageId</td><td>Serve uploaded expense image file</td></tr>
+  <tr><td>GET</td><td>/api/expenses</td><td>All expenses for current user, newest first</td></tr>
+  <tr><td>POST</td><td>/api/expenses</td><td>Submit new expense receipt &rarr; mock NetSuite sync &rarr; ActionLog entry</td></tr>
+  <tr><td>GET</td><td>/api/mileage</td><td>All mileage entries for current user, newest first</td></tr>
+  <tr><td>POST</td><td>/api/mileage</td><td>Submit mileage entry (auto-calc totalMiles, validate OUT > IN) &rarr; mock NetSuite sync &rarr; ActionLog entry</td></tr>
 </table>
 
 <h3>Actions</h3>
@@ -580,6 +643,7 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <tr><td>Phase 22: Editable Time Fields + Auto-Refresh Close + QR Swap Test + More Overdue WOs</td><td class="complete"><span class="tag blue">v1.2</span> COMPLETE</td></tr>
   <tr><td>Phase 23: Parts/Inventory Sync + QR Scan Log + SW Push All Types</td><td class="complete"><span class="tag blue">v1.3</span> COMPLETE</td></tr>
   <tr><td>Phase 24: Security Hardening (HttpOnly, bcrypt, rate limiting, helmet, CORS, error masking)</td><td class="complete"><span class="tag blue">v1.3.1</span> COMPLETE</td></tr>
+  <tr><td>Phase 25: Expenses &amp; Mileage Reimbursement (Receipt logging, mileage tracking, 30-day WO rule, NetSuite sync, 3 new models, 7 new endpoints)</td><td class="complete"><span class="tag blue">v1.4</span> COMPLETE</td></tr>
 </table>
 
 <h2>Future Roadmap (When APIs Available)</h2>
@@ -674,9 +738,29 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Mar 1, 10:30 PM. Parts/Inventory sync, QR scan log, SW push on all types.</li>
 </ul>
 
+<h3>Session 6: March 2, 2026 <span class="tag blue">v1.3.1</span> <span class="tag">COMPLETE</span></h3>
+<ul>
+  <li><strong>Phase 24: Security Hardening:</strong> Full 10-point security audit across TA and Spectra. HttpOnly session cookies, auth bypass fix (req.ip instead of req.hostname), login rate limiting (5/min via express-rate-limit), CORS restricted to known origins, bcrypt password hashing (10 rounds), generic error responses on all 37 API endpoints, zip code input validation, helmet security headers, removed hardcoded credentials from Spectra, fixed minimatch ReDoS vulnerability.</li>
+  <li><strong>DB breaking change:</strong> bcrypt hashes replace SHA-256 &mdash; existing ta.db must be deleted and re-seeded.</li>
+  <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Mar 2, 12:00 AM. Security hardened, bcrypt passwords, rate limiting, CORS restricted.</li>
+</ul>
+
+<h3>Session 7: March 2, 2026 <span class="tag blue">v1.4</span> <span class="tag">COMPLETE</span></h3>
+<ul>
+  <li><strong>Phase 25: Expenses &amp; Mileage Reimbursement:</strong> New Expenses page with two tabs &mdash; Receipt Logging and Mileage Reimbursement. Writes to NetSuite (mock).</li>
+  <li><strong>Receipt Logging:</strong> Upload receipt photo, attach to work order (30-day dropdown filtered from tech's calendar ScheduleEntry), select expense type (Travel/Food/Misc), department (100/200), enter date, vendor, and cost. All fields editable before submission. History list below form.</li>
+  <li><strong>Mileage Reimbursement:</strong> Attach to work order (same 30-day rule), enter mileage IN + odometer photo, mileage OUT + odometer photo. Total miles auto-calculated (OUT &minus; IN). Server validates OUT > IN. History list below form.</li>
+  <li><strong>3 new Prisma models:</strong> Expense (receipt entries), MileageEntry (mileage reimbursement), ExpenseImage (receipt/odometer photos). Schema now 23 models.</li>
+  <li><strong>7 new API endpoints:</strong> GET /api/work-orders/recent, POST /api/expense-images/upload, GET /api/expense-images/file/:id, GET/POST /api/expenses, GET/POST /api/mileage.</li>
+  <li><strong>Express 5 route ordering fix:</strong> <code>/api/work-orders/recent</code> had to be placed BEFORE <code>/api/work-orders/:id</code> &mdash; Express 5 path-to-regexp matches "recent" as an <code>:id</code> parameter if the parameterized route is defined first.</li>
+  <li><strong>Seed data:</strong> 4 sample expenses (Shell Gas, Subway, Home Depot, ExxonMobil) + 3 mileage entries with realistic odometer readings.</li>
+  <li><strong>Navigation:</strong> New "Expenses" button on main dashboard (now 7 buttons). Tab switcher between Receipt and Mileage views.</li>
+  <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Mar 2. Expenses page with receipt logging, mileage reimbursement, 30-day WO rule, NetSuite sync.</li>
+</ul>
+
 <div class="footer">
-  <p>Technician Assistant v1.3.1 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 49 Work Orders &mdash; 20 Models &mdash; 37+ Endpoints &mdash; QR Scanning + Parts/Inventory Sync &mdash; Security Hardened &mdash; Tailscale HTTPS &mdash; Port 4300</p>
-  <p>Updated March 1, 2026</p>
+  <p>Technician Assistant v1.4 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 49 Work Orders &mdash; 23 Models &mdash; 44+ Endpoints &mdash; QR Scanning + Parts/Inventory Sync &mdash; Expenses &amp; Mileage Reimbursement &mdash; Security Hardened &mdash; Tailscale HTTPS &mdash; Port 4300</p>
+  <p>Updated March 2, 2026</p>
 </div>
 
 </body>
