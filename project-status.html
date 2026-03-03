@@ -779,7 +779,9 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <li><strong>Bulk Submit:</strong> "Submit All Receipts" / "Submit All Mileage" buttons to send all queued drafts at once.</li>
   <li><strong>Edit Flow:</strong> Clicking Edit on a draft re-populates all form fields (including receipt/odometer image previews) and removes the draft from the queue for modification.</li>
   <li><strong>Frontend-only change:</strong> No backend modifications. Same POST endpoints (<code>/api/expenses</code>, <code>/api/mileage</code>) called from draft queue instead of directly from form. 2 files changed: <code>App.jsx</code> (state + functions + JSX) and <code>index.css</code> (10 new CSS classes).</li>
+  <li><strong>Phase 27: Security Hardening Phase 2:</strong> Full vulnerability scan and 13-point fix pass. Removed localhost auth bypass, upgraded session IDs to <code>crypto.randomUUID()</code>, added Secure cookie flag, logout now deletes session from DB, Helmet CSP directives, API rate limiter (120/min), chat rate limiter (10/min), image upload magic byte validation, Content-Type headers on image serve, health endpoint URL leaks removed, query param caps (max 100), wildcard CORS removed from SPA/static, resolveUserId hardened.</li>
   <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Mar 3. Fresh DB seeded with 3 overdue WOs for testing.</li>
+  <li class="resolved"><strong>PUSHED TO GITHUB</strong> &mdash; hosagealexAxle/technician-assistant + axle-inc/technician-assistant.</li>
 </ul>
 
 <div class="footer">

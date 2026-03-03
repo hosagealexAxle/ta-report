@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technician Assistant &mdash; Integration Report</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1a0f;
+    color: #e8e4d9;
+    line-height: 1.7;
+    padding: 40px 20px;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+
+  .header {
+    text-align: center;
+    padding: 50px 30px;
+    background: linear-gradient(135deg, #1a3a1a 0%, #0d2b0d 50%, #1a3a1a 100%);
+    border-radius: 20px;
+    border: 1px solid #2d5a2d;
+    margin-bottom: 40px;
+  }
+  .header .logo {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, #4a8c4a, #2d5a2d);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 32px; font-weight: 700; color: #e8e4d9;
+    border: 3px solid #6aaa6a;
+  }
+  .header h1 { font-size: 32px; color: #b8e0b8; margin-bottom: 8px; }
+  .header .subtitle { font-size: 16px; color: #8aaa8a; }
+  .header .date { font-size: 13px; color: #5a7a5a; margin-top: 12px; }
+
+  .section {
+    background: #162016;
+    border: 1px solid #2d4a2d;
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 24px;
+  }
+  .section h2 {
+    font-size: 22px;
+    color: #8cd98c;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2d4a2d;
+  }
+  .section h3 {
+    font-size: 17px;
+    color: #a0d0a0;
+    margin: 20px 0 10px;
+  }
+  .section h4 {
+    font-size: 14px;
+    color: #c8e0c8;
+    margin: 14px 0 6px;
+  }
+  .section p, .section li {
+    font-size: 14px;
+    color: #c8d4c0;
+  }
+  .section ul { padding-left: 20px; }
+  .section li { margin-bottom: 5px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+  th, td { border: 1px solid #2d4a2d; padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #1a3a1a; color: #8cd98c; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { color: #c8d4c0; }
+
+  code {
+    background: #1a3a1a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'SF Mono', Menlo, monospace;
+    color: #a0d0a0;
+    border: 1px solid #2d4a2d;
+  }
+  pre {
+    background: #0d1a0d;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'SF Mono', Menlo, monospace;
+    color: #a0d0a0;
+    margin: 10px 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    border: 1px solid #2d4a2d;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tag-read { background: #1a3a2a; color: #6ad6a0; border: 1px solid #2a5a3a; }
+  .tag-write { background: #3a2a1a; color: #d6a06a; border: 1px solid #5a3a2a; }
+  .tag-both { background: #2a2a3a; color: #a0a0d6; border: 1px solid #3a3a5a; }
+  .tag-ext { background: #1a2a3a; color: #6aa0d6; border: 1px solid #2a3a5a; }
+  .tag-mock { background: #3a3a1a; color: #d6d66a; border: 1px solid #5a5a2a; }
+  .tag-sec { background: #3a1a2a; color: #d66a8a; border: 1px solid #5a2a3a; }
+
+  .int-card {
+    background: #1a2a1a;
+    border: 1px solid #2d5a2d;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+  .int-card h4 {
+    font-size: 15px;
+    color: #b8e0b8;
+    margin: 0 0 8px 0;
+  }
+  .int-card .loc {
+    font-size: 12px;
+    color: #6a8a6a;
+    font-family: 'SF Mono', Menlo, monospace;
+    margin-bottom: 6px;
+  }
+  .int-card .loc span { color: #8aaa8a; }
+  .int-card .desc { font-size: 13px; color: #a0b8a0; margin-bottom: 8px; }
+  .int-card .models { font-size: 12px; color: #8a9a8a; }
+  .int-card .models strong { color: #a0d0a0; }
+
+  .toc { padding: 0; list-style: none; }
+  .toc li { margin-bottom: 6px; }
+  .toc a { color: #6ad6a0; text-decoration: none; font-size: 14px; }
+  .toc a:hover { text-decoration: underline; }
+  .toc .num { color: #5a8a5a; margin-right: 8px; font-weight: 600; }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .summary-box {
+    background: #1a2a1a;
+    border: 1px solid #2d5a2d;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .summary-box .num { font-size: 28px; font-weight: 700; color: #8cd98c; }
+  .summary-box .label { font-size: 12px; color: #6a8a6a; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  .footer {
+    text-align: center;
+    padding: 30px;
+    color: #3a5a3a;
+    font-size: 12px;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 700px) {
+    .summary-grid { grid-template-columns: 1fr; }
+    table { font-size: 11px; }
+    th, td { padding: 6px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo">TA</div>
+    <h1>Integration Report</h1>
+    <div class="subtitle">Every API Endpoint &bull; Every Database Model &bull; Every Code Location</div>
+    <div class="date">March 3, 2026 &mdash; v1.5</div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="section">
+    <h2>At a Glance</h2>
+    <div class="summary-grid">
+      <div class="summary-box"><div class="num">42</div><div class="label">API Endpoints</div></div>
+      <div class="summary-box"><div class="num">20</div><div class="label">Database Models</div></div>
+      <div class="summary-box"><div class="num">3</div><div class="label">Rate Limiters</div></div>
+      <div class="summary-box"><div class="num">2</div><div class="label">External APIs</div></div>
+    </div>
+    <h3>File Locations</h3>
+    <table>
+      <tr><th>File</th><th>Path</th><th>Purpose</th></tr>
+      <tr><td>Frontend</td><td><code>dashboard/src/App.jsx</code></td><td>Single-file React app &mdash; all 16 pages, all API calls, all state</td></tr>
+      <tr><td>Backend</td><td><code>backend/src/server.js</code></td><td>Express 5 server &mdash; all route handlers, middleware, external calls</td></tr>
+      <tr><td>Schema</td><td><code>backend/prisma/schema.prisma</code></td><td>Prisma ORM &mdash; 20 SQLite models</td></tr>
+      <tr><td>Seed</td><td><code>backend/src/seed.js</code></td><td>Mock data seeder &mdash; 2 users, 45 WOs, 50 parts, 20 notifications</td></tr>
+      <tr><td>Styles</td><td><code>dashboard/src/index.css</code></td><td>All CSS including draft queue cards</td></tr>
+    </table>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="section">
+    <h2>Table of Contents</h2>
+    <ul class="toc">
+      <li><span class="num">1.</span><a href="#auth">Authentication &amp; Sessions</a> &mdash; 3 endpoints</li>
+      <li><span class="num">2.</span><a href="#weather">Weather</a> &mdash; 1 endpoint, external API</li>
+      <li><span class="num">3.</span><a href="#workorders">Work Orders</a> &mdash; 6 endpoints</li>
+      <li><span class="num">4.</span><a href="#lineitems">Line Items</a> &mdash; 1 endpoint</li>
+      <li><span class="num">5.</span><a href="#images">Image Uploads &amp; Serving</a> &mdash; 3 endpoints</li>
+      <li><span class="num">6.</span><a href="#parts">Parts Catalog &amp; WO Parts</a> &mdash; 4 endpoints</li>
+      <li><span class="num">7.</span><a href="#inventory">Local Inventory / Parts Stocking</a> &mdash; 4 endpoints</li>
+      <li><span class="num">8.</span><a href="#qrscan">WO Parts QR Scanning</a> &mdash; 3 endpoints</li>
+      <li><span class="num">9.</span><a href="#recommended">Recommended Parts</a> &mdash; 1 endpoint</li>
+      <li><span class="num">10.</span><a href="#oob">Out of Box Issues</a> &mdash; 2 endpoints</li>
+      <li><span class="num">11.</span><a href="#equipment">Equipment &amp; SW Push</a> &mdash; 2 endpoints</li>
+      <li><span class="num">12.</span><a href="#schedule">Schedule</a> &mdash; 1 endpoint</li>
+      <li><span class="num">13.</span><a href="#notifications">Notifications</a> &mdash; 2 endpoints</li>
+      <li><span class="num">14.</span><a href="#fedex">FedEx Return Labels</a> &mdash; 1 endpoint</li>
+      <li><span class="num">15.</span><a href="#expenses">Expenses</a> &mdash; 4 endpoints</li>
+      <li><span class="num">16.</span><a href="#mileage">Mileage Reimbursement</a> &mdash; 2 endpoints</li>
+      <li><span class="num">17.</span><a href="#chat">Chat &amp; AI Assistant</a> &mdash; 6 endpoints, OpenAI API</li>
+      <li><span class="num">18.</span><a href="#actions">Action Log</a> &mdash; 1 endpoint</li>
+      <li><span class="num">19.</span><a href="#docs">Repair Docs / PDFs</a> &mdash; 2 endpoints</li>
+      <li><span class="num">20.</span><a href="#security">Security &amp; Middleware</a></li>
+      <li><span class="num">21.</span><a href="#models">All 20 Database Models</a></li>
+    </ul>
+  </div>
+
+  <!-- 1. AUTH -->
+  <div class="section" id="auth">
+    <h2>1. Authentication &amp; Sessions</h2>
+    <p>Session-based auth with HttpOnly cookies. 3-hour expiry. Admin and tech roles.</p>
+
+    <div class="int-card">
+      <h4>POST /api/auth/login <span class="tag tag-write">WRITE</span> <span class="tag tag-sec">LOGIN LIMITER</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; doLogin() &mdash; line ~264</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~215</span></div>
+      <div class="desc">Authenticates user with username/password. Creates a session record with <code>crypto.randomUUID()</code> ID and sets an HttpOnly cookie (<code>ta_auth</code>) with 3-hour expiry. Rate limited to 5 req/min.</div>
+      <div class="models"><strong>Reads:</strong> User (findUnique by username) &bull; <strong>Writes:</strong> Session (create)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/auth/check <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; checkAuth() &mdash; line ~257</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~236</span></div>
+      <div class="desc">Checks if current session cookie is valid and not expired. Returns user object if authenticated. Called on app mount.</div>
+      <div class="models"><strong>Reads:</strong> Session (findUnique), User (findUnique) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/auth/logout <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; doLogout() &mdash; line ~277</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~256</span></div>
+      <div class="desc">Deletes session record from database and clears the <code>ta_auth</code> cookie. Resets all frontend state.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> Session (delete)</div>
+    </div>
+  </div>
+
+  <!-- 2. WEATHER -->
+  <div class="section" id="weather">
+    <h2>2. Weather</h2>
+
+    <div class="int-card">
+      <h4>GET /api/weather <span class="tag tag-ext">EXTERNAL API</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadWeather() &mdash; line ~285</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~262</span></div>
+      <div class="desc">Fetches real-time weather from <code>wttr.in/{zip}?format=j1</code> (no API key). Returns temp, condition, humidity, feels-like. Zip validated server-side with <code>/^\d{5}$/</code>.</div>
+      <div class="models"><strong>Reads:</strong> None (external) &bull; <strong>Writes:</strong> None</div>
+      <div class="models"><strong>External:</strong> <code>https://wttr.in/{zip}?format=j1</code></div>
+    </div>
+  </div>
+
+  <!-- 3. WORK ORDERS -->
+  <div class="section" id="workorders">
+    <h2>3. Work Orders</h2>
+    <p>Core entity. 45 seeded WOs across 4 types (Service, Install, Maintenance). 3 overdue on launch.</p>
+
+    <div class="int-card">
+      <h4>GET /api/work-orders <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadWorkOrders() &mdash; line ~307</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~282</span></div>
+      <div class="desc">Fetches all work orders sorted by due date (oldest first). Includes line items and images.</div>
+      <div class="models"><strong>Reads:</strong> WorkOrder (findMany + include lineItems, images) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/work-orders/overdue <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadOverdue() &mdash; line ~314</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~294</span></div>
+      <div class="desc">Fetches WOs where <code>status != "closed"</code> AND <code>dueDate &lt; now</code>. Used for the overdue alert banner on the main dashboard.</div>
+      <div class="models"><strong>Reads:</strong> WorkOrder (findMany with where clause + lineItems) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/work-orders/recent <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadRecentWos() &mdash; line ~404</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~309</span></div>
+      <div class="desc">Fetches WOs within 30 days that appear on the calendar. Used for expense/mileage dropdown population so techs can only attach expenses to recent WOs.</div>
+      <div class="models"><strong>Reads:</strong> ScheduleEntry (select workOrderId), WorkOrder (findMany, filtered) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/work-orders/:id <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; (loaded via loadPartsForWo context)</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~335</span></div>
+      <div class="desc">Fetches single WO with all relations. Used by backend internally for close validation and parts context.</div>
+      <div class="models"><strong>Reads:</strong> WorkOrder (findUnique + include lineItems, images, parts) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>PATCH /api/work-orders/:id <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; updateWoField() &mdash; line ~682</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~348</span></div>
+      <div class="desc">Updates WO fields: notes, timeCompleted, dateCompleted, swPushed. Priority changes are <strong>admin-only</strong> &mdash; server checks <code>user.role === "admin"</code> and returns 403 otherwise.</div>
+      <div class="models"><strong>Reads:</strong> User (for admin check) &bull; <strong>Writes:</strong> WorkOrder (update)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/work-orders/:id/close <span class="tag tag-both">READ + WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; closeWorkOrder() &mdash; line ~691</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~371</span></div>
+      <div class="desc">Closes a WO. For service types (1, 4), validates that parts page has been completed (<code>partsRequired &amp;&amp; !partsCompleted</code> returns 400). Sets status to "closed", records date/time, creates action log entry.</div>
+      <div class="models"><strong>Reads:</strong> WorkOrder (with lineItems, parts) &bull; <strong>Writes:</strong> WorkOrder (update), ActionLog (create)</div>
+    </div>
+  </div>
+
+  <!-- 4. LINE ITEMS -->
+  <div class="section" id="lineitems">
+    <h2>4. Line Items</h2>
+
+    <div class="int-card">
+      <h4>PATCH /api/line-items/:id <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; toggleLineItem() &mdash; line ~673</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~395</span></div>
+      <div class="desc">Toggles the <code>completed</code> boolean on a single line item. Called when a tech checks/unchecks a line item checkbox on the WO page.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> LineItem (update)</div>
+    </div>
+  </div>
+
+  <!-- 5. IMAGES -->
+  <div class="section" id="images">
+    <h2>5. Image Uploads &amp; Serving (Work Order)</h2>
+    <p>Base64 upload with slot naming. Supports system photos, damage shots, wide views, parts, and OOB images. Magic byte validation enforced.</p>
+
+    <div class="int-card">
+      <h4>POST /api/images/upload <span class="tag tag-write">WRITE</span> <span class="tag tag-sec">12MB LIMIT</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; uploadImage() &mdash; line ~746</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~420</span></div>
+      <div class="desc">Uploads a base64-encoded image with slot name (system1, damage, wide, install1-10, oob1-10, part1-2). Server validates: file &lt; 10MB, extension in whitelist (.jpg, .jpeg, .png, .gif, .webp, .heic, .heif), magic bytes match known image signatures. Stored on disk at <code>uploads/{workOrderId}/{slot}_{timestamp}_{safeName}</code>.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> WoImage (create) + disk file</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/images/:workOrderId <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadWoImages() &mdash; line ~357</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~443</span></div>
+      <div class="desc">Lists all images for a given work order ID. Frontend maps by slot name for thumbnail display.</div>
+      <div class="models"><strong>Reads:</strong> WoImage (findMany) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/images/file/:imageId <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; (img src attribute)</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~452</span></div>
+      <div class="desc">Serves raw image file. Sets explicit Content-Type header based on file extension and adds <code>X-Content-Type-Options: nosniff</code>.</div>
+      <div class="models"><strong>Reads:</strong> WoImage (findUnique) + disk file &bull; <strong>Writes:</strong> None</div>
+    </div>
+  </div>
+
+  <!-- 6. PARTS -->
+  <div class="section" id="parts">
+    <h2>6. Parts Catalog &amp; WO Parts</h2>
+    <p>50-item parts catalog. 10-row parts form per WO with shipped/fromInventory checkboxes. Inventory auto-depletion on submit.</p>
+
+    <div class="int-card">
+      <h4>GET /api/parts/catalog <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadPartsCatalog() &mdash; line ~328</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~463</span></div>
+      <div class="desc">Fetches entire parts catalog (50 items) for dropdown selection on the WO parts page. Ordered alphabetically by name.</div>
+      <div class="models"><strong>Reads:</strong> PartsCatalog (findMany) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/parts/:workOrderId <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadPartsForWo() &mdash; line ~335</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~472</span></div>
+      <div class="desc">Loads saved parts entries for a WO. Frontend fills a 10-row grid, falling back to empty rows if no parts saved.</div>
+      <div class="models"><strong>Reads:</strong> PartEntry (findMany, ordered by rowNumber) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/parts/:workOrderId <span class="tag tag-both">READ + WRITE</span> <span class="tag tag-mock">MOCK SAAS</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; submitParts() &mdash; line ~708</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~484</span></div>
+      <div class="desc">Saves parts to a WO. Deletes existing PartEntry rows, creates new ones. Filters empty rows. If any part marked <code>fromInventory=true</code>, decrements LocalInventory quantity and creates a PartScanLog entry. Marks WO <code>partsCompleted=true</code>. Calls <code>mockSaasSync</code>.</div>
+      <div class="models"><strong>Reads:</strong> LocalInventory (findUnique) &bull; <strong>Writes:</strong> PartEntry (deleteMany + create), WorkOrder (update), LocalInventory (update), PartScanLog (create)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/test-qr-codes <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; (QR test section)</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~721</span></div>
+      <div class="desc">Returns QR code data for the first 10 catalog parts plus 2 swap-test pairs (new/old compressor). Used for testing QR scanning without real printed codes.</div>
+      <div class="models"><strong>Reads:</strong> PartsCatalog (findMany, take 10) &bull; <strong>Writes:</strong> None</div>
+    </div>
+  </div>
+
+  <!-- 7. INVENTORY -->
+  <div class="section" id="inventory">
+    <h2>7. Local Inventory / Parts Stocking</h2>
+    <p>Per-tech local inventory tracked via QR IN/OUT scanning. All scans synced to SaaS mock. 15 items seeded per user.</p>
+
+    <div class="int-card">
+      <h4>GET /api/inventory <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadLocalInventory() &mdash; line ~376</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~539</span></div>
+      <div class="desc">Fetches all inventory items for the authenticated user. Ordered by category then part name. Uses <code>resolveUserId(req)</code>.</div>
+      <div class="models"><strong>Reads:</strong> LocalInventory (findMany, filtered by userId) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/inventory/qr-in <span class="tag tag-write">WRITE</span> <span class="tag tag-mock">MOCK SAAS</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; processScan() mode="in" &mdash; line ~621</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~552</span></div>
+      <div class="desc">Scans a part QR code to add to inventory. Upserts LocalInventory (qty +1 or creates with qty=1). Creates PartScanLog entry. Calls <code>mockSaasSync</code>. Creates ActionLog entry. Toast: "QR IN: {name} &mdash; qty now {n}".</div>
+      <div class="models"><strong>Reads:</strong> LocalInventory (findUnique) &bull; <strong>Writes:</strong> LocalInventory (upsert), PartScanLog (create), ActionLog (create)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/inventory/qr-out <span class="tag tag-write">WRITE</span> <span class="tag tag-mock">MOCK SAAS</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; processScan() mode="out" &mdash; line ~633</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~582</span></div>
+      <div class="desc">Scans a part QR code to remove from inventory. Requires non-empty reason. Validates qty &gt; 0 (returns 400 if no stock). Decrements qty by 1. Creates PartScanLog + ActionLog. Calls <code>mockSaasSync</code>.</div>
+      <div class="models"><strong>Reads:</strong> LocalInventory (findUnique) &bull; <strong>Writes:</strong> LocalInventory (update), PartScanLog (create), ActionLog (create)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/inventory/scan-log <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; (scan log display)</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~616</span></div>
+      <div class="desc">Returns recent scan log entries. <code>take</code> param defaults to 50, capped at 100.</div>
+      <div class="models"><strong>Reads:</strong> PartScanLog (findMany, ordered by createdAt desc) &bull; <strong>Writes:</strong> None</div>
+    </div>
+  </div>
+
+  <!-- 8. QR SCANNING -->
+  <div class="section" id="qrscan">
+    <h2>8. WO Parts QR Scanning (Manufacturer API)</h2>
+    <p>Part-level tracking on WO parts page. Scans installed or removed parts with serial number linking to manufacturer.</p>
+
+    <div class="int-card">
+      <h4>POST /api/parts/:workOrderId/scan-installed <span class="tag tag-write">WRITE</span> <span class="tag tag-mock">MOCK MANUFACTURER</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; processScan() mode="wo-install" &mdash; line ~645</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~628</span></div>
+      <div class="desc">Logs an installed part against the WO's equipment serial number. Creates ManufacturerPartLog entry with action "installed". Calls <code>mockManufacturerApi</code>. Creates ActionLog.</div>
+      <div class="models"><strong>Reads:</strong> WorkOrder (findUnique) &bull; <strong>Writes:</strong> ManufacturerPartLog (create), ActionLog (create)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/parts/:workOrderId/scan-removed <span class="tag tag-write">WRITE</span> <span class="tag tag-mock">MOCK SAAS + MANUFACTURER</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; processScan() mode="wo-remove" &mdash; line ~655</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~659</span></div>
+      <div class="desc">Logs a removed/failed part. Requires non-empty reason. Creates ManufacturerPartLog (action "removed") + PartScanLog (direction "out" with reason). Calls both <code>mockSaasSync</code> and <code>mockManufacturerApi</code>.</div>
+      <div class="models"><strong>Reads:</strong> WorkOrder (findUnique) &bull; <strong>Writes:</strong> ManufacturerPartLog (create), PartScanLog (create), ActionLog (create)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/parts/:workOrderId/scan-history <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadWoScanHistory() &mdash; line ~383</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~694</span></div>
+      <div class="desc">Returns all install/removal scans for a WO. Color-coded on frontend: green for installed, red for removed.</div>
+      <div class="models"><strong>Reads:</strong> WorkOrder (findUnique), ManufacturerPartLog (findMany by woNumber) &bull; <strong>Writes:</strong> None</div>
+    </div>
+  </div>
+
+  <!-- 9. RECOMMENDED PARTS -->
+  <div class="section" id="recommended">
+    <h2>9. Recommended Parts</h2>
+
+    <div class="int-card">
+      <h4>GET /api/recommended-parts <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadRecommendedParts() &mdash; line ~390</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~709</span></div>
+      <div class="desc">Returns 12 recommended Amazon hardware items with name, description, URL, category, and price. Displayed on the Parts Stocking sidebar.</div>
+      <div class="models"><strong>Reads:</strong> RecommendedPart (findMany, ordered by category) &bull; <strong>Writes:</strong> None</div>
+    </div>
+  </div>
+
+  <!-- 10. OUT OF BOX -->
+  <div class="section" id="oob">
+    <h2>10. Out of Box Issues</h2>
+    <p>Install-only (Type 2) reporting for shipping damage, system issues, missing items. Auto-created on first load.</p>
+
+    <div class="int-card">
+      <h4>GET /api/out-of-box/:workOrderId <span class="tag tag-both">READ + WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadOob() &mdash; line ~350</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~742</span></div>
+      <div class="desc">Fetches OOB record for a WO. If no record exists, auto-creates one with today's date and the WO's serial number. Ensures OOB form is always available for install WOs.</div>
+      <div class="models"><strong>Reads:</strong> OutOfBoxIssue (findFirst), WorkOrder (findUnique) &bull; <strong>Writes:</strong> OutOfBoxIssue (create if missing)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/out-of-box/:workOrderId <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; submitOob() &mdash; line ~727</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~757</span></div>
+      <div class="desc">Updates the OOB record with shipping damage (Y/N), system issue (Y/N), missing items (Y/N), and other notes.</div>
+      <div class="models"><strong>Reads:</strong> OutOfBoxIssue (findFirst) &bull; <strong>Writes:</strong> OutOfBoxIssue (update)</div>
+    </div>
+  </div>
+
+  <!-- 11. EQUIPMENT -->
+  <div class="section" id="equipment">
+    <h2>11. Equipment &amp; SW Push</h2>
+
+    <div class="int-card">
+      <h4>GET /api/equipment/:serialNumber <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadEquipment() &mdash; line ~321</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~774</span></div>
+      <div class="desc">Fetches equipment data by serial number. Returns model, firmware, install date, warranty expiry, specs (parsed from specJson), and links to PDFs/videos. Loaded on WO page when woIndex changes.</div>
+      <div class="models"><strong>Reads:</strong> EquipmentData (findFirst by serialNumber) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/equipment/:serialNumber/sw-push <span class="tag tag-mock">MOCK</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; pushSw() &mdash; line ~699</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~784</span></div>
+      <div class="desc">Simulates a 2-second firmware push. Returns <code>{ version: "v3.2.1" }</code>. Frontend then calls <code>updateWoField</code> to set <code>swPushed=true</code> on the WO.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> None (mock delay only; WO update done via separate PATCH call)</div>
+    </div>
+  </div>
+
+  <!-- 12. SCHEDULE -->
+  <div class="section" id="schedule">
+    <h2>12. Schedule</h2>
+
+    <div class="int-card">
+      <h4>GET /api/schedule <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadSchedule() &mdash; line ~300</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~791</span></div>
+      <div class="desc">Fetches all schedule entries ordered by date. Displayed on the 8-week Monday-Sunday calendar. Clicking a WO number navigates to that work order.</div>
+      <div class="models"><strong>Reads:</strong> ScheduleEntry (findMany) &bull; <strong>Writes:</strong> None</div>
+    </div>
+  </div>
+
+  <!-- 13. NOTIFICATIONS -->
+  <div class="section" id="notifications">
+    <h2>13. Notifications</h2>
+
+    <div class="int-card">
+      <h4>GET /api/notifications <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadNotifications() &mdash; line ~293</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~801</span></div>
+      <div class="desc">Returns last 20 notifications ordered by date. Types: assignment, priority_change, overdue, parts_shipment, training. Color-coded by urgency on frontend.</div>
+      <div class="models"><strong>Reads:</strong> Notification (findMany, take 20) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>PATCH /api/notifications/:id/read <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; (mark-read on click)</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~813</span></div>
+      <div class="desc">Marks a notification as read. Sets <code>read: true</code>.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> Notification (update)</div>
+    </div>
+  </div>
+
+  <!-- 14. FEDEX -->
+  <div class="section" id="fedex">
+    <h2>14. FedEx Return Labels</h2>
+
+    <div class="int-card">
+      <h4>POST /api/fedex/return-label <span class="tag tag-write">WRITE</span> <span class="tag tag-mock">MOCK</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; requestReturnLabel() &mdash; line ~737</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~823</span></div>
+      <div class="desc">Generates a mock FedEx return label with a random 12-digit tracking number (794 + 9 digits). Used on the WO parts page for defective part returns.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> ReturnLabel (create)</div>
+    </div>
+  </div>
+
+  <!-- 15. EXPENSES -->
+  <div class="section" id="expenses">
+    <h2>15. Expenses</h2>
+    <p>Receipt logging with photo upload, WO attachment, expense type/department selection. Draft queue prevents accidental submissions. NetSuite sync (mock).</p>
+
+    <div class="int-card">
+      <h4>POST /api/expense-images/upload <span class="tag tag-write">WRITE</span> <span class="tag tag-sec">12MB LIMIT + MAGIC BYTES</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; uploadExpenseImage() &mdash; line ~425</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~840</span></div>
+      <div class="desc">Uploads receipt or odometer photo. Base64 decoded, validated (&lt; 10MB, magic bytes, extension whitelist). Stored at <code>uploads/expenses/{type}_{timestamp}_{name}</code>. Returns ExpenseImage record with ID for linking.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> ExpenseImage (create) + disk file</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/expense-images/file/:imageId <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; (img src attribute)</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~864</span></div>
+      <div class="desc">Serves expense/odometer images. Sets Content-Type and X-Content-Type-Options headers.</div>
+      <div class="models"><strong>Reads:</strong> ExpenseImage (findUnique) + disk file &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/expenses <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadExpenses() &mdash; line ~411</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~876</span></div>
+      <div class="desc">Fetches all expenses for the authenticated user, ordered by date descending. Displayed in the "Submitted History" section below the draft queue.</div>
+      <div class="models"><strong>Reads:</strong> Expense (findMany, filtered by userId) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/expenses <span class="tag tag-write">WRITE</span> <span class="tag tag-mock">MOCK NETSUITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; submitDraftExpense() &mdash; line ~539</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~892</span></div>
+      <div class="desc">Submits a single expense (from draft queue). Creates Expense record, links receipt image via refId, calls <code>mockSaasSync</code> (NetSuite), sets <code>syncedToNetsuite=true</code>, creates ActionLog. Frontend also has <code>submitAllDraftExpenses()</code> (line ~593) which loops all drafts.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> Expense (create), ExpenseImage (update refId), Expense (update syncedToNetsuite), ActionLog (create)</div>
+    </div>
+  </div>
+
+  <!-- 16. MILEAGE -->
+  <div class="section" id="mileage">
+    <h2>16. Mileage Reimbursement</h2>
+    <p>Odometer IN/OUT with photo proof. Auto-calculated total miles. Draft queue pattern. NetSuite sync (mock).</p>
+
+    <div class="int-card">
+      <h4>GET /api/mileage <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadMileageEntries() &mdash; line ~418</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~920</span></div>
+      <div class="desc">Fetches all mileage entries for the authenticated user, ordered by date descending.</div>
+      <div class="models"><strong>Reads:</strong> MileageEntry (findMany, filtered by userId) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/mileage <span class="tag tag-write">WRITE</span> <span class="tag tag-mock">MOCK NETSUITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; submitDraftMileage() &mdash; line ~567</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~936</span></div>
+      <div class="desc">Submits a single mileage entry (from draft queue). Validates <code>mileageOut &gt; mileageIn</code>, calculates totalMiles. Creates MileageEntry, links odometer images, calls <code>mockSaasSync</code>, sets <code>syncedToNetsuite=true</code>, creates ActionLog. Frontend also has <code>submitAllDraftMileage()</code> (line ~599).</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> MileageEntry (create), ExpenseImage (update refId x2), MileageEntry (update syncedToNetsuite), ActionLog (create)</div>
+    </div>
+  </div>
+
+  <!-- 17. CHAT -->
+  <div class="section" id="chat">
+    <h2>17. Chat &amp; AI Assistant</h2>
+    <p>GPT-4.1-mini powered assistant. Full visibility into all work orders, schedule, and repair PDFs. Thread-based conversation history.</p>
+
+    <div class="int-card">
+      <h4>GET /api/threads <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; (thread list load)</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~971</span></div>
+      <div class="desc">Returns last 50 chat threads, ordered by most recently updated.</div>
+      <div class="models"><strong>Reads:</strong> Thread (findMany, take 50) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/threads <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; (new thread button)</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~980</span></div>
+      <div class="desc">Creates a new empty chat thread with a title.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> Thread (create)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>PATCH /api/threads/:id <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Backend: <span>server.js &mdash; line ~990</span></div>
+      <div class="desc">Renames a chat thread.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> Thread (update title)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>DELETE /api/threads/:id <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Backend: <span>server.js &mdash; line ~999</span></div>
+      <div class="desc">Deletes a thread and all its messages.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> Message (deleteMany), Thread (delete)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/chat/thread <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadMessages() &mdash; line ~368</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~1009</span></div>
+      <div class="desc">Fetches all messages for a thread, ordered chronologically. Returns role, content, and timestamp.</div>
+      <div class="models"><strong>Reads:</strong> Message (findMany by threadId) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/chat <span class="tag tag-both">READ + WRITE</span> <span class="tag tag-ext">OPENAI API</span> <span class="tag tag-sec">CHAT LIMITER</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; sendChat() &mdash; line ~768</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; line ~1023</span></div>
+      <div class="desc">The main AI chat endpoint. Rate limited to 10 req/min. Saves user message, loads context (last 40 messages), pulls ALL work orders + ALL schedule entries + available repair PDFs, builds a rich system prompt, calls OpenAI GPT-4.1-mini, saves assistant reply, updates thread timestamp. Auto-creates thread if none provided.</div>
+      <div class="models">
+        <strong>Reads:</strong> Thread, Message (last 40), WorkOrder (all, with lineItems + parts), ScheduleEntry (all), disk (docsDir for PDF list)<br>
+        <strong>Writes:</strong> Message (create user + assistant), Thread (create if needed, update updatedAt)<br>
+        <strong>External:</strong> <code>https://api.openai.com/v1/chat/completions</code> &mdash; GPT-4.1-mini, temp 0.6, max 1024 tokens
+      </div>
+    </div>
+  </div>
+
+  <!-- 18. ACTION LOG -->
+  <div class="section" id="actions">
+    <h2>18. Action Log</h2>
+
+    <div class="int-card">
+      <h4>GET /api/actions <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Backend: <span>server.js &mdash; line ~1118</span></div>
+      <div class="desc">Returns recent action log entries (default 20, max 100). Actions are written by WO close, QR scans, expense/mileage submissions, and part saves.</div>
+      <div class="models"><strong>Reads:</strong> ActionLog (findMany, ordered by createdAt desc) &bull; <strong>Writes:</strong> None</div>
+    </div>
+  </div>
+
+  <!-- 19. DOCS -->
+  <div class="section" id="docs">
+    <h2>19. Repair Docs / PDFs</h2>
+
+    <div class="int-card">
+      <h4>GET /api/docs <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Backend: <span>server.js &mdash; line ~1129</span></div>
+      <div class="desc">Lists all .pdf files in the docs directory. Returns fileName, title (filename with underscores replaced by spaces), and URL path.</div>
+      <div class="models"><strong>Reads:</strong> Disk (fs.readdirSync) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/docs/:fileName <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Backend: <span>server.js &mdash; line ~1144</span></div>
+      <div class="desc">Serves a repair PDF file with <code>Content-Type: application/pdf</code> and <code>inline</code> disposition. Uses <code>path.basename()</code> for path traversal prevention. Chat AI references these URLs when techs ask for guides.</div>
+      <div class="models"><strong>Reads:</strong> Disk (fs.existsSync + res.sendFile) &bull; <strong>Writes:</strong> None</div>
+    </div>
+  </div>
+
+  <!-- 20. SECURITY -->
+  <div class="section" id="security">
+    <h2>20. Security &amp; Middleware</h2>
+
+    <h3>Authentication Flow</h3>
+    <pre>Login POST &rarr; bcrypt verify &rarr; Session created (crypto.randomUUID) &rarr; HttpOnly cookie set
+Every API request &rarr; authMiddleware &rarr; parse cookie &rarr; find session &rarr; check expiry &rarr; set req.userId
+Logout POST &rarr; delete session from DB &rarr; clear cookie</pre>
+
+    <h3>Rate Limiters (server.js)</h3>
+    <table>
+      <tr><th>Limiter</th><th>Scope</th><th>Limit</th><th>Line</th></tr>
+      <tr><td><code>apiLimiter</code></td><td>All <code>/api/*</code> routes</td><td>120 req/min</td><td>~50</td></tr>
+      <tr><td><code>loginLimiter</code></td><td><code>/api/auth/login</code> only</td><td>5 req/min</td><td>~66</td></tr>
+      <tr><td><code>chatLimiter</code></td><td><code>/api/chat</code> only</td><td>10 req/min</td><td>~58</td></tr>
+    </table>
+
+    <h3>CORS Whitelist</h3>
+    <pre>http://localhost:4300
+http://127.0.0.1:4300
+http://100.84.51.101:4300     (Tailscale HTTP)
+https://100.84.51.101:8444    (Tailscale HTTPS)</pre>
+
+    <h3>Helmet CSP Directives</h3>
+    <pre>default-src: 'self'
+script-src:  'self'
+style-src:   'self' 'unsafe-inline'
+img-src:     'self' data: blob:
+connect-src: 'self' + ALLOWED_ORIGINS</pre>
+
+    <h3>Image Upload Validation</h3>
+    <table>
+      <tr><th>Check</th><th>Detail</th></tr>
+      <tr><td>Extension whitelist</td><td>.jpg, .jpeg, .png, .gif, .webp, .heic, .heif</td></tr>
+      <tr><td>Magic byte validation</td><td>First 4 bytes checked: FFD8FF (JPEG), 89504E47 (PNG), 47494638 (GIF), 52494646 (WebP), 00000018/1C (HEIC)</td></tr>
+      <tr><td>Size limit</td><td>10MB per file (checked server-side after base64 decode)</td></tr>
+      <tr><td>Body limit</td><td>12MB JSON body limit on upload routes (bigBody middleware)</td></tr>
+      <tr><td>Filename sanitization</td><td><code>/[\/\\]/g</code> and <code>/../</code> replaced with <code>_</code></td></tr>
+    </table>
+
+    <h3>Session Security</h3>
+    <table>
+      <tr><th>Feature</th><th>Implementation</th></tr>
+      <tr><td>Session ID</td><td><code>crypto.randomUUID()</code> (cryptographically secure)</td></tr>
+      <tr><td>Cookie flags</td><td>HttpOnly, SameSite=Lax, Secure (production), 3-hour Max-Age</td></tr>
+      <tr><td>Logout</td><td>Session record deleted from DB + cookie cleared</td></tr>
+      <tr><td>Expiry check</td><td>Every request validates <code>session.expiresAt &gt; now</code></td></tr>
+      <tr><td>Expired cleanup</td><td>Expired sessions deleted on access attempt</td></tr>
+    </table>
+  </div>
+
+  <!-- 21. DATABASE MODELS -->
+  <div class="section" id="models">
+    <h2>21. All 20 Database Models</h2>
+    <p>Prisma ORM with SQLite. Schema at <code>backend/prisma/schema.prisma</code>.</p>
+
+    <h3>Auth &amp; Sessions</h3>
+    <table>
+      <tr><th>Model</th><th>Key Fields</th><th>Used By</th></tr>
+      <tr><td>User</td><td>id, username, passwordHash, displayName, role, zipCode</td><td>Login, auth check, admin role check, user isolation</td></tr>
+      <tr><td>Session</td><td>id (UUID), userId, expiresAt</td><td>Auth middleware, login, logout</td></tr>
+    </table>
+
+    <h3>Work Orders &amp; Line Items</h3>
+    <table>
+      <tr><th>Model</th><th>Key Fields</th><th>Used By</th></tr>
+      <tr><td>WorkOrder</td><td>id, woNumber, type, status, priority, scheduledDate, dueDate, serialNumber, accountName, accountAddress, notes, partsRequired, partsCompleted, swPushed</td><td>WO list, detail, update, close, chat context, expense dropdown</td></tr>
+      <tr><td>LineItem</td><td>id, workOrderId, lineNumber, description, trackingNum, completed</td><td>WO checklist, toggle completion</td></tr>
+      <tr><td>WoImage</td><td>id, workOrderId, slot, fileName, filePath</td><td>Image upload, serve, WO detail display</td></tr>
+    </table>
+
+    <h3>Parts Management</h3>
+    <table>
+      <tr><th>Model</th><th>Key Fields</th><th>Used By</th></tr>
+      <tr><td>PartEntry</td><td>id, workOrderId, rowNumber, partName, partNumber, quantity, confirmed, shipped, fromInventory</td><td>WO parts save/load</td></tr>
+      <tr><td>PartsCatalog</td><td>id, partName, partNumber, category</td><td>Parts dropdown, QR test codes</td></tr>
+      <tr><td>LocalInventory</td><td>id, userId, partNumber, partName, category, quantity</td><td>Inventory list, QR in/out, auto-depletion</td></tr>
+      <tr><td>PartScanLog</td><td>id, userId, partNumber, partName, direction, reason, woNumber, serialNumber, syncedToSaas</td><td>QR scan audit trail</td></tr>
+      <tr><td>ManufacturerPartLog</td><td>id, serialNumber, partNumber, partName, action, scannedBy, woNumber, syncedToMfg</td><td>Part installed/removed tracking</td></tr>
+      <tr><td>RecommendedPart</td><td>id, name, description, url, category, price</td><td>Amazon hardware catalog</td></tr>
+    </table>
+
+    <h3>Work Order Context</h3>
+    <table>
+      <tr><th>Model</th><th>Key Fields</th><th>Used By</th></tr>
+      <tr><td>OutOfBoxIssue</td><td>id, workOrderId, issueDate, systemNumber, shippingDamage, systemIssue, missingItems, otherNotes</td><td>OOB form (Install WOs)</td></tr>
+      <tr><td>ScheduleEntry</td><td>id, workOrderId, woNumber, title, scheduledDate, accountName</td><td>Calendar, recent WO filter, chat context</td></tr>
+      <tr><td>EquipmentData</td><td>id, serialNumber, modelName, firmware, lastStartup, installDate, warrantyExp, specJson, pdfUrl, videoUrl</td><td>Equipment panel on WO page</td></tr>
+      <tr><td>ReturnLabel</td><td>id, workOrderId, trackingNum, labelUrl, carrier</td><td>FedEx return label generation</td></tr>
+    </table>
+
+    <h3>Expenses &amp; Mileage</h3>
+    <table>
+      <tr><th>Model</th><th>Key Fields</th><th>Used By</th></tr>
+      <tr><td>Expense</td><td>id, userId, workOrderId, woNumber, expenseType, department, vendor, amount, expenseDate, receiptImageId, syncedToNetsuite</td><td>Receipt submission, history</td></tr>
+      <tr><td>MileageEntry</td><td>id, userId, workOrderId, woNumber, mileageIn, mileageOut, totalMiles, odometerInImageId, odometerOutImageId, syncedToNetsuite</td><td>Mileage submission, history</td></tr>
+      <tr><td>ExpenseImage</td><td>id, expenseType, refId, fileName, filePath</td><td>Receipt/odometer photo storage</td></tr>
+    </table>
+
+    <h3>Chat &amp; Messaging</h3>
+    <table>
+      <tr><th>Model</th><th>Key Fields</th><th>Used By</th></tr>
+      <tr><td>Thread</td><td>id, title, createdAt, updatedAt</td><td>Chat thread list, create, delete</td></tr>
+      <tr><td>Message</td><td>id, threadId, role (user/assistant), content</td><td>Chat history, OpenAI context</td></tr>
+    </table>
+
+    <h3>Logging &amp; System</h3>
+    <table>
+      <tr><th>Model</th><th>Key Fields</th><th>Used By</th></tr>
+      <tr><td>Notification</td><td>id, title, body, type, read</td><td>Notification feed</td></tr>
+      <tr><td>ActionLog</td><td>id, type, label, detail, ok</td><td>Audit trail (WO close, scans, expenses)</td></tr>
+      <tr><td>SystemState</td><td>id ("global"), metaJson</td><td>Seed tracking (seeded: true)</td></tr>
+    </table>
+  </div>
+
+  <!-- MOCK ADAPTERS -->
+  <div class="section">
+    <h2>Mock Adapter Pattern</h2>
+    <p>All external integrations use mock functions that simulate real API behavior. When real APIs are available, swap by setting <code>USE_MOCK=false</code> and implementing one adapter per service.</p>
+
+    <table>
+      <tr><th>Mock Function</th><th>Simulates</th><th>Delay</th><th>Used By</th><th>Line</th></tr>
+      <tr><td><code>mockSaasSync(data)</code></td><td>Salesforce / NetSuite sync</td><td>200ms</td><td>QR in/out, parts save, expense submit, mileage submit, part removed</td><td>~184</td></tr>
+      <tr><td><code>mockManufacturerApi(data)</code></td><td>Equipment manufacturer tracking</td><td>300ms</td><td>Part installed, part removed</td><td>~190</td></tr>
+      <tr><td>SW push endpoint</td><td>Firmware update push</td><td>2000ms</td><td>SW push button on WO page</td><td>~784</td></tr>
+      <tr><td>FedEx label endpoint</td><td>FedEx return label API</td><td>Instant</td><td>Return label button on parts page</td><td>~823</td></tr>
+    </table>
+  </div>
+
+  <div class="footer">
+    Technician Assistant &mdash; Integration Report v1.5<br>
+    42 API Endpoints &bull; 20 Database Models &bull; 2 External APIs &bull; 4 Mock Adapters<br>
+    Built by Alex Hosage &mdash; March 3, 2026
+  </div>
+
+</div>
+</body>
+</html>

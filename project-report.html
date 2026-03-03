@@ -824,6 +824,23 @@
       <li><strong>Generic error responses</strong> &mdash; API errors return <code>"server_error"</code> instead of leaking internal error messages</li>
       <li><strong>Zip code validation</strong> &mdash; Weather endpoint validates <code>/^\d{5}$/</code> before making external request</li>
     </ul>
+
+    <h3>Security Hardening Phase 2 <span class="tag tag-new">v1.5</span></h3>
+    <ul>
+      <li><strong>Localhost auth bypass removed</strong> &mdash; All requests now require a valid session cookie, including localhost. No IP-based bypass.</li>
+      <li><strong>Session IDs upgraded</strong> &mdash; Uses <code>crypto.randomUUID()</code> instead of Prisma cuid for cryptographically secure session tokens.</li>
+      <li><strong>Secure cookie flag</strong> &mdash; <code>Secure</code> flag added to session cookie in production mode (HTTPS only).</li>
+      <li><strong>Logout session invalidation</strong> &mdash; Logout now deletes the session record from the database (was only clearing the cookie).</li>
+      <li><strong>Helmet CSP</strong> &mdash; Full Content Security Policy directives: <code>default-src 'self'</code>, <code>script-src 'self'</code>, <code>style-src 'self' 'unsafe-inline'</code>, <code>img-src 'self' data: blob:</code>.</li>
+      <li><strong>API rate limiter</strong> &mdash; 120 requests/minute across all <code>/api/*</code> routes.</li>
+      <li><strong>Chat rate limiter</strong> &mdash; 10 requests/minute on <code>/api/chat</code> to control LLM costs.</li>
+      <li><strong>Image upload validation</strong> &mdash; Magic byte checking (first 4 bytes) against known image signatures (JPEG, PNG, GIF, WebP, HEIC). Extension whitelist enforced.</li>
+      <li><strong>Content-Type headers on image serve</strong> &mdash; Explicit MIME type set on all image serve endpoints with <code>X-Content-Type-Options: nosniff</code>.</li>
+      <li><strong>Health endpoint hardened</strong> &mdash; Removed leaked internal URLs (lmsUrl, systemSiteUrl, partsOrderUrl).</li>
+      <li><strong>Query parameter caps</strong> &mdash; <code>take</code> parameter capped at 100 on scan-log and action-log endpoints to prevent unbounded queries.</li>
+      <li><strong>Wildcard CORS removed</strong> &mdash; Removed <code>Access-Control-Allow-Origin: *</code> from SPA fallback and static file serving.</li>
+      <li><strong>resolveUserId hardened</strong> &mdash; No longer silently falls back to first tech user. Returns <code>null</code> if no authenticated user, triggering 401.</li>
+    </ul>
   </div>
 
   <!-- DATA FLOW -->
