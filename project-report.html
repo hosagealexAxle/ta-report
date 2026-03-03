@@ -840,6 +840,8 @@
       <li><strong>Query parameter caps</strong> &mdash; <code>take</code> parameter capped at 100 on scan-log and action-log endpoints to prevent unbounded queries.</li>
       <li><strong>Wildcard CORS removed</strong> &mdash; Removed <code>Access-Control-Allow-Origin: *</code> from SPA fallback and static file serving.</li>
       <li><strong>resolveUserId hardened</strong> &mdash; No longer silently falls back to first tech user. Returns <code>null</code> if no authenticated user, triggering 401.</li>
+      <li><strong>Strict CSP enforced</strong> &mdash; Removed inline debug script from dashboard HTML. <code>scriptSrc: 'self'</code> only (no <code>unsafe-inline</code>). <code>crossOriginResourcePolicy: same-origin</code> restored.</li>
+      <li><strong>Electron loads via HTTP</strong> &mdash; Desktop app loads <code>http://localhost:4300</code> instead of <code>file://</code> so session cookies work correctly with <code>SameSite=Lax</code>.</li>
     </ul>
   </div>
 
