@@ -35,7 +35,7 @@
 <body>
 
 <h1>Technician Assistant</h1>
-<div class="subtitle">Project Status &mdash; March 2, 2026 (v1.4 &mdash; Expenses &amp; Mileage Reimbursement with NetSuite Sync)</div>
+<div class="subtitle">Project Status &mdash; March 3, 2026 (v1.5 &mdash; Expenses Draft Queue)</div>
 
 <h2>Executive Summary</h2>
 <p><strong>Technician Assistant (TA)</strong> is a field service management application that provides technicians with a controlled, read/write interface to Salesforce work order data &mdash; without giving them direct access to Salesforce or any other enterprise SaaS platform. The app is purpose-built for HVAC/mechanical field technicians who need to view assigned work orders, complete line items, upload site photos, track parts usage, report out-of-box issues, and manage their weekly schedule &mdash; all from a single mobile-friendly interface.</p>
@@ -117,6 +117,17 @@
   <li><strong>NetSuite Sync (mock)</strong> &mdash; Both receipts and mileage entries sync to NetSuite via <code>mockSaasSync()</code>. Each submission creates an ActionLog entry.</li>
   <li><strong>3 New Prisma Models</strong> &mdash; Expense, MileageEntry, ExpenseImage. 7 new API endpoints. Seed data: 4 sample expenses + 3 mileage entries.</li>
   <li><strong>Navigation</strong> &mdash; New "Expenses" button on main dashboard nav grid (now 7 buttons). Tab switcher between Receipt and Mileage views.</li>
+</ul>
+</div>
+
+<div class="section-new">
+<strong>v1.5 UPDATE (Mar 3, 2026):</strong> Added Expenses Draft Queue &mdash; a local review layer between the form and server submission. Prevents accidental expense entries from syncing immediately to NetSuite:
+<ul style="margin-top: 8px;">
+  <li><strong>Draft Queue Pattern</strong> &mdash; Form "Submit" buttons renamed to "Add Receipt" / "Add Mileage". Entries go into a local draft queue (not submitted to server) for review before submission.</li>
+  <li><strong>Draft Cards</strong> &mdash; Each draft displays WO#, type/dept badges, vendor, amount (or IN &rarr; OUT miles), date, and receipt/odometer thumbnails. Amber left-border indicates pending status.</li>
+  <li><strong>Per-Draft Actions</strong> &mdash; Edit (re-populates form fields, removes from queue), Delete (removes permanently), Submit (POSTs individual draft to server, moves to history).</li>
+  <li><strong>Bulk Submit</strong> &mdash; "Submit All Receipts" / "Submit All Mileage" buttons send all queued drafts to the server in sequence.</li>
+  <li><strong>Frontend-Only Change</strong> &mdash; No backend modifications. Same POST endpoints called from draft queue instead of directly from form. 2 files changed: <code>App.jsx</code> + <code>index.css</code>.</li>
 </ul>
 </div>
 
@@ -266,9 +277,10 @@
   <li><strong>Date picker:</strong> Defaults to today, editable</li>
   <li><strong>Vendor name:</strong> Free text input</li>
   <li><strong>Receipt cost:</strong> Number input (step 0.01)</li>
-  <li><strong>All fields editable</strong> before pressing Submit</li>
-  <li><strong>Submit:</strong> Creates Expense record, links receipt image, syncs to NetSuite (mock), logs to ActionLog, resets form</li>
-  <li><strong>History list:</strong> Below form &mdash; cards showing WO#, expense type badge (color-coded: blue/Travel, green/Food, orange/Misc), department badge, vendor, dollar amount, and date</li>
+  <li><strong>All fields editable</strong> before pressing "Add Receipt"</li>
+  <li><strong>"Add Receipt" button:</strong> Validates form and adds entry to local draft queue (not submitted to server). Clears form for next entry. <span class="tag blue">CHANGED v1.5</span></li>
+  <li><strong>Draft Queue <span class="tag blue">NEW v1.5</span>:</strong> Amber-bordered section between form and history. Shows only when drafts exist. Header: "Ready to Submit (N)". Each draft card shows WO#, type/dept badges, vendor, amount, date, receipt thumbnail. Per-card buttons: Edit (re-populates form), Delete (removes), Submit (POSTs to server). "Submit All Receipts" bulk button at bottom.</li>
+  <li><strong>History list:</strong> Below draft queue &mdash; cards showing WO#, expense type badge (color-coded: blue/Travel, green/Food, orange/Misc), department badge, vendor, dollar amount, and date. Permanent and read-only after submission.</li>
 </ul>
 
 <h3>P17a — Mileage Reimbursement Tab <span class="tag blue">NEW v1.4</span></h3>
@@ -278,9 +290,10 @@
   <li><strong>Mileage OUT row:</strong> Number input for ending odometer + tap-to-upload odometer photo (side by side)</li>
   <li><strong>Total Miles display:</strong> Auto-calculated (OUT &minus; IN) shown in accent-colored highlight box with large text</li>
   <li><strong>Validation:</strong> Mileage OUT must exceed Mileage IN (server-enforced 400 error)</li>
-  <li><strong>All fields editable</strong> before pressing Submit</li>
-  <li><strong>Submit:</strong> Creates MileageEntry record (with computed totalMiles), links odometer images, syncs to NetSuite (mock), logs to ActionLog, resets form</li>
-  <li><strong>History list:</strong> Below form &mdash; cards showing WO#, IN &rarr; OUT readings, total miles, and date</li>
+  <li><strong>All fields editable</strong> before pressing "Add Mileage"</li>
+  <li><strong>"Add Mileage" button:</strong> Validates form and adds entry to local draft queue. Clears form for next entry. <span class="tag blue">CHANGED v1.5</span></li>
+  <li><strong>Draft Queue <span class="tag blue">NEW v1.5</span>:</strong> Same pattern as receipts. Each draft card shows WO#, IN &rarr; OUT, total miles, odometer thumbnails. Per-card: Edit, Delete, Submit. "Submit All Mileage" bulk button.</li>
+  <li><strong>History list:</strong> Below draft queue &mdash; cards showing WO#, IN &rarr; OUT readings, total miles, and date. Permanent and read-only.</li>
 </ul>
 
 <h3>P15: Out of Box Issue</h3>
@@ -758,9 +771,20 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Mar 2. Expenses page with receipt logging, mileage reimbursement, 30-day WO rule, NetSuite sync.</li>
 </ul>
 
+<h3>Session 8: March 3, 2026 <span class="tag blue">v1.5</span> <span class="tag">COMPLETE</span></h3>
+<ul>
+  <li><strong>Phase 26: Expenses Draft Queue:</strong> Added a local draft review layer between the expense form and server submission. Prevents accidental entries from syncing immediately to NetSuite.</li>
+  <li><strong>Draft Queue Pattern:</strong> Form "Submit" buttons renamed to "Add Receipt" / "Add Mileage". Entries go into a local <code>draftExpenses[]</code> / <code>draftMileage[]</code> array for review.</li>
+  <li><strong>Draft Cards:</strong> Amber-bordered cards between form and history. Each shows full entry details (WO#, type, amount, thumbnails) with per-card Edit, Delete, and Submit actions.</li>
+  <li><strong>Bulk Submit:</strong> "Submit All Receipts" / "Submit All Mileage" buttons to send all queued drafts at once.</li>
+  <li><strong>Edit Flow:</strong> Clicking Edit on a draft re-populates all form fields (including receipt/odometer image previews) and removes the draft from the queue for modification.</li>
+  <li><strong>Frontend-only change:</strong> No backend modifications. Same POST endpoints (<code>/api/expenses</code>, <code>/api/mileage</code>) called from draft queue instead of directly from form. 2 files changed: <code>App.jsx</code> (state + functions + JSX) and <code>index.css</code> (10 new CSS classes).</li>
+  <li class="resolved"><strong>DEPLOYED TO /Applications/Technician Assistant.app</strong> &mdash; Mar 3. Fresh DB seeded with 3 overdue WOs for testing.</li>
+</ul>
+
 <div class="footer">
-  <p>Technician Assistant v1.4 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 49 Work Orders &mdash; 23 Models &mdash; 44+ Endpoints &mdash; QR Scanning + Parts/Inventory Sync &mdash; Expenses &amp; Mileage Reimbursement &mdash; Security Hardened &mdash; Tailscale HTTPS &mdash; Port 4300</p>
-  <p>Updated March 2, 2026</p>
+  <p>Technician Assistant v1.5 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 49 Work Orders &mdash; 23 Models &mdash; 44+ Endpoints &mdash; QR Scanning + Parts/Inventory Sync &mdash; Expenses &amp; Mileage Reimbursement + Draft Queue &mdash; Security Hardened &mdash; Tailscale HTTPS &mdash; Port 4300</p>
+  <p>Updated March 3, 2026</p>
 </div>
 
 </body>

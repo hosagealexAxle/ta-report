@@ -216,7 +216,7 @@
     <div class="logo">TA</div>
     <h1>Technician Assistant</h1>
     <div class="subtitle">Field Technician Work Order & Reporting App</div>
-    <div class="date">Project Report — March 2, 2026 (v1.4)</div>
+    <div class="date">Project Report — March 3, 2026 (v1.5)</div>
   </div>
 
   <!-- OVERVIEW -->
@@ -699,8 +699,9 @@
         <li>Vendor name (text input) <span class="tag tag-write">NetSuite Write</span></li>
         <li>Receipt cost (dollar amount) <span class="tag tag-write">NetSuite Write</span></li>
       </ul>
-      <p><strong>Submit:</strong> Syncs to NetSuite (mock). Creates ActionLog entry. Resets form for next receipt.</p>
-      <p><strong>History:</strong> Submitted receipts displayed below form as cards showing WO#, expense type badge, department badge, vendor, amount, and date.</p>
+      <p><strong>Draft Queue <span class="tag tag-new">NEW v1.5</span>:</strong> Clicking "Add Receipt" validates and adds to a local draft queue (amber-bordered cards) instead of submitting immediately. Each draft card shows WO#, type, dept, vendor, amount, date, and receipt thumbnail. Per-card actions: Edit (re-populates form), Delete (removes), Submit (sends to server). "Submit All Receipts" button sends everything at once.</p>
+      <p><strong>Submit:</strong> Individual or bulk submit from draft queue syncs to NetSuite (mock). Creates ActionLog entry.</p>
+      <p><strong>History:</strong> Submitted receipts displayed below draft queue as cards showing WO#, expense type badge, department badge, vendor, amount, and date. Permanent and read-only.</p>
     </div>
 
     <!-- P17a -->
@@ -718,8 +719,9 @@
         <li><strong>Total Miles</strong> &mdash; auto-calculated (OUT &minus; IN), displayed in accent highlight box</li>
       </ul>
       <p><strong>Validation:</strong> Mileage OUT must be greater than Mileage IN.</p>
-      <p><strong>Submit:</strong> Syncs to NetSuite (mock). Creates ActionLog entry. Resets form.</p>
-      <p><strong>History:</strong> Submitted mileage entries displayed below form as cards showing WO#, IN &rarr; OUT, total miles, and date.</p>
+      <p><strong>Draft Queue <span class="tag tag-new">NEW v1.5</span>:</strong> Same pattern as receipts &mdash; "Add Mileage" validates and pushes to draft queue. Each draft card shows WO#, IN &rarr; OUT, total miles, and odometer thumbnails. Per-card actions: Edit, Delete, Submit. "Submit All Mileage" button for bulk submit.</p>
+      <p><strong>Submit:</strong> Individual or bulk submit from draft queue syncs to NetSuite (mock). Creates ActionLog entry.</p>
+      <p><strong>History:</strong> Submitted mileage entries displayed below draft queue as cards showing WO#, IN &rarr; OUT, total miles, and date. Permanent and read-only.</p>
     </div>
   </div>
 
@@ -1000,8 +1002,8 @@
   </div>
 
   <div class="footer">
-    Technician Assistant &mdash; Project Report v1.4<br>
-    Updated March 2, 2026
+    Technician Assistant &mdash; Project Report v1.5<br>
+    Updated March 3, 2026
   </div>
 
 </div>
