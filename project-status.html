@@ -35,7 +35,7 @@
 <body>
 
 <h1>Technician Assistant</h1>
-<div class="subtitle">Project Status &mdash; March 3, 2026 (v1.5 &mdash; Expenses Draft Queue)</div>
+<div class="subtitle">Project Status &mdash; March 4, 2026 (v1.6 &mdash; Schedule Assistant Integration)</div>
 
 <h2>Executive Summary</h2>
 <p><strong>Technician Assistant (TA)</strong> is a field service management application that provides technicians with a controlled, read/write interface to Salesforce work order data &mdash; without giving them direct access to Salesforce or any other enterprise SaaS platform. The app is purpose-built for HVAC/mechanical field technicians who need to view assigned work orders, complete line items, upload site photos, track parts usage, report out-of-box issues, and manage their weekly schedule &mdash; all from a single mobile-friendly interface.</p>
@@ -785,9 +785,20 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <li class="resolved"><strong>PUSHED TO GITHUB</strong> &mdash; hosagealexAxle/technician-assistant + axle-inc/technician-assistant.</li>
 </ul>
 
+<div class="section-new">
+<strong>v1.6 UPDATE (Mar 4, 2026) &mdash; Schedule Assistant Integration:</strong> Technician Assistant now receives automated schedule data from the companion app <strong>Schedule Assistant (SA)</strong>, completing a full SaaS &rarr; SA &rarr; TA &rarr; SaaS data loop:
+<ul style="margin-top: 8px;">
+  <li><strong>3 New Sync Endpoints</strong> &mdash; <code>POST /api/sync/schedule</code> (receives schedule entries from SA), <code>POST /api/sync/work-orders</code> (receives work order data from SA), <code>POST /api/sync/write-to-saas</code> (writes WO status back to mock Salesforce). All skip auth middleware for internal SA calls.</li>
+  <li><strong>Auto-Sync Pipeline</strong> &mdash; When SA pulls new WOs from SaaS and runs its SLA engine, it automatically pushes the schedule and work orders to TA on port 4300. TA then writes back to SaaS, closing the loop. Zero manual intervention.</li>
+  <li><strong>Upsert Logic</strong> &mdash; Schedule entries are matched by <code>woNumber + scheduledDate</code>. Work orders matched by <code>woNumber</code> (unique). New records are created; existing records are updated.</li>
+  <li><strong>Data Flow</strong> &mdash; SaaS (mock Salesforce) &rarr; SA (pull queue, SLA assign) &rarr; TA (receive schedule + WOs) &rarr; SaaS (write-back, queued &rarr; scheduled). Techs see their schedule in TA without any manual data entry.</li>
+  <li><strong>Auth Bypass</strong> &mdash; <code>/api/sync</code> paths added to auth middleware exceptions so SA can call TA without a session cookie.</li>
+</ul>
+</div>
+
 <div class="footer">
-  <p>Technician Assistant v1.5 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 49 Work Orders &mdash; 23 Models &mdash; 44+ Endpoints &mdash; QR Scanning + Parts/Inventory Sync &mdash; Expenses &amp; Mileage Reimbursement + Draft Queue &mdash; Security Hardened &mdash; Tailscale HTTPS &mdash; Port 4300</p>
-  <p>Updated March 3, 2026</p>
+  <p>Technician Assistant v1.6 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 49+ Work Orders &mdash; 23 Models &mdash; 47+ Endpoints &mdash; QR Scanning + Parts/Inventory Sync &mdash; Expenses &amp; Mileage + Draft Queue &mdash; Schedule Assistant Integration &mdash; Security Hardened &mdash; Tailscale HTTPS &mdash; Port 4300</p>
+  <p>Updated March 4, 2026</p>
 </div>
 
 </body>

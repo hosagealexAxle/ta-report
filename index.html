@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Technician Assistant — Reports</title>
+<title>TA + SA — Project Reports</title>
 <style>
   body.locked { overflow: hidden; }
   #auth-gate {
@@ -59,15 +59,90 @@
   }
   .header h1 { font-size: 32px; color: #b8e0b8; margin-bottom: 6px; }
   .header .subtitle { font-size: 14px; color: #6a8a6a; }
+
+  /* SA Banner */
+  .sa-banner {
+    background: linear-gradient(135deg, #1a2d4a 0%, #152238 50%, #1a2d4a 100%);
+    border: 1px solid #2a4a6a;
+    border-radius: 16px;
+    padding: 28px 30px;
+    margin-bottom: 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .sa-banner::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px; bottom: -1px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #5b9bd5, #7bbef5, #5b9bd5);
+    z-index: -1;
+    opacity: 0.15;
+  }
+  .sa-banner .sa-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, #5b9bd5, #3a6a9a);
+    border-radius: 50%; font-size: 20px; font-weight: 700; color: #e4e8f0;
+    border: 2px solid #7bbef5; margin-bottom: 14px;
+  }
+  .sa-banner h2 { font-size: 20px; color: #7bbef5; margin-bottom: 4px; }
+  .sa-banner .sa-tag {
+    display: inline-block;
+    background: rgba(91,155,213,0.2);
+    color: #7bbef5;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(123,190,245,0.3);
+  }
+  .sa-banner p { font-size: 14px; color: #9ab0c8; margin: 0; }
+
+  /* Section labels */
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+  }
+  .section-label.ta { color: #6aaa6a; border-bottom: 1px solid #2d5a2d; }
+  .section-label.sa { color: #5b9bd5; border-bottom: 1px solid #2a4a6a; }
+
   .card {
-    display: block; background: #162016; border: 1px solid #2d5a2d;
-    border-radius: 14px; padding: 28px 30px; margin-bottom: 16px;
+    display: block; border-radius: 14px; padding: 28px 30px; margin-bottom: 16px;
     text-decoration: none; transition: border-color 0.2s, background 0.2s;
   }
-  .card:hover { border-color: #4a8c4a; background: #1a2a1a; }
-  .card h3 { font-size: 19px; color: #b8e0b8; margin-bottom: 6px; }
-  .card p { font-size: 14px; color: #8aaa8a; margin: 0; }
-  .card .date { font-size: 12px; color: #4a6a4a; margin-top: 10px; }
+  .card h3 { font-size: 19px; margin-bottom: 6px; }
+  .card p { font-size: 14px; margin: 0; }
+  .card .date { font-size: 12px; margin-top: 10px; }
+
+  /* TA cards (green) */
+  .card.ta {
+    background: #162016; border: 1px solid #2d5a2d;
+  }
+  .card.ta:hover { border-color: #4a8c4a; background: #1a2a1a; }
+  .card.ta h3 { color: #b8e0b8; }
+  .card.ta p { color: #8aaa8a; }
+  .card.ta .date { color: #4a6a4a; }
+
+  /* SA cards (blue) */
+  .card.sa {
+    background: #152238; border: 1px solid #2a4a6a;
+  }
+  .card.sa:hover { border-color: #5b9bd5; background: #1a2d4a; }
+  .card.sa h3 { color: #7bbef5; }
+  .card.sa p { color: #8a9ab8; }
+  .card.sa .date { color: #4a6a8a; }
+
+  .divider { height: 24px; }
+
   .footer { text-align: center; padding: 30px; color: #3a5a3a; font-size: 12px; margin-top: 20px; }
 </style>
 </head>
@@ -76,7 +151,7 @@
 <div id="auth-gate">
   <div class="gate-box">
     <div class="gate-logo">TA</div>
-    <h2>Technician Assistant</h2>
+    <h2>Project Reports</h2>
     <p>Enter password to view reports</p>
     <input type="password" id="gate-pass" placeholder="Password" onkeydown="if(event.key==='Enter')checkPass()">
     <button onclick="checkPass()">Unlock</button>
@@ -96,25 +171,59 @@ if(sessionStorage.getItem('ta-auth')==='1'){document.getElementById('auth-gate')
     <div class="subtitle">Project Documentation</div>
   </div>
 
-  <a href="project-report.html" class="card">
+  <!-- SA Announcement Banner -->
+  <div class="sa-banner">
+    <div class="sa-badge">SA</div>
+    <div class="sa-tag">New</div>
+    <h2>Schedule Assistant</h2>
+    <p>Autonomous work order scheduling for Technician Assistant. Pulls WOs from SaaS, auto-assigns the closest tech via a 5-rule SLA engine, syncs schedules to TA, and sends customer confirmations &mdash; fully automated.</p>
+  </div>
+
+  <!-- TA Reports -->
+  <div class="section-label ta">Technician Assistant</div>
+
+  <a href="project-report.html" class="card ta">
     <h3>Project Report</h3>
-    <p>Full specification — 19 screens, page-by-page breakdown, navigation flows, API integrations, work order type matrix, expenses &amp; mileage reimbursement with draft queue, and next steps.</p>
-    <div class="date">March 3, 2026 (v1.5)</div>
+    <p>Full specification &mdash; 19 screens, page-by-page breakdown, navigation flows, API integrations, work order type matrix, expenses &amp; mileage reimbursement with draft queue, SA integration, and next steps.</p>
+    <div class="date">March 4, 2026 (v1.6)</div>
   </a>
 
-  <a href="project-status.html" class="card">
+  <a href="project-status.html" class="card ta">
     <h3>Project Status</h3>
-    <p>Technical deep-dive — system architecture, all 44+ API endpoints, 23 database models, mock adapter pattern, AI chat system, QR scanning, expenses &amp; mileage with draft queue, build commands, and roadmap.</p>
-    <div class="date">March 3, 2026 (v1.5)</div>
+    <p>Technical deep-dive &mdash; system architecture, all 44+ API endpoints, 23 database models, mock adapter pattern, AI chat system, QR scanning, expenses &amp; mileage, SA sync endpoints, and roadmap.</p>
+    <div class="date">March 4, 2026 (v1.6)</div>
   </a>
 
-  <a href="integration-report.html" class="card">
+  <a href="integration-report.html" class="card ta">
     <h3>Integration Report</h3>
-    <p>Every API endpoint mapped to exact code locations — frontend function, backend route handler, database models read/written, external API calls, security middleware, and validation. 42 endpoints, 20 models, line-by-line.</p>
-    <div class="date">March 3, 2026 (v1.5)</div>
+    <p>Every API endpoint mapped to exact code locations &mdash; frontend function, backend route handler, database models read/written, external API calls, SA sync protocol, and security middleware. 45 endpoints, 20 models.</p>
+    <div class="date">March 4, 2026 (v1.6)</div>
   </a>
 
-  <div class="footer">Technician Assistant v1.5</div>
+  <div class="divider"></div>
+
+  <!-- SA Reports -->
+  <div class="section-label sa">Schedule Assistant</div>
+
+  <a href="project-report-sa.html" class="card sa">
+    <h3>Project Report</h3>
+    <p>Full specification &mdash; 12 views, SLA engine with 5 scheduling rules, auto-sync pipeline, calendar with tech names, chat assistant, work order type filtering, and SA-TA integration architecture.</p>
+    <div class="date">March 4, 2026 (v1.0)</div>
+  </a>
+
+  <a href="project-status-sa.html" class="card sa">
+    <h3>Project Status</h3>
+    <p>Technical deep-dive &mdash; 13 database models, 34 API endpoints, 5-rule SLA engine with distance calculations, auto-sync pipeline, mock adapter pattern, 8 seeded associates, and build/deploy commands.</p>
+    <div class="date">March 4, 2026 (v1.0)</div>
+  </a>
+
+  <a href="integration-report-sa.html" class="card sa">
+    <h3>Integration Report</h3>
+    <p>Every API endpoint mapped to code locations &mdash; 35 endpoints, 13 models, SLA engine rules, SA-to-TA sync protocol, auto-pipeline flow, security middleware, and external integrations.</p>
+    <div class="date">March 4, 2026 (v1.0)</div>
+  </a>
+
+  <div class="footer">Technician Assistant v1.6 + Schedule Assistant v1.0</div>
 </div>
 </body>
 </html>

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Schedule Assistant Project Status — March 4, 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a; padding: 48px 56px; max-width: 850px; margin: 0 auto; line-height: 1.5; }
+  h1 { font-size: 32px; text-align: center; margin-bottom: 2px; }
+  .subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 2px solid #e0e0e0; }
+  h2 { font-size: 22px; margin-top: 32px; margin-bottom: 12px; }
+  h3 { font-size: 16px; margin-top: 20px; margin-bottom: 8px; }
+  p, li { font-size: 14px; margin-bottom: 6px; }
+  ul { padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+  th { background: #f5f5f5; font-weight: 600; }
+  .complete { color: #2e7d32; font-weight: 600; }
+  .pending { color: #e65100; font-weight: 600; }
+  .new { color: #1565c0; font-weight: 600; }
+  .resolved { color: #2e7d32; font-weight: 600; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 12px; font-family: 'SF Mono', Menlo, monospace; }
+  pre { background: #f5f5f5; padding: 12px; border-radius: 6px; font-size: 12px; font-family: 'SF Mono', Menlo, monospace; margin: 8px 0; overflow-x: auto; white-space: pre-wrap; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 2px solid #e0e0e0; text-align: center; color: #999; font-size: 12px; }
+  .tag { display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 4px; }
+  .tag.blue { background: #e3f2fd; color: #1565c0; }
+  .tag.orange { background: #fff3e0; color: #e65100; }
+  .tag.teal { background: #e0f2f1; color: #00695c; }
+  .section-new { background: #f0f7ff; border-left: 3px solid #1565c0; padding: 12px 16px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+  .section-done { background: #f0fff0; border-left: 3px solid #2e7d32; padding: 12px 16px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+  @media print { body { padding: 24px 36px; } }
+</style>
+</head>
+<body>
+
+<h1>Schedule Assistant</h1>
+<div class="subtitle">Project Status &mdash; March 4, 2026 (v1.0)</div>
+
+<h2>Executive Summary</h2>
+<p><strong>Schedule Assistant (SA)</strong> is a manager-only Electron desktop application that automates work order scheduling for field technicians. It reads work orders from SaaS (Salesforce), auto-assigns technicians via a 5-rule SLA engine using Haversine distance calculations, pushes the generated schedule to Technician Assistant (TA), and TA writes back to SaaS. The result is a full auto-sync pipeline &mdash; no manual scheduling needed.</p>
+
+<p><strong>The core problem it solves:</strong> Dispatchers currently spend hours each day manually assigning work orders to technicians, cross-referencing locations, travel distances, and technician availability. SA replaces this entire workflow with an automated engine that evaluates geographic proximity, travel constraints, daily job limits, and rolling zip code patterns to produce optimal schedules in seconds. Managers review the output on an 8-week calendar dashboard, and with one click the schedule flows downstream to every technician's TA instance and back to Salesforce.</p>
+
+<p><strong>How it works in practice:</strong></p>
+<ul>
+  <li><strong>Pull Queue:</strong> SA pulls queued (unassigned) work orders from SaaS into its local database. Each WO includes account name, address, coordinates, type, priority, and due date.</li>
+  <li><strong>SLA Engine:</strong> The 5-rule engine runs against all queued WOs, evaluating each against all 8 associates. Rules are evaluated in priority order (R5 &rarr; R1 &rarr; R2 &rarr; R3 &rarr; R4), and the first matching rule assigns the WO to the optimal tech.</li>
+  <li><strong>Schedule Push:</strong> Assigned WOs become ScheduleEntry records. The manager reviews on the 8-week calendar, then pushes to TA with one click.</li>
+  <li><strong>TA Sync:</strong> TA receives the schedule entries and work orders, making them available to field technicians. When techs complete work, TA writes status back to SaaS.</li>
+  <li><strong>Email Notifications:</strong> After scheduling, SA can send appointment confirmation emails to customers with the scheduled date, technician name, and work order details.</li>
+  <li><strong>AI Chat:</strong> GPT-4.1-mini powered assistant with full visibility into all associates, the current schedule, and queued WOs. Managers can ask "who's free next Tuesday?" or "swap tech on WO-2026-015" and get schedule-aware suggestions.</li>
+</ul>
+
+<p><strong>Architecture summary:</strong> Same proven stack as Technician Assistant &mdash; Electron 33 desktop shell, Express 5 ESM backend, React 19 + Vite 7 dashboard, Prisma ORM with SQLite. Port 4400. Cookie-based auth (<code>sa_auth</code>). Mock adapter pattern (<code>USE_MOCK=true</code>) for all external integrations (SaaS, TA sync, email).</p>
+
+<div class="section-done">
+<strong>v1.0 BUILD COMPLETE (March 4, 2026):</strong> Full application built and deployed. 8 associates across the US (Atlanta, Boston, Santa Monica, Columbus, Austin, Jacksonville, Denver, Long Beach), 30 queued WOs for SLA processing, 10 pre-scheduled WOs on calendar, 5-rule SLA engine with Haversine distance, SA&rarr;TA sync pipeline, email notifications, AI chat with full schedule context, 8-week calendar dashboard, and comprehensive logging (SLA, Sync, Email, Action).
+</div>
+
+<h2>System Architecture</h2>
+<table>
+  <tr><th>Component</th><th>Technology</th><th>Details</th></tr>
+  <tr><td>Desktop App</td><td>Electron 33</td><td>macOS ARM64, unsigned build, custom SA calendar icon</td></tr>
+  <tr><td>Backend</td><td>Express 5 (ESM)</td><td>Port 4400, binds 0.0.0.0. Single server.js. Cookie-based auth, 3-hour sessions.</td></tr>
+  <tr><td>Dashboard</td><td>React 19 + Vite 7</td><td>Single monolithic App.jsx. State-based page navigation, no router. 12 view states.</td></tr>
+  <tr><td>Database</td><td>SQLite + Prisma 6</td><td>13 models, auto-migrates on startup via db push</td></tr>
+  <tr><td>Chat LLM</td><td>GPT-4.1-mini (OpenAI)</td><td>Full associate + schedule + queued WO context injected into system prompt</td></tr>
+  <tr><td>SLA Engine</td><td>Custom (server.js)</td><td>5 rules, Haversine distance, priority-ordered evaluation</td></tr>
+  <tr><td>Mock Layer</td><td>Prisma/SQLite</td><td>USE_MOCK=true. 8 associates, 30 queued WOs, 10 scheduled WOs. Swap-ready for real APIs.</td></tr>
+  <tr><td>Color Theme</td><td>Dark Blue</td><td>Background: #0f1520, Panel: #1a2d4a, Accent: #5b9bd5, Text: #e4e8f0</td></tr>
+</table>
+
+<h2>Database Models (13 total)</h2>
+<table>
+  <tr><th>Model</th><th>Purpose</th><th>Key Fields</th></tr>
+  <tr><td>User</td><td>Manager accounts</td><td>username (unique), passwordHash, displayName, role (manager), email</td></tr>
+  <tr><td>Session</td><td>3-hour auth sessions</td><td>userId, expiresAt</td></tr>
+  <tr><td>Associate</td><td>Field technicians managed by SA</td><td>externalId (maps to TA User.id), displayName, email, phone, homeCity, homeState, homeZip, homeLat, homeLng, active, maxJobsPerDay</td></tr>
+  <tr><td>WorkOrder</td><td>WOs pulled from SaaS queue</td><td>woNumber (unique), type (1&ndash;4), status (queued/scheduled/assigned/completed), priority, dueDate, accountName, accountAddress, accountCity, accountState, accountZip, lat, lng, assignedTo (FK &rarr; Associate), sfId</td></tr>
+  <tr><td>ScheduleEntry</td><td>Calendar assignments</td><td>workOrderId (FK), associateId (FK), woNumber, scheduledDate, title, accountName, status</td></tr>
+  <tr><td>WoImage</td><td>Work order site images</td><td>workOrderId (FK, cascade), slot, fileName, filePath</td></tr>
+  <tr><td>SlaLog</td><td>SLA engine decision audit trail</td><td>woNumber, associateId, associateName, ruleApplied (R1&ndash;R5), distanceMi, reasoning, scheduledDate</td></tr>
+  <tr><td>EmailLog</td><td>Appointment email history</td><td>woNumber, recipientEmail, recipientName, scheduledDate, associateName, status (sent/failed), sentAt</td></tr>
+  <tr><td>SyncLog</td><td>SA &harr; TA sync audit trail</td><td>direction (pull/push-ta/push-saas), recordCount, status (success/error), detail</td></tr>
+  <tr><td>ActionLog</td><td>General audit trail</td><td>type, label, detail, ok</td></tr>
+  <tr><td>SystemState</td><td>Global app state</td><td>metaJson (tracks seeded status)</td></tr>
+  <tr><td>Thread</td><td>Chat sessions</td><td>title, createdAt, updatedAt</td></tr>
+  <tr><td>Message</td><td>Chat messages</td><td>threadId (FK, cascade), role (user/assistant), content</td></tr>
+</table>
+
+<h2>API Endpoints (30+ total)</h2>
+
+<h3>Health &amp; Auth</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/health</td><td>Health check + mock status indicator</td></tr>
+  <tr><td>POST</td><td>/api/auth/login</td><td>Validate credentials, create 3-hour session, set <code>sa_auth</code> HttpOnly cookie</td></tr>
+  <tr><td>GET</td><td>/api/auth/check</td><td>Check session validity, return user data (id, username, displayName, role)</td></tr>
+  <tr><td>POST</td><td>/api/auth/logout</td><td>Delete session from DB, clear <code>sa_auth</code> cookie</td></tr>
+</table>
+
+<h3>Associates</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/associates</td><td>List all associates with home city, state, coordinates, active status, max jobs/day</td></tr>
+  <tr><td>GET</td><td>/api/associates/:id</td><td>Single associate detail with current schedule count</td></tr>
+  <tr><td>POST</td><td>/api/associates</td><td>Create new associate (name, email, phone, home address, coordinates)</td></tr>
+  <tr><td>PATCH</td><td>/api/associates/:id</td><td>Update associate fields (active toggle, max jobs, contact info)</td></tr>
+</table>
+
+<h3>Work Orders</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/work-orders</td><td>List all WOs with status filter (queued, scheduled, all). Includes assignedTo associate.</td></tr>
+  <tr><td>GET</td><td>/api/work-orders/:id</td><td>Single WO with full detail + schedule entries + images</td></tr>
+  <tr><td>PATCH</td><td>/api/work-orders/:id</td><td>Update WO fields (status, assignedTo, notes, priority)</td></tr>
+  <tr><td>POST</td><td>/api/work-orders/:id/assign</td><td>Manually assign WO to an associate (creates ScheduleEntry, updates status to "scheduled")</td></tr>
+</table>
+
+<h3>SLA Engine</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>POST</td><td>/api/sla/run</td><td>Execute 5-rule SLA engine against all queued WOs. Creates ScheduleEntry + SlaLog for each assignment. Returns assignment summary.</td></tr>
+</table>
+
+<h3>Schedule</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/schedule</td><td>All schedule entries sorted by date. Powers the 8-week calendar view.</td></tr>
+  <tr><td>GET</td><td>/api/schedule/associate/:id</td><td>Schedule entries for a specific associate. Used in associate detail view.</td></tr>
+  <tr><td>POST</td><td>/api/schedule</td><td>Manually create a schedule entry (WO + associate + date)</td></tr>
+  <tr><td>PATCH</td><td>/api/schedule/:id</td><td>Update schedule entry (reschedule date, reassign associate)</td></tr>
+  <tr><td>DELETE</td><td>/api/schedule/:id</td><td>Remove schedule entry (unschedule a WO, reverts WO to "queued")</td></tr>
+</table>
+
+<h3>Images</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/images/:workOrderId</td><td>List all images for a work order</td></tr>
+  <tr><td>GET</td><td>/api/images/file/:imageId</td><td>Serve raw image file with proper Content-Type</td></tr>
+  <tr><td>POST</td><td>/api/images/upload</td><td>Base64 image upload with slot-based naming, 10MB limit, magic byte validation</td></tr>
+</table>
+
+<h3>Sync (SA &harr; TA &harr; SaaS)</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>POST</td><td>/api/sync/pull-queue</td><td>Pull unassigned WOs from SaaS (mock: seeds 30 queued WOs). Creates SyncLog entry.</td></tr>
+  <tr><td>POST</td><td>/api/sync/push-schedule</td><td>Push all scheduled entries + WO data to TA (POST to TA /api/sync/schedule and /api/sync/work-orders). Creates SyncLog.</td></tr>
+  <tr><td>POST</td><td>/api/sync/push-to-ta</td><td>Direct push of specific schedule entries to TA instance. Bypasses TA auth middleware on /api/sync paths.</td></tr>
+</table>
+
+<h3>Email</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>POST</td><td>/api/email/appointment</td><td>Send appointment confirmation email to customer. Includes scheduled date, tech name, WO details. Creates EmailLog. Mock: logs to console.</td></tr>
+  <tr><td>GET</td><td>/api/email-log</td><td>List all sent/failed email records with timestamps</td></tr>
+</table>
+
+<h3>Logs</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/sla-log</td><td>SLA engine decision history &mdash; which rule assigned which WO to which tech, distance, reasoning</td></tr>
+  <tr><td>GET</td><td>/api/sync-log</td><td>Sync operation history &mdash; pull/push direction, record counts, success/error status</td></tr>
+  <tr><td>GET</td><td>/api/actions</td><td>General action log (recent 20, max 100)</td></tr>
+</table>
+
+<h3>Chat &amp; Threads</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/threads</td><td>List chat threads (50 most recent)</td></tr>
+  <tr><td>POST</td><td>/api/threads</td><td>Create new thread</td></tr>
+  <tr><td>PATCH</td><td>/api/threads/:id</td><td>Rename thread</td></tr>
+  <tr><td>DELETE</td><td>/api/threads/:id</td><td>Delete thread + cascade messages</td></tr>
+  <tr><td>GET</td><td>/api/chat/thread</td><td>Load thread messages (threadId query param)</td></tr>
+  <tr><td>POST</td><td>/api/chat</td><td>Send message + get GPT reply. System prompt includes all associates, full schedule, and queued WOs.</td></tr>
+</table>
+
+<h2>SLA Engine &mdash; 5 Rules</h2>
+<p>The SLA engine evaluates every queued work order against all active associates. Rules are checked in priority order. The first rule that matches assigns the WO. All distance calculations use the <strong>Haversine formula</strong> (great-circle distance between two lat/lng points on Earth).</p>
+
+<h3>Rule R5: Home-Area Assignment (Primary)</h3>
+<table>
+  <tr><th>Condition</th><th>Detail</th></tr>
+  <tr><td>Distance</td><td>WO site is within <strong>75 miles</strong> of the associate's home address</td></tr>
+  <tr><td>Capacity</td><td>Associate has fewer than <strong>2 jobs</strong> scheduled on the target date</td></tr>
+  <tr><td>Priority</td><td>Evaluated first &mdash; local techs get local jobs before travel rules kick in</td></tr>
+  <tr><td>Tiebreaker</td><td>If multiple techs qualify, the closest one wins</td></tr>
+  <tr><td>Action</td><td>Creates ScheduleEntry on WO due date, SlaLog with rule "R5", distance in miles</td></tr>
+</table>
+
+<h3>Rule R1: Closest Available Tech</h3>
+<table>
+  <tr><th>Condition</th><th>Detail</th></tr>
+  <tr><td>Distance</td><td>Closest associate to WO site by Haversine (no distance cap)</td></tr>
+  <tr><td>Capacity</td><td>Associate has availability on the target date</td></tr>
+  <tr><td>Fallback</td><td>Runs when R5 finds no home-area match (WO is outside all techs' 75mi zones)</td></tr>
+  <tr><td>Action</td><td>Creates ScheduleEntry, SlaLog with rule "R1", computed distance</td></tr>
+</table>
+
+<h3>Rule R2: Long-Distance Travel (>400mi)</h3>
+<table>
+  <tr><th>Condition</th><th>Detail</th></tr>
+  <tr><td>Distance</td><td>Closest tech is more than <strong>400 miles</strong> from WO site</td></tr>
+  <tr><td>Travel Buffer</td><td>Schedules WO for <strong>due date + 3 days</strong> to account for travel time</td></tr>
+  <tr><td>Capacity</td><td>Checks availability on the travel-adjusted date</td></tr>
+  <tr><td>Action</td><td>Creates ScheduleEntry with adjusted date, SlaLog with rule "R2", notes travel buffer</td></tr>
+</table>
+
+<h3>Rule R3: On-Road Double-Up</h3>
+<table>
+  <tr><th>Condition</th><th>Detail</th></tr>
+  <tr><td>Trigger</td><td>Associate already has a job scheduled in the area</td></tr>
+  <tr><td>Distance</td><td>New WO is within <strong>50 miles</strong> of an already-scheduled WO for the same tech on the same day</td></tr>
+  <tr><td>Capacity</td><td>Associate has not exceeded daily job limit</td></tr>
+  <tr><td>Action</td><td>Stacks the WO on the same day as the existing job, SlaLog with rule "R3"</td></tr>
+</table>
+
+<h3>Rule R4: Rolling Zip Code</h3>
+<table>
+  <tr><th>Condition</th><th>Detail</th></tr>
+  <tr><td>Distance</td><td>WO site is within <strong>300 miles</strong> of the associate's current or recent job location</td></tr>
+  <tr><td>Time Cutoff</td><td>Only considers jobs scheduled within the next <strong>3 days</strong> (rolling window)</td></tr>
+  <tr><td>Cutoff Time</td><td><strong>3:00 PM</strong> &mdash; WOs arriving after 3 PM are evaluated for the next business day</td></tr>
+  <tr><td>Action</td><td>Schedules near the associate's travel path, SlaLog with rule "R4"</td></tr>
+</table>
+
+<h3>SLA Rule Evaluation Order</h3>
+<pre>For each queued WO:
+  1. R5: Check all associates within 75mi of home &rarr; assign closest with capacity
+  2. R1: Find globally closest available tech &rarr; assign
+  3. R2: If closest is >400mi, add 3-day travel buffer &rarr; assign on adjusted date
+  4. R3: Check if any already-scheduled tech has a job within 50mi &rarr; stack same day
+  5. R4: Check 300mi rolling zip from recent jobs within 3 days, 3PM cutoff &rarr; assign
+
+Each assignment creates:
+  - ScheduleEntry (workOrderId, associateId, scheduledDate)
+  - SlaLog (woNumber, associateId, ruleApplied, distanceMi, reasoning)
+  - WorkOrder.status updated to "scheduled"
+  - WorkOrder.assignedTo set to associate ID</pre>
+
+<h2>Auto-Sync Pipeline</h2>
+<p>The full pipeline runs as a chain of operations triggered by the manager clicking "Pull &amp; Schedule" on the dashboard:</p>
+
+<pre>Step 1: SaaS &rarr; SA     (POST /api/sync/pull-queue)
+  - Fetches unassigned WOs from Salesforce
+  - Creates WorkOrder records with status "queued"
+  - Logs: SyncLog { direction: "pull", recordCount: N }
+
+Step 2: SA SLA Engine    (POST /api/sla/run)
+  - Evaluates all queued WOs against 8 associates
+  - Creates ScheduleEntry + SlaLog for each assignment
+  - Updates WorkOrder.status to "scheduled"
+
+Step 3: SA &rarr; TA         (POST /api/sync/push-schedule)
+  - Pushes schedule entries to TA POST /api/sync/schedule
+  - Pushes work order data to TA POST /api/sync/work-orders
+  - TA auth bypassed on /api/sync paths
+  - Logs: SyncLog { direction: "push-ta", recordCount: N }
+
+Step 4: TA &rarr; SaaS       (triggered by TA after tech completes WO)
+  - TA calls POST /api/sync/write-to-saas
+  - Writes completion status back to Salesforce
+  - Logs: SyncLog { direction: "push-saas" }
+
+Step 5: SA &rarr; Email      (POST /api/email/appointment)
+  - Sends appointment confirmations to customers
+  - Includes: scheduled date, technician name, WO details
+  - Logs: EmailLog { woNumber, recipientEmail, status }</pre>
+
+<h2>Seed Data</h2>
+<table>
+  <tr><th>Data Type</th><th>Quantity</th><th>Details</th></tr>
+  <tr><td>Users (Managers)</td><td>1</td><td>manager / manager123 (Alex Hosage, manager role)</td></tr>
+  <tr><td>Associates</td><td>8</td><td>Field technicians with home cities: Atlanta GA, Boston MA, Santa Monica CA, Columbus OH, Austin TX, Jacksonville FL, Denver CO, Long Beach CA. Each has lat/lng coordinates, email, phone, maxJobsPerDay=2.</td></tr>
+  <tr><td>Queued Work Orders</td><td>30</td><td>Status "queued", distributed across US cities. Types 1&ndash;4 with varying priorities. Ready for SLA engine processing.</td></tr>
+  <tr><td>Pre-Scheduled WOs</td><td>10</td><td>Already assigned to associates with ScheduleEntry records. Visible on calendar before running SLA.</td></tr>
+  <tr><td>Schedule Entries</td><td>10</td><td>Matching the 10 pre-scheduled WOs. Distributed across first 2 weeks of the calendar.</td></tr>
+</table>
+
+<h3>Associate Roster</h3>
+<table>
+  <tr><th>Name</th><th>Home City</th><th>State</th><th>Coordinates</th></tr>
+  <tr><td>Marcus Johnson</td><td>Atlanta</td><td>GA</td><td>33.749, -84.388</td></tr>
+  <tr><td>Sarah Chen</td><td>Boston</td><td>MA</td><td>42.361, -71.057</td></tr>
+  <tr><td>Diego Ramirez</td><td>Santa Monica</td><td>CA</td><td>34.019, -118.491</td></tr>
+  <tr><td>Emily Watson</td><td>Columbus</td><td>OH</td><td>39.961, -82.999</td></tr>
+  <tr><td>James Rodriguez</td><td>Austin</td><td>TX</td><td>30.267, -97.743</td></tr>
+  <tr><td>Priya Patel</td><td>Jacksonville</td><td>FL</td><td>30.332, -81.656</td></tr>
+  <tr><td>Tyler Morrison</td><td>Denver</td><td>CO</td><td>39.739, -104.990</td></tr>
+  <tr><td>Ashley Kim</td><td>Long Beach</td><td>CA</td><td>33.770, -118.194</td></tr>
+</table>
+
+<h2>Frontend &mdash; 12 Views</h2>
+
+<h3>V1: Login Gate</h3>
+<ul>
+  <li>Calendar-themed SVG logo with "SA" text and scheduling grid design</li>
+  <li>Username + password fields with Enter key submission</li>
+  <li>Cookie-based auth (<code>sa_auth</code>) with 3-hour session expiry</li>
+  <li>Backend connectivity indicator</li>
+  <li>Single seeded account: <code>manager</code> / <code>manager123</code></li>
+</ul>
+
+<h3>V2: Main Dashboard</h3>
+<ul>
+  <li><strong>Top bar:</strong> SA logo, app name, current date, MOCK badge, logout button</li>
+  <li><strong>8-Week Calendar:</strong> Monday&ndash;Sunday grid showing all scheduled WOs. Color-coded by associate. Today highlighted. Click WO chip to open detail modal.</li>
+  <li><strong>Dashboard Stats:</strong> Total associates, queued WOs, scheduled WOs, completed today</li>
+  <li><strong>Action Buttons:</strong> Pull Queue, Run SLA, Push to TA, Send Emails</li>
+  <li><strong>AI Chat Panel:</strong> 400px message area with GPT-4.1-mini. System prompt includes all associates (name, city, coordinates, current load), full schedule, and queued WO list.</li>
+</ul>
+
+<h3>V3: Associates List</h3>
+<ul>
+  <li>Card grid showing all 8 associates</li>
+  <li>Each card: name, home city/state, phone, email, active status toggle, current job count</li>
+  <li>Click to expand &rarr; shows associate's schedule for next 8 weeks</li>
+  <li>Add new associate form (name, email, phone, home address, coordinates)</li>
+</ul>
+
+<h3>V4: Work Order Images</h3>
+<ul>
+  <li>Grid view of WO site images uploaded via SA</li>
+  <li>Slot-based upload (site photo, map view, access notes)</li>
+  <li>Base64 upload with magic byte validation</li>
+</ul>
+
+<h3>V5: SLA Log</h3>
+<ul>
+  <li>Scrollable table of all SLA engine decisions</li>
+  <li>Columns: WO Number, Associate, Rule Applied (R1&ndash;R5), Distance (mi), Scheduled Date, Reasoning</li>
+  <li>Color-coded by rule: R5 green (local), R1 blue (closest), R2 orange (travel), R3 teal (double-up), R4 purple (rolling)</li>
+  <li>Filter by rule, associate, or date range</li>
+</ul>
+
+<h3>V6: Sync Log</h3>
+<ul>
+  <li>Chronological log of all sync operations</li>
+  <li>Direction badges: PULL (from SaaS), PUSH-TA (to Technician Assistant), PUSH-SAAS (TA &rarr; Salesforce)</li>
+  <li>Record counts, timestamps, success/error status</li>
+</ul>
+
+<h3>V7: Email Log</h3>
+<ul>
+  <li>History of all appointment confirmation emails</li>
+  <li>Shows: WO number, recipient email, scheduled date, associate name, sent/failed status, timestamp</li>
+  <li>Resend button for failed emails</li>
+</ul>
+
+<h3>V8: WO Detail Modal</h3>
+<ul>
+  <li>Overlay modal showing full work order details</li>
+  <li>Account info: name, address, city, state, zip, coordinates</li>
+  <li>Assignment info: assigned associate, scheduled date, rule that assigned it</li>
+  <li>Actions: reassign to different tech, reschedule date, unschedule (revert to queued)</li>
+  <li>Map view placeholder showing WO location and assigned tech's home base</li>
+</ul>
+
+<h2>AI Chat System</h2>
+<p>The chat assistant uses OpenAI GPT-4.1-mini with a scheduling-focused system prompt that includes <strong>live application data</strong> on every message.</p>
+
+<h3>Context Injected Into Every Chat Message</h3>
+<table>
+  <tr><th>Data Source</th><th>What's Included</th><th>Update Frequency</th></tr>
+  <tr><td>Associates (all 8)</td><td>Name, home city/state, coordinates, active status, max jobs/day, current scheduled job count</td><td>Real-time (queried per message)</td></tr>
+  <tr><td>Schedule (all entries)</td><td>Date, WO number, associate name, account name, status</td><td>Real-time (queried per message)</td></tr>
+  <tr><td>Queued WOs (unassigned)</td><td>WO number, account name, city/state, priority, due date, type</td><td>Real-time (queried per message)</td></tr>
+  <tr><td>Current Date</td><td>Full date string for temporal context</td><td>Real-time</td></tr>
+</table>
+
+<h3>Example Chat Queries</h3>
+<ul>
+  <li>"Who's free next Tuesday?" &rarr; Lists each associate's scheduled count for that day vs their max</li>
+  <li>"Swap tech on WO-2026-015" &rarr; Shows current assignment, suggests closest available alternative, gives distance comparison</li>
+  <li>"How many jobs does Marcus have this week?" &rarr; Counts from schedule entries, lists each WO with date and location</li>
+  <li>"What queued WOs are in California?" &rarr; Filters queued list by state, suggests which CA-based tech to assign</li>
+  <li>"Why was WO-2026-022 assigned to Tyler?" &rarr; Looks up SlaLog entry, explains rule R2 with 450mi distance and 3-day travel buffer</li>
+  <li>"Move all of Sarah's Thursday jobs to Emily" &rarr; Identifies the entries, warns about distance implications</li>
+</ul>
+
+<h2>Mock Adapter Pattern</h2>
+<table>
+  <tr><th>Integration</th><th>Mock Implementation</th><th>Real Swap</th></tr>
+  <tr><td>Salesforce (Pull)</td><td>Seeds 30 queued WOs from local SQLite data</td><td>Set <code>USE_MOCK=false</code>, implement <code>salesforce-real.js</code> with SF REST API. Pull real unassigned WOs.</td></tr>
+  <tr><td>TA Sync (Push)</td><td>Logs schedule push to console, creates SyncLog</td><td>HTTP POST to TA instance at <code>http://localhost:4300/api/sync/schedule</code> and <code>/api/sync/work-orders</code></td></tr>
+  <tr><td>Email (Send)</td><td>Logs email details to console, creates EmailLog with status "sent"</td><td>Integrate with SendGrid, SES, or SMTP transport. Same EmailLog records.</td></tr>
+  <tr><td>SaaS Writeback</td><td>Logs completion to console</td><td>TA implements real Salesforce PATCH for WO status + completion data</td></tr>
+</table>
+
+<h2>Environment (.env)</h2>
+<table>
+  <tr><th>Variable</th><th>Value / Status</th></tr>
+  <tr><td>PORT</td><td>4400</td></tr>
+  <tr><td>DATABASE_URL</td><td>file:./sa.db</td></tr>
+  <tr><td>USE_MOCK</td><td>true (set to false when real APIs available)</td></tr>
+  <tr><td>OPENAI_API_KEY</td><td>xxxxx (GPT-4.1-mini for chat)</td></tr>
+  <tr><td>OPENAI_MODEL</td><td>gpt-4.1-mini</td></tr>
+  <tr><td>TA_BASE_URL</td><td>http://localhost:4300 (Technician Assistant instance)</td></tr>
+  <tr><td>SF_CLIENT_ID</td><td>Future &mdash; Salesforce OAuth</td></tr>
+  <tr><td>SF_CLIENT_SECRET</td><td>Future &mdash; Salesforce OAuth</td></tr>
+  <tr><td>SMTP_HOST</td><td>Future &mdash; Email service</td></tr>
+</table>
+
+<h2>Security</h2>
+<table>
+  <tr><th>Feature</th><th>Implementation</th></tr>
+  <tr><td>Session Cookie</td><td><code>sa_auth</code> HttpOnly, SameSite=Lax, 3-hour Max-Age</td></tr>
+  <tr><td>Session ID</td><td><code>crypto.randomUUID()</code> (cryptographically secure)</td></tr>
+  <tr><td>Password Hashing</td><td>bcrypt (salted, 10 rounds)</td></tr>
+  <tr><td>Rate Limiting</td><td>API: 120 req/min, Chat: 10 req/min, Login: 5 req/min</td></tr>
+  <tr><td>CORS</td><td>Whitelist: localhost:4400, 127.0.0.1:4400, Tailscale IP</td></tr>
+  <tr><td>Helmet</td><td>CSP directives, X-Content-Type-Options, X-Frame-Options, Referrer-Policy</td></tr>
+  <tr><td>Image Validation</td><td>Extension whitelist + magic byte check + 10MB size limit</td></tr>
+  <tr><td>Path Traversal</td><td>Filename sanitization on uploads, <code>path.basename()</code> on file serving</td></tr>
+  <tr><td>Error Responses</td><td>Generic "server_error" to clients, full details logged server-side</td></tr>
+</table>
+
+<h2>Repository + File Structure</h2>
+<p><strong>Local Path:</strong> <code>~/Desktop/schedule-assistant/</code></p>
+
+<table>
+  <tr><th>File / Folder</th><th>Purpose</th></tr>
+  <tr><td>backend/src/server.js</td><td>Express 5 API, 30+ endpoints, auth middleware, SLA engine, sync pipeline, email, chat</td></tr>
+  <tr><td>backend/src/seed.js</td><td>Seed 1 manager, 8 associates, 30 queued WOs, 10 pre-scheduled WOs</td></tr>
+  <tr><td>backend/prisma/schema.prisma</td><td>13 models: User, Session, Associate, WorkOrder, ScheduleEntry, WoImage, SlaLog, EmailLog, SyncLog, ActionLog, SystemState, Thread, Message</td></tr>
+  <tr><td>backend/uploads/</td><td>Per-WO image storage (gitignored)</td></tr>
+  <tr><td>dashboard/src/App.jsx</td><td>Single monolithic React component: login, calendar dashboard, associates, WO detail modal, SLA/sync/email logs, chat</td></tr>
+  <tr><td>dashboard/src/index.css</td><td>Dark blue theme, calendar grid, associate cards, log tables, modal styles</td></tr>
+  <tr><td>dashboard/src/main.jsx</td><td>React 19 entry point</td></tr>
+  <tr><td>desktop/main.js</td><td>Electron entry, .env loading, health check polling, backend spawn, window config</td></tr>
+  <tr><td>desktop/backend-runner.js</td><td>CJS&rarr;ESM bridge, Prisma migration, dynamic import of server.js</td></tr>
+  <tr><td>desktop/assets/icon.icns</td><td>macOS app icon (SA calendar design)</td></tr>
+</table>
+
+<h2>Build + Deploy</h2>
+<pre># Rebuild dashboard
+cd ~/Desktop/schedule-assistant/dashboard &amp;&amp; npm run build
+
+# Rebuild Electron app (unsigned)
+cd ~/Desktop/schedule-assistant/desktop &amp;&amp; npm run dist:unsigned
+
+# Deploy
+pkill -f "Schedule Assistant"
+rm -rf "/Applications/Schedule Assistant.app"
+cp -R desktop/release/mac-arm64/Schedule\ Assistant.app /Applications/
+open "/Applications/Schedule Assistant.app"
+
+# Delete DB and re-seed (if seed data changes)
+rm -f backend/sa.db
+cd backend &amp;&amp; npx prisma db push --force-reset
+
+# Tailscale access
+# Mac: 100.84.51.101 | URL: http://100.84.51.101:4400</pre>
+
+<h2>SA &harr; TA Integration Points</h2>
+<table>
+  <tr><th>Direction</th><th>Endpoint</th><th>Data</th></tr>
+  <tr><td>SA &rarr; TA</td><td>POST TA /api/sync/schedule</td><td>Array of schedule entries (woNumber, associateId, scheduledDate, title, accountName)</td></tr>
+  <tr><td>SA &rarr; TA</td><td>POST TA /api/sync/work-orders</td><td>Array of work orders (woNumber, type, priority, accountName, accountAddress, serialNumber, dueDate)</td></tr>
+  <tr><td>TA &rarr; SaaS</td><td>POST TA /api/sync/write-to-saas</td><td>Completion data (woNumber, status, dateCompleted, timeCompleted, notes, parts)</td></tr>
+  <tr><td>SA &harr; TA</td><td>Auth Bypass</td><td>All /api/sync paths in TA skip auth middleware &mdash; trusted internal communication</td></tr>
+</table>
+
+<h3>Data Model Cross-Reference</h3>
+<table>
+  <tr><th>SA Model</th><th>TA Model</th><th>Shared Key</th></tr>
+  <tr><td>Associate.externalId</td><td>User.id</td><td>Links SA associates to TA user accounts</td></tr>
+  <tr><td>WorkOrder.woNumber</td><td>WorkOrder.woNumber</td><td>Unique WO identifier shared across both systems</td></tr>
+  <tr><td>ScheduleEntry.scheduledDate</td><td>ScheduleEntry.scheduledDate</td><td>Same date value pushed from SA to TA</td></tr>
+  <tr><td>WorkOrder.accountName</td><td>WorkOrder.accountName</td><td>Customer account name (read-only in TA)</td></tr>
+  <tr><td>WorkOrder.accountAddress</td><td>WorkOrder.accountAddress</td><td>Site address for navigation</td></tr>
+</table>
+
+<h2>Known Gotchas</h2>
+<ul>
+  <li>Backend is ESM (<code>"type": "module"</code>) &mdash; use dynamic <code>import()</code> not <code>require()</code>. backend-runner.js is CJS bridge.</li>
+  <li>Express 5 + new path-to-regexp: NO <code>app.get("*")</code> wildcards. Use <code>app.use()</code> middleware for SPA fallback.</li>
+  <li>SQLite does NOT support <code>createMany</code> with <code>skipDuplicates</code>. Seed uses <code>findUnique</code> + <code>create</code> loop or <code>upsert</code> instead.</li>
+  <li>Haversine distance returns statute miles. 1 degree latitude ~ 69 miles. Coordinates must be in decimal degrees (not DMS).</li>
+  <li>SLA engine processes WOs sequentially &mdash; earlier assignments affect capacity for later WOs. Order matters.</li>
+  <li>TA sync endpoints (<code>/api/sync/*</code>) bypass auth middleware. These paths are trusted internal communication between SA and TA.</li>
+  <li>Dashboard uses Vite 7. Rebuild dashboard BEFORE rebuilding Electron (dashboard/dist gets bundled).</li>
+  <li>Electron loads from <code>http://localhost:4400</code> so session cookies work with <code>SameSite=Lax</code>.</li>
+  <li><code>.env</code> is gitignored. Packaged app reads from <code>~/Library/Application Support/Schedule Assistant/.env</code>.</li>
+  <li>Auto-migration in backend-runner.js via <code>execFileSync</code> of prisma db push (not migrate deploy).</li>
+</ul>
+
+<h2>Roadmap</h2>
+<table>
+  <tr><th>Phase</th><th>Status</th></tr>
+  <tr><td>Phase 1: Scaffold + Foundation (Electron, Express 5, React 19, Vite 7, Prisma/SQLite)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 2: Auth + Login (User/Session models, sa_auth cookie, calendar-themed login page)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 3: Associate Management (8 seeded techs, CRUD endpoints, coordinate storage)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 4: Work Order Pipeline (30 queued WOs, pull-queue sync, status management)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 5: SLA Engine (5 rules, Haversine distance, SlaLog audit trail)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 6: Schedule Management (8-week calendar, ScheduleEntry CRUD, associate view)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 7: SA &rarr; TA Sync (push schedule + WOs to TA, auth bypass, SyncLog)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 8: Email Notifications (appointment confirmations, EmailLog)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 9: AI Chat (GPT-4.1-mini, schedule-aware context, tech swap suggestions)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 10: Logging (SLA Log, Sync Log, Email Log, Action Log pages)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 11: Image Uploads (base64, slot-based, magic byte validation)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 12: Security (bcrypt, HttpOnly cookies, rate limiting, helmet, CORS, error masking)</td><td class="complete">COMPLETE</td></tr>
+  <tr><td>Phase 13: Electron Build + Deploy (unsigned .app, custom icon, Tailscale access)</td><td class="complete">COMPLETE</td></tr>
+</table>
+
+<h2>Future Roadmap</h2>
+<table>
+  <tr><th>Integration</th><th>What Changes</th><th>Blocked By</th></tr>
+  <tr><td>Salesforce API (Real)</td><td>Implement <code>salesforce-real.js</code>. Pull actual unassigned WOs via SOQL query. Push schedule assignments back. Bi-directional sync.</td><td class="pending">SF_CLIENT_ID + SF_CLIENT_SECRET</td></tr>
+  <tr><td>Automated Polling</td><td>Replace manual "Pull Queue" button with automated polling interval (every 15 minutes). Auto-run SLA on new WOs.</td><td class="pending">Architecture decision</td></tr>
+  <tr><td>Real-Time WebSocket</td><td>Push schedule updates to connected TA instances via WebSocket. Instant schedule visibility for techs.</td><td class="pending">WebSocket infrastructure</td></tr>
+  <tr><td>Production TA Sync</td><td>Authenticated sync between SA and TA over HTTPS. Replace auth bypass with shared API key or JWT.</td><td class="pending">Deployment infrastructure</td></tr>
+  <tr><td>Email Service</td><td>Integrate with SendGrid or AWS SES for real customer notification emails.</td><td class="pending">SMTP credentials</td></tr>
+  <tr><td>GitHub Repository</td><td>Push codebase to hosagealexAxle/schedule-assistant (private)</td><td class="pending">Ready to push</td></tr>
+</table>
+
+<h2>Cost Summary</h2>
+<table>
+  <tr><th>Item</th><th>Per Month (estimated)</th></tr>
+  <tr><td>OpenAI GPT-4.1-mini (chat)</td><td>~$1&ndash;2</td></tr>
+  <tr><td>Manual dispatching labor (eliminated)</td><td>Saves 2&ndash;4 hours/day of dispatcher time</td></tr>
+  <tr><td><strong>Total Running Cost</strong></td><td><strong>~$1&ndash;2/month</strong></td></tr>
+</table>
+
+<div class="footer">
+  <p>Schedule Assistant v1.0 &mdash; 5-Rule SLA Engine &mdash; GPT-4.1-mini Chat &mdash; 8 Associates &mdash; 40 Work Orders &mdash; 13 Models &mdash; 30+ Endpoints &mdash; SA&harr;TA Sync Pipeline &mdash; Port 4400</p>
+  <p>Updated March 4, 2026</p>
+</div>
+
+</body>
+</html>

@@ -1020,9 +1020,39 @@
     </table>
   </div>
 
+  <div class="section">
+    <h2>Schedule Assistant Integration <span class="tag-new">NEW v1.6</span></h2>
+    <p><strong>Schedule Assistant (SA)</strong> is a companion manager-only app that automates work order scheduling for TA's field technicians. SA runs on port 4400 and communicates with TA on port 4300 to complete a full automated data loop:</p>
+
+    <h3>Data Flow</h3>
+    <p><strong>SaaS (Salesforce)</strong> &rarr; <strong>SA</strong> (pull WOs, SLA auto-assign) &rarr; <strong>TA</strong> (receive schedule + WOs) &rarr; <strong>SaaS</strong> (write-back: queued &rarr; scheduled)</p>
+
+    <h3>New TA Endpoints (v1.6)</h3>
+    <div class="page-card">
+      <div class="page-label">POST /api/sync/schedule</div>
+      <p>Receives schedule entries from SA. Upserts by woNumber + scheduledDate. Creates new ScheduleEntry records or updates existing ones.</p>
+    </div>
+    <div class="page-card">
+      <div class="page-label">POST /api/sync/work-orders</div>
+      <p>Receives work order data from SA. Upserts by woNumber (unique). Creates new WorkOrder records or updates status/notes/scheduledDate.</p>
+    </div>
+    <div class="page-card">
+      <div class="page-label">POST /api/sync/write-to-saas</div>
+      <p>Writes WO status back to mock Salesforce, moving work orders from "in queue" to "scheduled". Closes the automation loop.</p>
+    </div>
+
+    <h3>How It Works</h3>
+    <ul>
+      <li>SA's SLA engine auto-assigns the closest available tech using 5 rules based on Haversine distance from each tech's home zip.</li>
+      <li>All <code>/api/sync</code> paths skip TA's auth middleware for internal SA-to-TA calls.</li>
+      <li>Techs see their auto-scheduled assignments on TA's Schedule page without any manual data entry.</li>
+      <li>Manager monitors the schedule in SA's 8-week calendar view with colored chips per WO type.</li>
+    </ul>
+  </div>
+
   <div class="footer">
-    Technician Assistant &mdash; Project Report v1.5<br>
-    Updated March 3, 2026
+    Technician Assistant &mdash; Project Report v1.6<br>
+    Updated March 4, 2026
   </div>
 
 </div>

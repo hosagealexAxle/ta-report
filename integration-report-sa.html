@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schedule Assistant &mdash; Integration Report</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1520;
+    color: #e4e8f0;
+    line-height: 1.7;
+    padding: 40px 20px;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+
+  .header {
+    text-align: center;
+    padding: 50px 30px;
+    background: linear-gradient(135deg, #152238 0%, #0d1b2b 50%, #152238 100%);
+    border-radius: 20px;
+    border: 1px solid #2a3a55;
+    margin-bottom: 40px;
+  }
+  .header .logo {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, #5b9bd5, #2a3a55);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 32px; font-weight: 700; color: #e4e8f0;
+    border: 3px solid #7bbef5;
+  }
+  .header h1 { font-size: 32px; color: #b8d8f0; margin-bottom: 8px; }
+  .header .subtitle { font-size: 16px; color: #8a9ab8; }
+  .header .date { font-size: 13px; color: #5a6a88; margin-top: 12px; }
+
+  .section {
+    background: #1a2535;
+    border: 1px solid #2a3a55;
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 24px;
+  }
+  .section h2 {
+    font-size: 22px;
+    color: #8cc0e8;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2a3a55;
+  }
+  .section h3 {
+    font-size: 17px;
+    color: #a0c0e0;
+    margin: 20px 0 10px;
+  }
+  .section h4 {
+    font-size: 14px;
+    color: #c8e0f0;
+    margin: 14px 0 6px;
+  }
+  .section p, .section li {
+    font-size: 14px;
+    color: #c8d4e8;
+  }
+  .section ul { padding-left: 20px; }
+  .section li { margin-bottom: 5px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+  th, td { border: 1px solid #2a3a55; padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #152238; color: #8cc0e8; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { color: #c8d4e8; }
+
+  code {
+    background: #152238;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'SF Mono', Menlo, monospace;
+    color: #a0c0e0;
+    border: 1px solid #2a3a55;
+  }
+  pre {
+    background: #0a1018;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'SF Mono', Menlo, monospace;
+    color: #a0c0e0;
+    margin: 10px 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    border: 1px solid #2a3a55;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tag-read { background: #1a2a3a; color: #6aa0d6; border: 1px solid #2a3a5a; }
+  .tag-write { background: #3a2a1a; color: #d6a06a; border: 1px solid #5a3a2a; }
+  .tag-both { background: #2a2a3a; color: #a0a0d6; border: 1px solid #3a3a5a; }
+  .tag-ext { background: #1a2a3a; color: #6aa0d6; border: 1px solid #2a3a5a; }
+  .tag-mock { background: #3a3a1a; color: #d6d66a; border: 1px solid #5a5a2a; }
+  .tag-sec { background: #3a1a2a; color: #d66a8a; border: 1px solid #5a2a3a; }
+  .tag-sync { background: #1a3a3a; color: #6ad6d6; border: 1px solid #2a5a5a; }
+  .tag-sla { background: #2a1a3a; color: #b06ad6; border: 1px solid #3a2a5a; }
+
+  .int-card {
+    background: #1a2d4a;
+    border: 1px solid #2a3a55;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+  .int-card h4 {
+    font-size: 15px;
+    color: #b8d8f0;
+    margin: 0 0 8px 0;
+  }
+  .int-card .loc {
+    font-size: 12px;
+    color: #6a8ab8;
+    font-family: 'SF Mono', Menlo, monospace;
+    margin-bottom: 6px;
+  }
+  .int-card .loc span { color: #8a9ab8; }
+  .int-card .desc { font-size: 13px; color: #a0b8d0; margin-bottom: 8px; }
+  .int-card .models { font-size: 12px; color: #8a9ab8; }
+  .int-card .models strong { color: #a0c0e0; }
+
+  .toc { padding: 0; list-style: none; }
+  .toc li { margin-bottom: 6px; }
+  .toc a { color: #6aa0d6; text-decoration: none; font-size: 14px; }
+  .toc a:hover { text-decoration: underline; }
+  .toc .num { color: #5a8ab8; margin-right: 8px; font-weight: 600; }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .summary-box {
+    background: #1a2d4a;
+    border: 1px solid #2a3a55;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .summary-box .num { font-size: 28px; font-weight: 700; color: #8cc0e8; }
+  .summary-box .label { font-size: 12px; color: #6a8ab8; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  .arch-diagram {
+    background: #0a1018;
+    border: 1px solid #2a3a55;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+    text-align: center;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 13px;
+    color: #a0c0e0;
+    line-height: 1.8;
+  }
+  .arch-diagram .highlight { color: #7bbef5; font-weight: 700; }
+  .arch-diagram .arrow { color: #5b9bd5; font-weight: 700; }
+  .arch-diagram .muted { color: #5a6a88; }
+
+  .footer {
+    text-align: center;
+    padding: 30px;
+    color: #3a5a7a;
+    font-size: 12px;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 700px) {
+    .summary-grid { grid-template-columns: 1fr; }
+    table { font-size: 11px; }
+    th, td { padding: 6px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo">SA</div>
+    <h1>Schedule Assistant</h1>
+    <div class="subtitle">Integration Report &mdash; March 4, 2026 (v1.0)</div>
+    <div class="date">Every API Endpoint &bull; Every Database Model &bull; Every Integration Point</div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="section">
+    <h2>At a Glance</h2>
+    <div class="summary-grid">
+      <div class="summary-box"><div class="num">34</div><div class="label">API Endpoints</div></div>
+      <div class="summary-box"><div class="num">13</div><div class="label">Database Models</div></div>
+      <div class="summary-box"><div class="num">3</div><div class="label">Rate Limiters</div></div>
+      <div class="summary-box"><div class="num">5</div><div class="label">SLA Rules</div></div>
+    </div>
+    <h3>File Locations</h3>
+    <table>
+      <tr><th>File</th><th>Path</th><th>Purpose</th></tr>
+      <tr><td>Frontend</td><td><code>dashboard/src/App.jsx</code></td><td>Single-file React app &mdash; all 12 views, all API calls, all state</td></tr>
+      <tr><td>Backend</td><td><code>backend/src/server.js</code></td><td>Express 5 server &mdash; all route handlers, SLA engine, sync pipeline, middleware</td></tr>
+      <tr><td>Schema</td><td><code>backend/prisma/schema.prisma</code></td><td>Prisma ORM &mdash; 13 SQLite models</td></tr>
+      <tr><td>Seed</td><td><code>backend/src/seed.js</code></td><td>Mock data seeder &mdash; 1 manager, 8 associates, 30 queued WOs, 10 scheduled WOs</td></tr>
+      <tr><td>Styles</td><td><code>dashboard/src/index.css</code></td><td>All CSS &mdash; dark blue theme, calendar grid, modals, log tables</td></tr>
+    </table>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="section">
+    <h2>Table of Contents</h2>
+    <ul class="toc">
+      <li><span class="num">1.</span><a href="#arch">System Architecture</a> &mdash; SA &harr; TA &harr; SaaS data flow</li>
+      <li><span class="num">2.</span><a href="#auth">Authentication &amp; Sessions</a> &mdash; 3 endpoints</li>
+      <li><span class="num">3.</span><a href="#associates">Associates</a> &mdash; 4 endpoints</li>
+      <li><span class="num">4.</span><a href="#workorders">Work Orders</a> &mdash; 4 endpoints</li>
+      <li><span class="num">5.</span><a href="#sla">SLA Engine</a> &mdash; 1 endpoint, 5 rules</li>
+      <li><span class="num">6.</span><a href="#schedule">Schedule Management</a> &mdash; 5 endpoints</li>
+      <li><span class="num">7.</span><a href="#images">Images</a> &mdash; 3 endpoints</li>
+      <li><span class="num">8.</span><a href="#sync">Sync Pipeline (SA &harr; TA &harr; SaaS)</a> &mdash; 3 endpoints</li>
+      <li><span class="num">9.</span><a href="#email">Email Notifications</a> &mdash; 2 endpoints</li>
+      <li><span class="num">10.</span><a href="#logs">Logs (SLA, Sync, Action)</a> &mdash; 3 endpoints</li>
+      <li><span class="num">11.</span><a href="#chat">Chat &amp; AI Assistant</a> &mdash; 6 endpoints</li>
+      <li><span class="num">12.</span><a href="#syncproto">SA &harr; TA Sync Protocol</a></li>
+      <li><span class="num">13.</span><a href="#sladetail">SLA Engine Integration Detail</a></li>
+      <li><span class="num">14.</span><a href="#crossref">Data Model Cross-Reference</a></li>
+      <li><span class="num">15.</span><a href="#security">Security &amp; Middleware</a></li>
+      <li><span class="num">16.</span><a href="#models">All 13 Database Models</a></li>
+    </ul>
+  </div>
+
+  <!-- 1. ARCHITECTURE -->
+  <div class="section" id="arch">
+    <h2>1. System Architecture</h2>
+    <p>Schedule Assistant sits between SaaS (Salesforce) and Technician Assistant, orchestrating the scheduling pipeline. It pulls unassigned work orders, runs the SLA engine to auto-assign technicians, and pushes the resulting schedule downstream.</p>
+
+    <div class="arch-diagram">
+      <span class="muted">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span><br>
+      <span class="muted">&#9474;</span>  <span class="highlight">SaaS (Salesforce)</span>      <span class="muted">&#9474;</span><br>
+      <span class="muted">&#9474;</span>  Unassigned Work Orders   <span class="muted">&#9474;</span><br>
+      <span class="muted">&#9474;</span>  Completion Writeback     <span class="muted">&#9474;</span><br>
+      <span class="muted">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="arrow">&#9474;</span> Pull WOs<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="arrow">&#9660;</span><br>
+      <span class="muted">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span><br>
+      <span class="muted">&#9474;</span>  <span class="highlight">Schedule Assistant</span>      <span class="muted">&#9474;</span><br>
+      <span class="muted">&#9474;</span>  Port 4400 &bull; sa_auth     <span class="muted">&#9474;</span><br>
+      <span class="muted">&#9474;</span>  5-Rule SLA Engine        <span class="muted">&#9474;</span><br>
+      <span class="muted">&#9474;</span>  8 Associates &bull; Calendar  <span class="muted">&#9474;</span><br>
+      <span class="muted">&#9474;</span>  GPT-4.1-mini Chat        <span class="muted">&#9474;</span><br>
+      <span class="muted">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9516;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="arrow">&#9474;</span> Push Schedule + WOs<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="arrow">&#9660;</span><br>
+      <span class="muted">&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;</span><br>
+      <span class="muted">&#9474;</span>  <span class="highlight">Technician Assistant</span>   <span class="muted">&#9474;</span><br>
+      <span class="muted">&#9474;</span>  Port 4300 &bull; ta_auth     <span class="muted">&#9474;</span><br>
+      <span class="muted">&#9474;</span>  Tech-facing WO app       <span class="muted">&#9474;</span><br>
+      <span class="muted">&#9474;</span>  Completes WOs &rarr; SaaS    <span class="muted">&#9474;</span><br>
+      <span class="muted">&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</span><br>
+      <br>
+      <span class="muted">Data Flow: SaaS</span> <span class="arrow">&rarr;</span> <span class="highlight">SA</span> <span class="arrow">&rarr;</span> <span class="muted">SLA Engine</span> <span class="arrow">&rarr;</span> <span class="highlight">TA</span> <span class="arrow">&rarr;</span> <span class="muted">SaaS</span> <span class="arrow">&rarr;</span> <span class="muted">Email</span>
+    </div>
+
+    <h3>Port Allocation</h3>
+    <table>
+      <tr><th>Application</th><th>Port</th><th>Auth Cookie</th><th>Role</th></tr>
+      <tr><td>Schedule Assistant</td><td>4400</td><td><code>sa_auth</code></td><td>Manager scheduling &amp; dispatch</td></tr>
+      <tr><td>Technician Assistant</td><td>4300</td><td><code>ta_auth</code></td><td>Field tech WO execution</td></tr>
+      <tr><td>SaaS (Salesforce)</td><td>Mock</td><td>N/A</td><td>Source of truth for WO data</td></tr>
+    </table>
+
+    <h3>Technology Stack</h3>
+    <table>
+      <tr><th>Layer</th><th>Technology</th><th>Version</th><th>Details</th></tr>
+      <tr><td>Desktop Shell</td><td>Electron</td><td>33</td><td>macOS ARM64, unsigned build, loadURL http://localhost:4400</td></tr>
+      <tr><td>Backend</td><td>Express</td><td>5 (ESM)</td><td>Single server.js, cookie auth, SLA engine, sync pipeline</td></tr>
+      <tr><td>Frontend</td><td>React</td><td>19</td><td>Single App.jsx, state-based routing, 12 views</td></tr>
+      <tr><td>Build Tool</td><td>Vite</td><td>7</td><td>Dashboard bundling, must rebuild before Electron</td></tr>
+      <tr><td>ORM</td><td>Prisma</td><td>6</td><td>SQLite adapter, 13 models, db push migration</td></tr>
+      <tr><td>Database</td><td>SQLite</td><td>3</td><td>sa.db file, auto-created on first boot</td></tr>
+      <tr><td>AI Chat</td><td>OpenAI</td><td>GPT-4.1-mini</td><td>Schedule-aware context injection, thread management</td></tr>
+    </table>
+  </div>
+
+  <!-- 2. AUTH -->
+  <div class="section" id="auth">
+    <h2>2. Authentication &amp; Sessions</h2>
+    <p>Session-based auth with HttpOnly cookies. 3-hour expiry. Manager role only.</p>
+
+    <div class="int-card">
+      <h4>POST /api/auth/login <span class="tag tag-write">WRITE</span> <span class="tag tag-sec">LOGIN LIMITER</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; doLogin()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; auth routes</span></div>
+      <div class="desc">Authenticates manager with username/password. Validates bcrypt hash. Creates a session record with <code>crypto.randomUUID()</code> ID and sets an HttpOnly cookie (<code>sa_auth</code>) with 3-hour expiry. Rate limited to 5 req/min.</div>
+      <div class="models"><strong>Reads:</strong> User (findUnique by username) &bull; <strong>Writes:</strong> Session (create)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/auth/check <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; checkAuth()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; auth routes</span></div>
+      <div class="desc">Checks if current session cookie is valid and not expired. Returns user object (id, username, displayName, role) if authenticated. Called on app mount.</div>
+      <div class="models"><strong>Reads:</strong> Session (findUnique), User (findUnique) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/auth/logout <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; doLogout()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; auth routes</span></div>
+      <div class="desc">Deletes session record from database and clears the <code>sa_auth</code> cookie. Resets all frontend state.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> Session (delete)</div>
+    </div>
+  </div>
+
+  <!-- 3. ASSOCIATES -->
+  <div class="section" id="associates">
+    <h2>3. Associates</h2>
+    <p>Field technicians managed by SA. 8 seeded across the US with home coordinates for Haversine distance calculations.</p>
+
+    <div class="int-card">
+      <h4>GET /api/associates <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadAssociates()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; associate routes</span></div>
+      <div class="desc">Fetches all associates with home city, state, coordinates, active status, max jobs per day, and current scheduled job count. Used on the Associates page and by the SLA engine.</div>
+      <div class="models"><strong>Reads:</strong> Associate (findMany), ScheduleEntry (count per associate) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/associates/:id <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadAssociateDetail()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; associate routes</span></div>
+      <div class="desc">Single associate detail with full schedule entries. Shows upcoming jobs, home base info, and availability by date.</div>
+      <div class="models"><strong>Reads:</strong> Associate (findUnique), ScheduleEntry (findMany by associateId) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/associates <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; createAssociate()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; associate routes</span></div>
+      <div class="desc">Creates a new associate record. Requires displayName, email, phone, homeCity, homeState, homeZip, homeLat, homeLng. Sets active=true and maxJobsPerDay=2 by default.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> Associate (create)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>PATCH /api/associates/:id <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; updateAssociate()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; associate routes</span></div>
+      <div class="desc">Updates associate fields: active toggle, maxJobsPerDay, contact info, home address/coordinates. Active=false excludes from SLA assignments.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> Associate (update)</div>
+    </div>
+  </div>
+
+  <!-- 4. WORK ORDERS -->
+  <div class="section" id="workorders">
+    <h2>4. Work Orders</h2>
+    <p>Core entity. 30 queued WOs pulled from SaaS + 10 pre-scheduled. Each includes account info, coordinates, type, and priority.</p>
+
+    <div class="int-card">
+      <h4>GET /api/work-orders <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadWorkOrders()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; work order routes</span></div>
+      <div class="desc">Fetches all work orders with optional status filter (<code>?status=queued</code>, <code>?status=scheduled</code>, or all). Includes assigned associate relation. Sorted by due date (oldest first).</div>
+      <div class="models"><strong>Reads:</strong> WorkOrder (findMany + include assignedAssociate) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/work-orders/:id <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; openWoDetail()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; work order routes</span></div>
+      <div class="desc">Single WO with full detail: account info, coordinates, assignment, schedule entries, images. Used in WO detail modal.</div>
+      <div class="models"><strong>Reads:</strong> WorkOrder (findUnique + include assignedAssociate, scheduleEntries, images) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>PATCH /api/work-orders/:id <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; updateWorkOrder()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; work order routes</span></div>
+      <div class="desc">Updates WO fields: status, assignedTo (associate ID), notes, priority. Used for manual assignment overrides and status changes.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> WorkOrder (update)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/work-orders/:id/assign <span class="tag tag-both">READ + WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; manualAssign()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; work order routes</span></div>
+      <div class="desc">Manually assigns a WO to a specific associate. Creates a ScheduleEntry record, updates WO status to "scheduled" and sets assignedTo. Used when manager overrides SLA engine decision. Logs to ActionLog.</div>
+      <div class="models"><strong>Reads:</strong> WorkOrder, Associate &bull; <strong>Writes:</strong> ScheduleEntry (create), WorkOrder (update status + assignedTo), ActionLog (create)</div>
+    </div>
+  </div>
+
+  <!-- 5. SLA ENGINE -->
+  <div class="section" id="sla">
+    <h2>5. SLA Engine</h2>
+    <p>The core scheduling engine. Evaluates all queued WOs against all active associates using 5 priority-ordered rules with Haversine distance calculations.</p>
+
+    <div class="int-card">
+      <h4>POST /api/sla/run <span class="tag tag-sla">SLA ENGINE</span> <span class="tag tag-both">READ + WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; runSlaEngine()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; SLA engine</span></div>
+      <div class="desc">Executes the 5-rule SLA engine against all queued (unassigned) work orders. For each WO, evaluates all active associates in priority order (R5 &rarr; R1 &rarr; R2 &rarr; R3 &rarr; R4). First matching rule assigns the WO. Creates ScheduleEntry + SlaLog for each assignment. Returns summary with total assigned, per-rule breakdown, and any unassigned WOs.</div>
+      <div class="models">
+        <strong>Reads:</strong> WorkOrder (findMany, status="queued"), Associate (findMany, active=true), ScheduleEntry (for capacity checks)<br>
+        <strong>Writes:</strong> ScheduleEntry (create per assignment), SlaLog (create per assignment), WorkOrder (update status + assignedTo), ActionLog (create)
+      </div>
+    </div>
+
+    <h3>Haversine Distance Function</h3>
+    <pre>function haversineDistance(lat1, lng1, lat2, lng2) {
+  const R = 3959; // Earth radius in statute miles
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = sin(dLat/2)^2 + cos(lat1) * cos(lat2) * sin(dLng/2)^2;
+  const c = 2 * atan2(sqrt(a), sqrt(1-a));
+  return R * c; // distance in miles
+}</pre>
+
+    <h3>Rule Priority Order</h3>
+    <table>
+      <tr><th>Priority</th><th>Rule</th><th>Distance Threshold</th><th>Capacity Check</th><th>Schedule Adjustment</th></tr>
+      <tr><td>1st</td><td>R5 &mdash; Home-Area</td><td>&le; 75 miles from home</td><td>&lt; 2 jobs on target date</td><td>None (due date)</td></tr>
+      <tr><td>2nd</td><td>R1 &mdash; Closest Tech</td><td>No cap (global closest)</td><td>Available on target date</td><td>None (due date)</td></tr>
+      <tr><td>3rd</td><td>R2 &mdash; Long-Distance</td><td>&gt; 400 miles</td><td>Available on adjusted date</td><td>+3 day travel buffer</td></tr>
+      <tr><td>4th</td><td>R3 &mdash; On-Road Double</td><td>&le; 50 miles from scheduled job</td><td>Under daily max</td><td>Same day as existing job</td></tr>
+      <tr><td>5th</td><td>R4 &mdash; Rolling Zip</td><td>&le; 300 miles from recent job</td><td>Within 3-day window</td><td>3 PM cutoff applies</td></tr>
+    </table>
+  </div>
+
+  <!-- 6. SCHEDULE -->
+  <div class="section" id="schedule">
+    <h2>6. Schedule Management</h2>
+    <p>Calendar-based schedule with associate assignment. Powers the 8-week dashboard calendar view.</p>
+
+    <div class="int-card">
+      <h4>GET /api/schedule <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadSchedule()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; schedule routes</span></div>
+      <div class="desc">Fetches all schedule entries sorted by date. Includes associate and work order relations. Powers the 8-week Monday&ndash;Sunday calendar grid on the main dashboard.</div>
+      <div class="models"><strong>Reads:</strong> ScheduleEntry (findMany + include associate, workOrder) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/schedule/associate/:id <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadAssociateSchedule()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; schedule routes</span></div>
+      <div class="desc">Schedule entries filtered to a specific associate. Used in the associate detail view to show their upcoming 8-week workload.</div>
+      <div class="models"><strong>Reads:</strong> ScheduleEntry (findMany, filtered by associateId) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/schedule <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; createScheduleEntry()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; schedule routes</span></div>
+      <div class="desc">Manually create a schedule entry. Links a work order to an associate on a specific date. Sets WO status to "scheduled". Creates ActionLog entry.</div>
+      <div class="models"><strong>Reads:</strong> WorkOrder, Associate &bull; <strong>Writes:</strong> ScheduleEntry (create), WorkOrder (update), ActionLog (create)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>PATCH /api/schedule/:id <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; updateScheduleEntry()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; schedule routes</span></div>
+      <div class="desc">Update a schedule entry: reschedule to different date, reassign to different associate. Used for manual override after SLA engine runs.</div>
+      <div class="models"><strong>Reads:</strong> ScheduleEntry &bull; <strong>Writes:</strong> ScheduleEntry (update), WorkOrder (update assignedTo if changed), ActionLog (create)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>DELETE /api/schedule/:id <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; deleteScheduleEntry()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; schedule routes</span></div>
+      <div class="desc">Remove a schedule entry, reverting the WO back to "queued" status. Clears assignedTo on the work order. Used when manager wants to re-run SLA or manually reassign.</div>
+      <div class="models"><strong>Reads:</strong> ScheduleEntry &bull; <strong>Writes:</strong> ScheduleEntry (delete), WorkOrder (update status="queued", assignedTo=null), ActionLog (create)</div>
+    </div>
+  </div>
+
+  <!-- 7. IMAGES -->
+  <div class="section" id="images">
+    <h2>7. Images</h2>
+    <p>Base64 upload with slot naming and magic byte validation for WO site images.</p>
+
+    <div class="int-card">
+      <h4>POST /api/images/upload <span class="tag tag-write">WRITE</span> <span class="tag tag-sec">12MB LIMIT</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; uploadImage()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; image routes</span></div>
+      <div class="desc">Uploads a base64-encoded image with slot name (site1, map, access). Server validates: file &lt; 10MB, extension in whitelist (.jpg, .jpeg, .png, .gif, .webp, .heic, .heif), magic bytes match known image signatures. Stored on disk at <code>uploads/{workOrderId}/{slot}_{timestamp}_{safeName}</code>.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> WoImage (create) + disk file</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/images/:workOrderId <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadWoImages()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; image routes</span></div>
+      <div class="desc">Lists all images for a given work order ID. Frontend maps by slot name for display in WO detail modal.</div>
+      <div class="models"><strong>Reads:</strong> WoImage (findMany) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/images/file/:imageId <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; (img src attribute)</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; image routes</span></div>
+      <div class="desc">Serves raw image file. Sets explicit Content-Type header based on file extension and adds <code>X-Content-Type-Options: nosniff</code>.</div>
+      <div class="models"><strong>Reads:</strong> WoImage (findUnique) + disk file &bull; <strong>Writes:</strong> None</div>
+    </div>
+  </div>
+
+  <!-- 8. SYNC -->
+  <div class="section" id="sync">
+    <h2>8. Sync Pipeline (SA &harr; TA &harr; SaaS)</h2>
+    <p>Three-stage sync pipeline: pull WOs from SaaS, push schedule to TA, TA writes back to SaaS. All operations create SyncLog entries.</p>
+
+    <div class="int-card">
+      <h4>POST /api/sync/pull-queue <span class="tag tag-sync">SYNC</span> <span class="tag tag-mock">MOCK SAAS</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; pullQueue()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; sync routes</span></div>
+      <div class="desc">Pulls unassigned work orders from SaaS (Salesforce) into SA's local database. Mock implementation seeds 30 queued WOs with US addresses and coordinates. Creates WorkOrder records with status "queued". Logs to SyncLog with direction "pull" and record count.</div>
+      <div class="models">
+        <strong>Reads:</strong> None (external pull)<br>
+        <strong>Writes:</strong> WorkOrder (createMany), SyncLog (create), ActionLog (create)<br>
+        <strong>External (mock):</strong> Salesforce SOQL query for unassigned WOs
+      </div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/sync/push-schedule <span class="tag tag-sync">SYNC</span> <span class="tag tag-mock">MOCK TA</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; pushToTa()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; sync routes</span></div>
+      <div class="desc">Pushes all scheduled entries and associated work order data to the Technician Assistant instance. Makes two HTTP POSTs to TA: <code>/api/sync/schedule</code> (entries array) and <code>/api/sync/work-orders</code> (workOrders array). TA auth is bypassed on /api/sync paths. Creates SyncLog with direction "push-ta".</div>
+      <div class="models">
+        <strong>Reads:</strong> ScheduleEntry (findMany + include workOrder, associate), WorkOrder (findMany, status="scheduled")<br>
+        <strong>Writes:</strong> SyncLog (create), ActionLog (create)<br>
+        <strong>External:</strong> POST to <code>TA_BASE_URL/api/sync/schedule</code> + <code>TA_BASE_URL/api/sync/work-orders</code>
+      </div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/sync/push-to-ta <span class="tag tag-sync">SYNC</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; pushSpecificToTa()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; sync routes</span></div>
+      <div class="desc">Direct push of specific schedule entries to TA. Used for incremental sync (pushing individual assignments rather than the full schedule). Accepts an array of entry IDs to push.</div>
+      <div class="models">
+        <strong>Reads:</strong> ScheduleEntry (findMany by IDs)<br>
+        <strong>Writes:</strong> SyncLog (create)<br>
+        <strong>External:</strong> POST to TA /api/sync/schedule
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. EMAIL -->
+  <div class="section" id="email">
+    <h2>9. Email Notifications</h2>
+    <p>Appointment confirmation emails sent to customers after scheduling. Mock implementation logs to console.</p>
+
+    <div class="int-card">
+      <h4>POST /api/email/appointment <span class="tag tag-write">WRITE</span> <span class="tag tag-mock">MOCK EMAIL</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; sendAppointmentEmail()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; email routes</span></div>
+      <div class="desc">Sends an appointment confirmation email to the customer. Email includes: scheduled date, assigned technician name, work order number, account name, and service type. Mock implementation logs to console and creates EmailLog with status "sent". Real implementation will use SendGrid/SES/SMTP.</div>
+      <div class="models"><strong>Reads:</strong> WorkOrder, Associate, ScheduleEntry &bull; <strong>Writes:</strong> EmailLog (create), ActionLog (create)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/email-log <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadEmailLog()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; email routes</span></div>
+      <div class="desc">Returns all email log records ordered by sentAt descending. Shows WO number, recipient email, scheduled date, associate name, sent/failed status, and timestamp. Failed emails show error detail for troubleshooting.</div>
+      <div class="models"><strong>Reads:</strong> EmailLog (findMany, ordered by sentAt desc) &bull; <strong>Writes:</strong> None</div>
+    </div>
+  </div>
+
+  <!-- 10. LOGS -->
+  <div class="section" id="logs">
+    <h2>10. Logs (SLA, Sync, Action)</h2>
+    <p>Three specialized log views for auditing scheduling decisions, sync operations, and general actions.</p>
+
+    <div class="int-card">
+      <h4>GET /api/sla-log <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadSlaLog()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; log routes</span></div>
+      <div class="desc">Returns all SLA engine decision records. Each record shows: WO number, assigned associate name, rule applied (R1&ndash;R5), distance in miles, scheduled date, and reasoning text explaining why this rule matched. Color-coded by rule on frontend.</div>
+      <div class="models"><strong>Reads:</strong> SlaLog (findMany, ordered by createdAt desc) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/sync-log <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadSyncLog()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; log routes</span></div>
+      <div class="desc">Returns all sync operation records. Each record shows: direction (pull / push-ta / push-saas), record count, status (success / error), detail text, and timestamp. Direction badges are color-coded on frontend.</div>
+      <div class="models"><strong>Reads:</strong> SyncLog (findMany, ordered by createdAt desc) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/actions <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Backend: <span>server.js &mdash; log routes</span></div>
+      <div class="desc">Returns recent action log entries (default 20, max 100). Actions are written by SLA engine runs, sync operations, manual assignments, schedule changes, and email sends.</div>
+      <div class="models"><strong>Reads:</strong> ActionLog (findMany, ordered by createdAt desc) &bull; <strong>Writes:</strong> None</div>
+    </div>
+  </div>
+
+  <!-- 11. CHAT -->
+  <div class="section" id="chat">
+    <h2>11. Chat &amp; AI Assistant</h2>
+    <p>GPT-4.1-mini powered scheduling assistant. Full visibility into all associates, schedule, and queued WOs. Thread-based conversation history. Schedule-aware tech swap suggestions.</p>
+
+    <div class="int-card">
+      <h4>GET /api/threads <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadThreads()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; chat routes</span></div>
+      <div class="desc">Returns last 50 chat threads, ordered by most recently updated.</div>
+      <div class="models"><strong>Reads:</strong> Thread (findMany, take 50) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/threads <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; createThread()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; chat routes</span></div>
+      <div class="desc">Creates a new empty chat thread with a title.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> Thread (create)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>PATCH /api/threads/:id <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Backend: <span>server.js &mdash; chat routes</span></div>
+      <div class="desc">Renames a chat thread.</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> Thread (update title)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>DELETE /api/threads/:id <span class="tag tag-write">WRITE</span></h4>
+      <div class="loc">Backend: <span>server.js &mdash; chat routes</span></div>
+      <div class="desc">Deletes a thread and all its messages (cascade).</div>
+      <div class="models"><strong>Reads:</strong> None &bull; <strong>Writes:</strong> Message (deleteMany), Thread (delete)</div>
+    </div>
+
+    <div class="int-card">
+      <h4>GET /api/chat/thread <span class="tag tag-read">READ</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; loadMessages()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; chat routes</span></div>
+      <div class="desc">Fetches all messages for a thread, ordered chronologically. Returns role (user/assistant), content, and timestamp.</div>
+      <div class="models"><strong>Reads:</strong> Message (findMany by threadId) &bull; <strong>Writes:</strong> None</div>
+    </div>
+
+    <div class="int-card">
+      <h4>POST /api/chat <span class="tag tag-both">READ + WRITE</span> <span class="tag tag-ext">OPENAI API</span> <span class="tag tag-sec">CHAT LIMITER</span></h4>
+      <div class="loc">Frontend: <span>App.jsx &mdash; sendChat()</span></div>
+      <div class="loc">Backend: <span>server.js &mdash; chat routes</span></div>
+      <div class="desc">The main AI chat endpoint. Rate limited to 10 req/min. Saves user message, loads context (last 40 messages), pulls ALL associates (with home city, coordinates, current job count), ALL schedule entries, ALL queued WOs, builds a rich scheduling-focused system prompt, calls OpenAI GPT-4.1-mini, saves assistant reply, updates thread timestamp. Auto-creates thread if none provided.</div>
+      <div class="models">
+        <strong>Reads:</strong> Thread, Message (last 40), Associate (all, with schedule counts), ScheduleEntry (all), WorkOrder (all queued)<br>
+        <strong>Writes:</strong> Message (create user + assistant), Thread (create if needed, update updatedAt)<br>
+        <strong>External:</strong> <code>https://api.openai.com/v1/chat/completions</code> &mdash; GPT-4.1-mini, temp 0.6, max 1024 tokens
+      </div>
+    </div>
+
+    <h3>System Prompt Context Structure</h3>
+    <pre>You are a scheduling assistant for a field service dispatch operation.
+
+ASSOCIATES (8 technicians):
+- Marcus Johnson | Atlanta, GA (33.749, -84.388) | 1/2 jobs today
+- Sarah Chen | Boston, MA (42.361, -71.057) | 0/2 jobs today
+- [... all 8 associates with current load ...]
+
+CURRENT SCHEDULE (next 8 weeks):
+- 2026-03-04: WO-2026-015 → Marcus Johnson (Atlanta → Birmingham, 148mi)
+- 2026-03-05: WO-2026-018 → Sarah Chen (Boston → Hartford, 102mi)
+- [... all scheduled entries ...]
+
+QUEUED WORK ORDERS (unassigned):
+- WO-2026-031: Install | HIGH | San Diego, CA (32.716, -117.161) | Due 2026-03-10
+- WO-2026-032: Service | MED | Phoenix, AZ (33.449, -112.074) | Due 2026-03-11
+- [... all queued WOs ...]
+
+Today's date: March 4, 2026</pre>
+  </div>
+
+  <!-- 12. SA-TA SYNC PROTOCOL -->
+  <div class="section" id="syncproto">
+    <h2>12. SA &harr; TA Sync Protocol</h2>
+    <p>Detailed specification of how Schedule Assistant and Technician Assistant communicate. All sync paths in TA bypass authentication middleware for trusted internal communication.</p>
+
+    <h3>SA &rarr; TA: Push Schedule Entries</h3>
+    <div class="int-card">
+      <h4>POST TA /api/sync/schedule <span class="tag tag-sync">SYNC</span></h4>
+      <div class="desc">SA pushes an array of schedule entries to TA. TA creates ScheduleEntry records in its own database. Auth middleware is skipped for all <code>/api/sync</code> paths.</div>
+      <div class="models"><strong>Request Body:</strong></div>
+    </div>
+    <pre>{
+  "entries": [
+    {
+      "woNumber": "WO-2026-015",
+      "associateId": 3,       // maps to TA User.id
+      "scheduledDate": "2026-03-10",
+      "title": "Service — Acme Corp",
+      "accountName": "Acme Corp"
+    },
+    ...
+  ]
+}</pre>
+
+    <h3>SA &rarr; TA: Push Work Orders</h3>
+    <div class="int-card">
+      <h4>POST TA /api/sync/work-orders <span class="tag tag-sync">SYNC</span></h4>
+      <div class="desc">SA pushes work order data to TA so technicians can see assignment details. TA creates or updates WorkOrder records. Includes account info, type, priority, and serial number for equipment lookup.</div>
+      <div class="models"><strong>Request Body:</strong></div>
+    </div>
+    <pre>{
+  "workOrders": [
+    {
+      "woNumber": "WO-2026-015",
+      "type": 1,
+      "priority": 2,
+      "status": "scheduled",
+      "accountName": "Acme Corp",
+      "accountAddress": "123 Industrial Blvd, Birmingham, AL 35203",
+      "serialNumber": "SN-PCX-2026-015",
+      "dueDate": "2026-03-10",
+      "scheduledDate": "2026-03-10"
+    },
+    ...
+  ]
+}</pre>
+
+    <h3>TA &rarr; SaaS: Write Back Completion</h3>
+    <div class="int-card">
+      <h4>POST TA /api/sync/write-to-saas <span class="tag tag-sync">SYNC</span> <span class="tag tag-mock">MOCK</span></h4>
+      <div class="desc">After a technician completes a work order in TA, the app writes the completion data back to SaaS (Salesforce). This is triggered by TA, not SA. Mock implementation logs to console. Real implementation will PATCH the Salesforce WorkOrder record.</div>
+      <div class="models"><strong>Request Body:</strong></div>
+    </div>
+    <pre>{
+  "woNumber": "WO-2026-015",
+  "status": "closed",
+  "dateCompleted": "2026-03-10",
+  "timeCompleted": "14:30",
+  "notes": "Replaced compressor module. System running nominal.",
+  "partsUsed": [
+    { "partNumber": "CMP-A007", "quantity": 1, "fromInventory": true }
+  ]
+}</pre>
+
+    <h3>Auth Bypass on Sync Paths</h3>
+    <pre>// In TA server.js auth middleware:
+const authMiddleware = async (req, res, next) => {
+  // Skip auth for sync endpoints — trusted internal communication from SA
+  if (req.path.startsWith('/api/sync')) {
+    return next();
+  }
+  // ... normal cookie auth check ...
+};</pre>
+    <p>This allows SA to push data to TA without needing TA user credentials. In production, this should be replaced with a shared API key or JWT-based service authentication.</p>
+  </div>
+
+  <!-- 13. SLA ENGINE DETAIL -->
+  <div class="section" id="sladetail">
+    <h2>13. SLA Engine Integration Detail</h2>
+    <p>How each of the 5 SLA rules maps to database operations. The engine processes all queued WOs sequentially &mdash; earlier assignments affect capacity for later WOs.</p>
+
+    <h3>Rule R5: Home-Area Assignment</h3>
+    <div class="int-card">
+      <h4>R5 &mdash; Home-Area (&le;75mi, 2 jobs/day) <span class="tag tag-sla">PRIMARY RULE</span></h4>
+      <div class="desc">For each queued WO, compute Haversine distance from WO site to every active associate's home coordinates. Filter to associates within 75 miles. Check ScheduleEntry count for target date &lt; 2. Assign to closest qualifying associate.</div>
+      <div class="models">
+        <strong>Reads:</strong> Associate (all active, homeLat/homeLng), ScheduleEntry (count by associateId + date)<br>
+        <strong>Writes:</strong> ScheduleEntry (create), SlaLog (ruleApplied="R5", distanceMi), WorkOrder (update status + assignedTo)
+      </div>
+    </div>
+
+    <h3>Rule R1: Closest Available Tech</h3>
+    <div class="int-card">
+      <h4>R1 &mdash; Closest Tech (no distance cap) <span class="tag tag-sla">FALLBACK</span></h4>
+      <div class="desc">When no associate is within 75mi (R5 fails), find the globally closest active associate with availability on the target date. No distance threshold &mdash; this is the catch-all assignment rule.</div>
+      <div class="models">
+        <strong>Reads:</strong> Associate (all active), ScheduleEntry (count by date)<br>
+        <strong>Writes:</strong> ScheduleEntry (create), SlaLog (ruleApplied="R1", distanceMi), WorkOrder (update)
+      </div>
+    </div>
+
+    <h3>Rule R2: Long-Distance Travel</h3>
+    <div class="int-card">
+      <h4>R2 &mdash; Long-Distance (&gt;400mi, +3 day buffer) <span class="tag tag-sla">TRAVEL</span></h4>
+      <div class="desc">When the closest tech is more than 400 miles from the WO site, the engine adds a 3-day travel buffer to the scheduled date. Checks availability on the adjusted date rather than the original due date.</div>
+      <div class="models">
+        <strong>Reads:</strong> Associate (closest), ScheduleEntry (count on adjusted date)<br>
+        <strong>Writes:</strong> ScheduleEntry (create with adjusted date), SlaLog (ruleApplied="R2", notes travel buffer), WorkOrder (update)
+      </div>
+    </div>
+
+    <h3>Rule R3: On-Road Double-Up</h3>
+    <div class="int-card">
+      <h4>R3 &mdash; On-Road Double (&le;50mi from scheduled job) <span class="tag tag-sla">EFFICIENCY</span></h4>
+      <div class="desc">Checks if any associate already has a job scheduled in the area. If a new WO is within 50 miles of an existing scheduled WO for the same tech on the same day, and the tech hasn't exceeded their daily max, stack the WO on that day.</div>
+      <div class="models">
+        <strong>Reads:</strong> ScheduleEntry (all with WO coordinates), WorkOrder (lat/lng for distance calc)<br>
+        <strong>Writes:</strong> ScheduleEntry (create, same date), SlaLog (ruleApplied="R3"), WorkOrder (update)
+      </div>
+    </div>
+
+    <h3>Rule R4: Rolling Zip Code</h3>
+    <div class="int-card">
+      <h4>R4 &mdash; Rolling Zip (&le;300mi, 3-day window, 3 PM cutoff) <span class="tag tag-sla">GEOGRAPHIC</span></h4>
+      <div class="desc">Looks at associates' recently scheduled jobs (within 3 days) and checks if the new WO is within 300 miles of any of those job sites. Applies a 3 PM cutoff &mdash; WOs arriving after 3 PM are evaluated for the next business day. Optimizes for geographic clustering along travel routes.</div>
+      <div class="models">
+        <strong>Reads:</strong> ScheduleEntry (recent 3 days with WO coordinates), WorkOrder (lat/lng)<br>
+        <strong>Writes:</strong> ScheduleEntry (create), SlaLog (ruleApplied="R4"), WorkOrder (update)
+      </div>
+    </div>
+
+    <h3>SlaLog Record Structure</h3>
+    <table>
+      <tr><th>Field</th><th>Type</th><th>Example</th></tr>
+      <tr><td>woNumber</td><td>String</td><td>"WO-2026-015"</td></tr>
+      <tr><td>associateId</td><td>Int</td><td>3</td></tr>
+      <tr><td>associateName</td><td>String</td><td>"Marcus Johnson"</td></tr>
+      <tr><td>ruleApplied</td><td>String</td><td>"R5"</td></tr>
+      <tr><td>distanceMi</td><td>Float</td><td>48.7</td></tr>
+      <tr><td>reasoning</td><td>String</td><td>"Home-area match: 48.7mi from Atlanta, GA. 1/2 jobs on 2026-03-10."</td></tr>
+      <tr><td>scheduledDate</td><td>String</td><td>"2026-03-10"</td></tr>
+      <tr><td>createdAt</td><td>DateTime</td><td>auto</td></tr>
+    </table>
+  </div>
+
+  <!-- 14. CROSS-REFERENCE -->
+  <div class="section" id="crossref">
+    <h2>14. Data Model Cross-Reference (SA &harr; TA)</h2>
+    <p>How Schedule Assistant data maps to Technician Assistant data. Both systems share work order numbers and associate/user IDs as foreign keys across the sync boundary.</p>
+
+    <h3>Primary Key Mappings</h3>
+    <table>
+      <tr><th>SA Model.Field</th><th>TA Model.Field</th><th>Relationship</th></tr>
+      <tr><td><code>Associate.externalId</code></td><td><code>User.id</code></td><td>SA associate's externalId is the auto-increment ID of the TA User record. Used to route schedule entries to the correct tech.</td></tr>
+      <tr><td><code>WorkOrder.woNumber</code></td><td><code>WorkOrder.woNumber</code></td><td>Unique WO identifier shared across both systems. Format: "WO-2026-XXX". Primary join key for sync operations.</td></tr>
+      <tr><td><code>ScheduleEntry.scheduledDate</code></td><td><code>ScheduleEntry.scheduledDate</code></td><td>Same ISO date string ("2026-03-10") pushed from SA to TA. TA renders on its 8-week calendar.</td></tr>
+    </table>
+
+    <h3>Shared Fields (Pushed from SA to TA)</h3>
+    <table>
+      <tr><th>Field</th><th>SA Source</th><th>TA Destination</th><th>Notes</th></tr>
+      <tr><td>woNumber</td><td>WorkOrder.woNumber</td><td>WorkOrder.woNumber</td><td>Unique identifier, never changes after creation</td></tr>
+      <tr><td>type</td><td>WorkOrder.type (1&ndash;4)</td><td>WorkOrder.type (1&ndash;4)</td><td>Determines TA template: Service/Install/Maintenance</td></tr>
+      <tr><td>priority</td><td>WorkOrder.priority (1&ndash;3)</td><td>WorkOrder.priority (1&ndash;3)</td><td>SA sets, TA displays (admin can override in TA)</td></tr>
+      <tr><td>accountName</td><td>WorkOrder.accountName</td><td>WorkOrder.accountName</td><td>Customer name, read-only in TA</td></tr>
+      <tr><td>accountAddress</td><td>WorkOrder.accountAddress</td><td>WorkOrder.accountAddress</td><td>Full street address for navigation</td></tr>
+      <tr><td>serialNumber</td><td>WorkOrder.sfId or derived</td><td>WorkOrder.serialNumber</td><td>Equipment serial for TA equipment lookup</td></tr>
+      <tr><td>dueDate</td><td>WorkOrder.dueDate</td><td>WorkOrder.dueDate</td><td>Original SaaS due date</td></tr>
+      <tr><td>scheduledDate</td><td>ScheduleEntry.scheduledDate</td><td>ScheduleEntry.scheduledDate</td><td>May differ from dueDate if R2 travel buffer applied</td></tr>
+    </table>
+
+    <h3>Fields NOT Shared (System-Specific)</h3>
+    <table>
+      <tr><th>SA Only</th><th>TA Only</th></tr>
+      <tr><td>Associate.homeLat / homeLng (coordinates)</td><td>User.zipCode (weather lookup)</td></tr>
+      <tr><td>WorkOrder.lat / lng (WO site coordinates)</td><td>WorkOrder.partsRequired / partsCompleted</td></tr>
+      <tr><td>SlaLog (engine decisions)</td><td>LineItem (task checklists)</td></tr>
+      <tr><td>EmailLog (customer notifications)</td><td>PartEntry / PartsCatalog (parts management)</td></tr>
+      <tr><td>SyncLog (sync audit trail)</td><td>OutOfBoxIssue (damage reports)</td></tr>
+      <tr><td>Associate.maxJobsPerDay</td><td>EquipmentData (system specs)</td></tr>
+      <tr><td>&mdash;</td><td>LocalInventory / PartScanLog (QR scanning)</td></tr>
+      <tr><td>&mdash;</td><td>Expense / MileageEntry (reimbursement)</td></tr>
+      <tr><td>&mdash;</td><td>Notification (tech alerts)</td></tr>
+    </table>
+  </div>
+
+  <!-- 15. SECURITY -->
+  <div class="section" id="security">
+    <h2>15. Security &amp; Middleware</h2>
+
+    <h3>Authentication Flow</h3>
+    <pre>Login POST &rarr; bcrypt verify &rarr; Session created (crypto.randomUUID) &rarr; HttpOnly cookie set (sa_auth)
+Every API request &rarr; authMiddleware &rarr; parse cookie &rarr; find session &rarr; check expiry &rarr; set req.userId
+Logout POST &rarr; delete session from DB &rarr; clear cookie</pre>
+
+    <h3>Rate Limiters</h3>
+    <table>
+      <tr><th>Limiter</th><th>Scope</th><th>Limit</th><th>Purpose</th></tr>
+      <tr><td><code>apiLimiter</code></td><td>All <code>/api/*</code> routes</td><td>120 req/min</td><td>General API abuse prevention</td></tr>
+      <tr><td><code>loginLimiter</code></td><td><code>/api/auth/login</code> only</td><td>5 req/min</td><td>Brute force protection</td></tr>
+      <tr><td><code>chatLimiter</code></td><td><code>/api/chat</code> only</td><td>10 req/min</td><td>OpenAI API cost control</td></tr>
+    </table>
+
+    <h3>CORS Whitelist</h3>
+    <pre>http://localhost:4400
+http://127.0.0.1:4400
+http://100.84.51.101:4400     (Tailscale HTTP)</pre>
+
+    <h3>Helmet CSP Directives</h3>
+    <pre>default-src: 'self'
+script-src:  'self'
+style-src:   'self' 'unsafe-inline'
+img-src:     'self' data: blob:
+connect-src: 'self' + ALLOWED_ORIGINS</pre>
+
+    <h3>Image Upload Validation</h3>
+    <table>
+      <tr><th>Check</th><th>Detail</th></tr>
+      <tr><td>Extension whitelist</td><td>.jpg, .jpeg, .png, .gif, .webp, .heic, .heif</td></tr>
+      <tr><td>Magic byte validation</td><td>First 4 bytes checked: FFD8FF (JPEG), 89504E47 (PNG), 47494638 (GIF), 52494646 (WebP), 00000018/1C (HEIC)</td></tr>
+      <tr><td>Size limit</td><td>10MB per file (checked server-side after base64 decode)</td></tr>
+      <tr><td>Body limit</td><td>12MB JSON body limit on upload routes (bigBody middleware)</td></tr>
+      <tr><td>Filename sanitization</td><td><code>/[\/\\]/g</code> and <code>/../</code> replaced with <code>_</code></td></tr>
+    </table>
+
+    <h3>Session Security</h3>
+    <table>
+      <tr><th>Feature</th><th>Implementation</th></tr>
+      <tr><td>Session ID</td><td><code>crypto.randomUUID()</code> (cryptographically secure)</td></tr>
+      <tr><td>Cookie flags</td><td>HttpOnly, SameSite=Lax, Secure (production), 3-hour Max-Age</td></tr>
+      <tr><td>Cookie name</td><td><code>sa_auth</code> (distinct from TA's <code>ta_auth</code>)</td></tr>
+      <tr><td>Logout</td><td>Session record deleted from DB + cookie cleared</td></tr>
+      <tr><td>Expiry check</td><td>Every request validates <code>session.expiresAt &gt; now</code></td></tr>
+      <tr><td>Expired cleanup</td><td>Expired sessions deleted on access attempt</td></tr>
+    </table>
+
+    <h3>Error Response Pattern</h3>
+    <pre>// All API error handlers return generic message to client:
+catch (err) {
+  console.error('[endpoint_name] Error:', err);
+  res.status(500).json({ error: 'server_error' });
+}
+// No err.message, no stack trace, no internal detail leaked to clients</pre>
+  </div>
+
+  <!-- 16. DATABASE MODELS -->
+  <div class="section" id="models">
+    <h2>16. All 13 Database Models</h2>
+    <p>Prisma ORM with SQLite. Schema at <code>backend/prisma/schema.prisma</code>.</p>
+
+    <h3>Auth &amp; Sessions</h3>
+    <table>
+      <tr><th>Model</th><th>Key Fields</th><th>Used By</th></tr>
+      <tr><td>User</td><td>id, username, passwordHash (bcrypt), displayName, role ("manager"), email</td><td>Login, auth check, session creation</td></tr>
+      <tr><td>Session</td><td>id (UUID), userId, expiresAt</td><td>Auth middleware, login, logout</td></tr>
+    </table>
+
+    <h3>Associates &amp; Scheduling</h3>
+    <table>
+      <tr><th>Model</th><th>Key Fields</th><th>Used By</th></tr>
+      <tr><td>Associate</td><td>id, externalId, displayName, email, phone, homeCity, homeState, homeZip, homeLat (Float), homeLng (Float), active (Boolean), maxJobsPerDay (Int, default 2)</td><td>SLA engine, associate list, schedule assignment, chat context</td></tr>
+      <tr><td>WorkOrder</td><td>id, woNumber (unique), type (1&ndash;4), status (queued/scheduled/assigned/completed), priority (1&ndash;3), dueDate, accountName, accountAddress, accountCity, accountState, accountZip, lat (Float), lng (Float), assignedTo (FK &rarr; Associate, optional), sfId, notes</td><td>Queue list, SLA engine, schedule, WO detail modal, sync push, chat context</td></tr>
+      <tr><td>ScheduleEntry</td><td>id, workOrderId (FK), associateId (FK), woNumber, scheduledDate, title, accountName, status</td><td>Calendar view, associate schedule, sync push to TA, SLA capacity check</td></tr>
+    </table>
+
+    <h3>Images</h3>
+    <table>
+      <tr><th>Model</th><th>Key Fields</th><th>Used By</th></tr>
+      <tr><td>WoImage</td><td>id, workOrderId (FK, cascade), slot, fileName, filePath</td><td>Image upload, serve, WO detail display</td></tr>
+    </table>
+
+    <h3>Audit Logs</h3>
+    <table>
+      <tr><th>Model</th><th>Key Fields</th><th>Used By</th></tr>
+      <tr><td>SlaLog</td><td>id, woNumber, associateId, associateName, ruleApplied (R1&ndash;R5), distanceMi (Float), reasoning (String), scheduledDate, createdAt</td><td>SLA log view, audit trail, chat context for explaining assignments</td></tr>
+      <tr><td>EmailLog</td><td>id, woNumber, recipientEmail, recipientName, scheduledDate, associateName, status (sent/failed), errorDetail, sentAt</td><td>Email log view, resend failed emails</td></tr>
+      <tr><td>SyncLog</td><td>id, direction (pull/push-ta/push-saas), recordCount (Int), status (success/error), detail (String), createdAt</td><td>Sync log view, audit trail</td></tr>
+      <tr><td>ActionLog</td><td>id, type, label, detail, ok (Boolean), createdAt</td><td>General audit trail (SLA runs, sync ops, manual changes)</td></tr>
+    </table>
+
+    <h3>Chat &amp; System</h3>
+    <table>
+      <tr><th>Model</th><th>Key Fields</th><th>Used By</th></tr>
+      <tr><td>Thread</td><td>id, title, createdAt, updatedAt</td><td>Chat thread list, create, delete</td></tr>
+      <tr><td>Message</td><td>id, threadId (FK, cascade), role (user/assistant), content, createdAt</td><td>Chat history, OpenAI context window</td></tr>
+      <tr><td>SystemState</td><td>id ("global"), metaJson</td><td>Seed tracking (seeded: true)</td></tr>
+    </table>
+  </div>
+
+  <!-- FULL ENDPOINT MAP -->
+  <div class="section">
+    <h2>Complete API Endpoint Map</h2>
+    <p>All 34 endpoints in a single reference table.</p>
+
+    <table>
+      <tr><th>#</th><th>Method</th><th>Path</th><th>Purpose</th><th>Tags</th></tr>
+      <tr><td>1</td><td>GET</td><td>/api/health</td><td>Health check + mock status</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>2</td><td>POST</td><td>/api/auth/login</td><td>Login, create session, set sa_auth cookie</td><td><span class="tag tag-write">WRITE</span> <span class="tag tag-sec">RATE</span></td></tr>
+      <tr><td>3</td><td>GET</td><td>/api/auth/check</td><td>Validate session, return user</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>4</td><td>POST</td><td>/api/auth/logout</td><td>Delete session, clear cookie</td><td><span class="tag tag-write">WRITE</span></td></tr>
+      <tr><td>5</td><td>GET</td><td>/api/associates</td><td>List all associates + schedule counts</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>6</td><td>GET</td><td>/api/associates/:id</td><td>Single associate + schedule</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>7</td><td>POST</td><td>/api/associates</td><td>Create new associate</td><td><span class="tag tag-write">WRITE</span></td></tr>
+      <tr><td>8</td><td>PATCH</td><td>/api/associates/:id</td><td>Update associate fields</td><td><span class="tag tag-write">WRITE</span></td></tr>
+      <tr><td>9</td><td>GET</td><td>/api/work-orders</td><td>List WOs (optional status filter)</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>10</td><td>GET</td><td>/api/work-orders/:id</td><td>Single WO detail + relations</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>11</td><td>PATCH</td><td>/api/work-orders/:id</td><td>Update WO fields</td><td><span class="tag tag-write">WRITE</span></td></tr>
+      <tr><td>12</td><td>POST</td><td>/api/work-orders/:id/assign</td><td>Manual assign to associate</td><td><span class="tag tag-both">R+W</span></td></tr>
+      <tr><td>13</td><td>POST</td><td>/api/sla/run</td><td>Execute 5-rule SLA engine</td><td><span class="tag tag-sla">SLA</span> <span class="tag tag-both">R+W</span></td></tr>
+      <tr><td>14</td><td>GET</td><td>/api/schedule</td><td>All schedule entries (calendar)</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>15</td><td>GET</td><td>/api/schedule/associate/:id</td><td>Associate-specific schedule</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>16</td><td>POST</td><td>/api/schedule</td><td>Create schedule entry</td><td><span class="tag tag-write">WRITE</span></td></tr>
+      <tr><td>17</td><td>PATCH</td><td>/api/schedule/:id</td><td>Reschedule / reassign</td><td><span class="tag tag-write">WRITE</span></td></tr>
+      <tr><td>18</td><td>DELETE</td><td>/api/schedule/:id</td><td>Unschedule (revert to queued)</td><td><span class="tag tag-write">WRITE</span></td></tr>
+      <tr><td>19</td><td>GET</td><td>/api/images/:workOrderId</td><td>List WO images</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>20</td><td>GET</td><td>/api/images/file/:imageId</td><td>Serve image file</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>21</td><td>POST</td><td>/api/images/upload</td><td>Upload base64 image</td><td><span class="tag tag-write">WRITE</span> <span class="tag tag-sec">12MB</span></td></tr>
+      <tr><td>22</td><td>POST</td><td>/api/sync/pull-queue</td><td>Pull WOs from SaaS</td><td><span class="tag tag-sync">SYNC</span> <span class="tag tag-mock">MOCK</span></td></tr>
+      <tr><td>23</td><td>POST</td><td>/api/sync/push-schedule</td><td>Push schedule + WOs to TA</td><td><span class="tag tag-sync">SYNC</span></td></tr>
+      <tr><td>24</td><td>POST</td><td>/api/sync/push-to-ta</td><td>Push specific entries to TA</td><td><span class="tag tag-sync">SYNC</span></td></tr>
+      <tr><td>25</td><td>POST</td><td>/api/email/appointment</td><td>Send appointment email</td><td><span class="tag tag-write">WRITE</span> <span class="tag tag-mock">MOCK</span></td></tr>
+      <tr><td>26</td><td>GET</td><td>/api/email-log</td><td>Email send history</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>27</td><td>GET</td><td>/api/sla-log</td><td>SLA engine decision history</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>28</td><td>GET</td><td>/api/sync-log</td><td>Sync operation history</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>29</td><td>GET</td><td>/api/actions</td><td>General action log</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>30</td><td>GET</td><td>/api/threads</td><td>List chat threads</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>31</td><td>POST</td><td>/api/threads</td><td>Create chat thread</td><td><span class="tag tag-write">WRITE</span></td></tr>
+      <tr><td>32</td><td>PATCH</td><td>/api/threads/:id</td><td>Rename thread</td><td><span class="tag tag-write">WRITE</span></td></tr>
+      <tr><td>33</td><td>DELETE</td><td>/api/threads/:id</td><td>Delete thread + messages</td><td><span class="tag tag-write">WRITE</span></td></tr>
+      <tr><td>34</td><td>GET</td><td>/api/chat/thread</td><td>Load thread messages</td><td><span class="tag tag-read">READ</span></td></tr>
+      <tr><td>35</td><td>POST</td><td>/api/chat</td><td>Send message + GPT reply</td><td><span class="tag tag-both">R+W</span> <span class="tag tag-ext">OPENAI</span> <span class="tag tag-sec">RATE</span></td></tr>
+    </table>
+  </div>
+
+  <!-- MOCK ADAPTERS -->
+  <div class="section">
+    <h2>Mock Adapter Pattern</h2>
+    <p>All external integrations use mock implementations that simulate real behavior. When real APIs are available, swap by setting <code>USE_MOCK=false</code> and implementing one adapter per service.</p>
+
+    <table>
+      <tr><th>Mock Target</th><th>Simulates</th><th>Trigger</th><th>Real Swap</th></tr>
+      <tr><td>Salesforce Pull</td><td>SOQL query for unassigned WOs</td><td>POST /api/sync/pull-queue</td><td>SF REST API with OAuth2 client credentials</td></tr>
+      <tr><td>TA Sync Push</td><td>HTTP POST to TA /api/sync/*</td><td>POST /api/sync/push-schedule</td><td>Real HTTP to TA instance (already implemented when TA is running)</td></tr>
+      <tr><td>Email Send</td><td>SMTP email delivery</td><td>POST /api/email/appointment</td><td>SendGrid / AWS SES / SMTP transport</td></tr>
+      <tr><td>SaaS Writeback</td><td>SF PATCH for WO completion</td><td>Triggered by TA</td><td>SF REST API PATCH with completion data</td></tr>
+    </table>
+  </div>
+
+  <!-- ENV VARS -->
+  <div class="section">
+    <h2>Environment Variables</h2>
+    <table>
+      <tr><th>Variable</th><th>Value</th><th>Purpose</th></tr>
+      <tr><td><code>PORT</code></td><td>4400</td><td>Express server port</td></tr>
+      <tr><td><code>DATABASE_URL</code></td><td>file:./sa.db</td><td>SQLite database path</td></tr>
+      <tr><td><code>USE_MOCK</code></td><td>true</td><td>Toggle mock/real adapters</td></tr>
+      <tr><td><code>OPENAI_API_KEY</code></td><td>sk-...</td><td>GPT-4.1-mini chat</td></tr>
+      <tr><td><code>OPENAI_MODEL</code></td><td>gpt-4.1-mini</td><td>Chat model selection</td></tr>
+      <tr><td><code>TA_BASE_URL</code></td><td>http://localhost:4300</td><td>Technician Assistant instance URL</td></tr>
+      <tr><td><code>SF_CLIENT_ID</code></td><td>(future)</td><td>Salesforce OAuth client ID</td></tr>
+      <tr><td><code>SF_CLIENT_SECRET</code></td><td>(future)</td><td>Salesforce OAuth client secret</td></tr>
+      <tr><td><code>SMTP_HOST</code></td><td>(future)</td><td>Email service host</td></tr>
+      <tr><td><code>SMTP_PORT</code></td><td>(future)</td><td>Email service port</td></tr>
+      <tr><td><code>SMTP_USER</code></td><td>(future)</td><td>Email service username</td></tr>
+      <tr><td><code>SMTP_PASS</code></td><td>(future)</td><td>Email service password</td></tr>
+    </table>
+  </div>
+
+  <!-- BUILD + DEPLOY -->
+  <div class="section">
+    <h2>Build &amp; Deploy</h2>
+    <pre># Rebuild dashboard (must be done BEFORE Electron build)
+cd ~/Desktop/schedule-assistant/dashboard &amp;&amp; npm run build
+
+# Rebuild Electron app (unsigned, macOS ARM64)
+cd ~/Desktop/schedule-assistant/desktop &amp;&amp; npm run dist:unsigned
+
+# Deploy to /Applications
+pkill -f "Schedule Assistant"
+rm -rf "/Applications/Schedule Assistant.app"
+cp -R desktop/release/mac-arm64/Schedule\ Assistant.app /Applications/
+open "/Applications/Schedule Assistant.app"
+
+# Delete DB and re-seed (if schema or seed data changes)
+rm -f ~/Library/Application\ Support/Schedule\ Assistant/sa.db
+
+# Tailscale access
+# Mac: 100.84.51.101 | URL: http://100.84.51.101:4400</pre>
+  </div>
+
+  <div class="footer">
+    Schedule Assistant v1.0 &mdash; Integration Report &mdash; March 4, 2026<br>
+    34 API Endpoints &bull; 13 Database Models &bull; 5 SLA Rules &bull; SA&harr;TA Sync Pipeline<br>
+    Built by Alex Hosage
+  </div>
+
+</div>
+</body>
+</html>

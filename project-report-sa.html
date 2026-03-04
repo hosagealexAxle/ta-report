@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schedule Assistant &mdash; Project Report</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1520;
+    color: #e8e4d9;
+    line-height: 1.7;
+    padding: 40px 20px;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 50px 30px;
+    background: linear-gradient(135deg, #152238 0%, #0d1a2b 50%, #152238 100%);
+    border-radius: 20px;
+    border: 1px solid #2a3a55;
+    margin-bottom: 40px;
+  }
+  .header .logo {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, #5b9bd5, #2a3a55);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 32px; font-weight: 700; color: #e8e4d9;
+    border: 3px solid #7bbef5;
+  }
+  .header h1 { font-size: 36px; color: #b8d8f0; margin-bottom: 8px; }
+  .header .subtitle { font-size: 16px; color: #8a9ab8; }
+  .header .date { font-size: 13px; color: #5a6a88; margin-top: 12px; }
+
+  /* Section */
+  .section {
+    background: #1a2535;
+    border: 1px solid #2a4a6a;
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 24px;
+  }
+  .section h2 {
+    font-size: 22px;
+    color: #8cc0e8;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2a4a6a;
+  }
+  .section h3 {
+    font-size: 17px;
+    color: #a0c0e0;
+    margin: 18px 0 8px;
+  }
+  .section p, .section li {
+    font-size: 15px;
+    color: #c8d4e8;
+  }
+  .section ul { padding-left: 20px; }
+  .section li { margin-bottom: 6px; }
+
+  /* Tag/badge */
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+  .tag-read { background: #1a2a3a; color: #6aa0d6; border: 1px solid #2a4a6a; }
+  .tag-write { background: #3a2a1a; color: #d6a06a; border: 1px solid #5a3a2a; }
+  .tag-external { background: #1a3a2a; color: #6ad6a0; border: 1px solid #2a5a3a; }
+  .tag-nav { background: #2a1a3a; color: #a06ad6; border: 1px solid #3a2a5a; }
+  .tag-auto { background: #1a2a4a; color: #6a9ad6; border: 1px solid #2a4a6a; }
+  .tag-sla { background: #3a3a1a; color: #d6d66a; border: 1px solid #5a5a2a; }
+  .tag-sync { background: #2a1a2a; color: #d68ad6; border: 1px solid #4a2a4a; }
+  .tag-email { background: #1a3a3a; color: #6ad6d6; border: 1px solid #2a5a5a; }
+
+  /* Page card */
+  .page-card {
+    background: #1a2d4a;
+    border: 1px solid #2a3a55;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .page-card .page-label {
+    font-size: 12px;
+    color: #5b9bd5;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .page-card h3 {
+    font-size: 18px;
+    color: #b8d8f0;
+    margin: 0 0 10px;
+  }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid #2a4a6a;
+    font-size: 14px;
+  }
+  th { color: #8cc0e8; font-weight: 600; background: #1a2d4a; }
+  td { color: #c8d4e8; }
+
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0;
+  }
+  .flow-box {
+    background: #152238;
+    border: 1px solid #3a5a8a;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #b8d8f0;
+    font-weight: 600;
+  }
+  .flow-box.highlight {
+    border-color: #5b9bd5;
+    color: #7bbef5;
+    background: #1a3050;
+  }
+  .flow-arrow { color: #5b9bd5; font-size: 18px; }
+
+  /* Grid */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 12px 0;
+  }
+  .grid-item {
+    background: #1a2d4a;
+    border: 1px solid #2a4a6a;
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .grid-item h4 { color: #8cc0e8; font-size: 14px; margin-bottom: 6px; }
+  .grid-item p { font-size: 13px; color: #a0b8d0; }
+
+  /* Callout */
+  .callout {
+    background: #1a2a3a;
+    border-left: 4px solid #5b9bd5;
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 14px;
+    color: #b8d0e8;
+  }
+
+  .callout-warn {
+    background: #3a2a1a;
+    border-left-color: #d6a04a;
+    color: #d8ccb0;
+  }
+
+  .callout-pipeline {
+    background: #1a2535;
+    border-left-color: #7bbef5;
+    color: #b8d8f0;
+  }
+
+  /* SLA rule card */
+  .sla-card {
+    background: #152238;
+    border: 1px solid #2a4a6a;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+  }
+  .sla-card .rule-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #7bbef5;
+    margin-bottom: 4px;
+  }
+  .sla-card h4 {
+    font-size: 16px;
+    color: #b8d8f0;
+    margin-bottom: 8px;
+  }
+  .sla-card p {
+    font-size: 14px;
+    color: #a0b8d0;
+  }
+
+  /* Chip colors preview */
+  .chip-preview {
+    display: flex; gap: 12px; margin: 12px 0; flex-wrap: wrap;
+  }
+  .chip {
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .chip-service { background: #2a4a6a; color: #7bbef5; border: 1px solid #3a6a9a; }
+  .chip-install { background: #1a3a2a; color: #6ad6a0; border: 1px solid #2a5a3a; }
+  .chip-maint { background: #3a2a1a; color: #d6a06a; border: 1px solid #5a3a2a; }
+  .chip-travel { background: #2a2a2a; color: #aaaaaa; border: 1px solid #4a4a4a; }
+
+  /* Model table */
+  .model-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin: 12px 0;
+  }
+  .model-item {
+    background: #152238;
+    border: 1px solid #2a4a6a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: center;
+  }
+  .model-item strong {
+    color: #7bbef5;
+    font-size: 14px;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 30px;
+    color: #3a5a8a;
+    font-size: 13px;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 600px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .model-grid { grid-template-columns: 1fr 1fr; }
+    .header h1 { font-size: 26px; }
+    .section { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">SA</div>
+    <h1>Schedule Assistant</h1>
+    <div class="subtitle">Automated Work Order Scheduling &amp; SLA Engine</div>
+    <div class="date">Project Report &mdash; March 4, 2026 (v1.0)</div>
+  </div>
+
+  <!-- 1. OVERVIEW -->
+  <div class="section">
+    <h2>1. Project Overview</h2>
+    <p>Schedule Assistant is a manager-only Electron desktop app that automates work order scheduling for field technicians. It is the scheduling brain behind Technician Assistant &mdash; reading work orders from a SaaS queue, auto-assigning the closest available tech via a 5-rule SLA engine, writing the schedule back to TA, and notifying customers via appointment confirmation emails. The entire pipeline is automated: one button fires the full chain from SaaS pull to customer email.</p>
+
+    <h3>Core Goals</h3>
+    <ul>
+      <li><strong>Automated Scheduling</strong> &mdash; No manual tech assignment. The SLA engine picks the closest available technician using Haversine distance and 5 scheduling rules.</li>
+      <li><strong>Full Pipeline Automation</strong> &mdash; SaaS pull, SLA assignment, TA push, SaaS write-back, and customer emails all fire in a single automated chain.</li>
+      <li><strong>Manager Visibility</strong> &mdash; 8-week calendar grid, colored WO chips, collapsible dashboard with activity filters and stats.</li>
+      <li><strong>AI Chat Assistant</strong> &mdash; Built-in GPT-powered chat with full schedule context for manager questions and tech swap suggestions.</li>
+      <li><strong>Companion to TA</strong> &mdash; SA manages the schedule; TA executes it. SA pushes schedule entries and work orders directly to TA on port 4300.</li>
+    </ul>
+
+    <h3>Design Language</h3>
+    <div class="grid-2">
+      <div class="grid-item">
+        <h4>Background</h4>
+        <p>Dark baby blue across all pages (#0f1520)</p>
+      </div>
+      <div class="grid-item">
+        <h4>Calendar Grid</h4>
+        <p>8-week Mon&ndash;Sun grid with colored WO chips</p>
+      </div>
+      <div class="grid-item">
+        <h4>Login Identity</h4>
+        <p>Calendar-themed login &mdash; no logo, the calendar IS the identity</p>
+      </div>
+      <div class="grid-item">
+        <h4>Chip Colors</h4>
+        <p>Blue=Service, Green=Install, Orange=Maintenance, Gray=Travel</p>
+      </div>
+    </div>
+
+    <h3>Chip Color Preview</h3>
+    <div class="chip-preview">
+      <span class="chip chip-service">Service</span>
+      <span class="chip chip-install">Install</span>
+      <span class="chip chip-maint">Maintenance</span>
+      <span class="chip chip-travel">Travel</span>
+    </div>
+
+    <div class="callout">
+      <strong>Relationship to TA:</strong> Schedule Assistant is the scheduling brain. Technician Assistant is the field execution layer. SA decides who goes where and when. TA gives the tech the tools to complete the job. They communicate over localhost port 4300.
+    </div>
+  </div>
+
+  <!-- 2. FULL PAGE MAP -->
+  <div class="section">
+    <h2>2. Full Page Map (12 Screens)</h2>
+    <table>
+      <tr><th>Page</th><th>Name</th><th>Purpose</th></tr>
+      <tr><td>P1</td><td>Calendar Login</td><td>Calendar-themed login, manager-only access</td></tr>
+      <tr><td>P2</td><td>Main Schedule</td><td>8-week calendar grid with WO chips, dashboard, chat</td></tr>
+      <tr><td>P3</td><td>Dashboard &mdash; Service Activity</td><td>Service WO filters (All, Type 1, Type 4)</td></tr>
+      <tr><td>P4</td><td>Dashboard &mdash; New Sale Activity</td><td>Install (Type 2) filter, future categories</td></tr>
+      <tr><td>P5</td><td>Dashboard &mdash; SaaS Pipeline</td><td>One-button auto-chain trigger, pipeline status</td></tr>
+      <tr><td>P6</td><td>Active Associates</td><td>8-tech roster with home zip, status, WO count</td></tr>
+      <tr><td>P7</td><td>WO Images</td><td>Tech dropdown, image grid grouped by WO number</td></tr>
+      <tr><td>P8</td><td>SLA Engine Log</td><td>All SLA decisions: rule, tech, WO, distance, result</td></tr>
+      <tr><td>P9</td><td>Sync Log</td><td>All sync operations with direction, entity, status</td></tr>
+      <tr><td>P10</td><td>Email Log</td><td>All sent appointment emails with subject, recipient</td></tr>
+      <tr><td>P11</td><td>Chat Panel</td><td>Right-side collapsible GPT chat with schedule context</td></tr>
+      <tr><td>P12</td><td>WO Detail Modal</td><td>Modal on chip click: WO details, tech, SLA rule</td></tr>
+    </table>
+  </div>
+
+  <!-- 3. PAGE-BY-PAGE BREAKDOWN -->
+  <div class="section">
+    <h2>3. Page-by-Page Breakdown</h2>
+
+    <!-- P1 -->
+    <div class="page-card">
+      <div class="page-label">Page 1</div>
+      <h3>Calendar Login</h3>
+      <p>A calendar-themed login page where the layout itself is the brand identity. No logo &mdash; the calendar IS the identity.</p>
+      <ul>
+        <li><strong>Title:</strong> "Schedule Assistant" displayed above the calendar grid</li>
+        <li><strong>7-column grid</strong> mimicking a real calendar: <strong>S &nbsp; M &nbsp; T &nbsp; W &nbsp; T &nbsp; F &nbsp; S</strong></li>
+        <li><strong>Username field</strong> spans the middle cells of row 2</li>
+        <li><strong>Password field</strong> spans the middle cells of row 3</li>
+        <li><strong>"ENTER" button</strong> styled as a highlighted date cell &mdash; blends into the calendar aesthetic</li>
+        <li><strong>Manager-only access:</strong> <code>manager / manager123</code></li>
+        <li>Session valid for <strong>3 hours</strong> before re-authentication required</li>
+        <li>Cookie: <code>sa_auth</code> with 3-hour expiry</li>
+      </ul>
+      <div class="callout">
+        <strong>Design Intent:</strong> The login page looks like a calendar month view. The form fields sit inside the calendar grid cells, making the entire login experience feel like interacting with a schedule rather than a typical auth form.
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="page-card">
+      <div class="page-label">Page 2</div>
+      <h3>Main Schedule</h3>
+      <p>The primary view &mdash; an 8-week Monday-through-Sunday calendar grid with colored WO chips representing scheduled work orders.</p>
+      <p><strong>Calendar Grid:</strong></p>
+      <ul>
+        <li><strong>8-week range:</strong> Monday &rarr; Sunday columns, scrollable forward 8 weeks</li>
+        <li><strong>Today highlighted</strong> with accent border (#7bbef5)</li>
+        <li><strong>Colored chips</strong> on each scheduled date:
+          <ul>
+            <li><span class="chip chip-service" style="padding:2px 8px;font-size:11px;">Blue</span> = Service (Types 1 &amp; 4)</li>
+            <li><span class="chip chip-install" style="padding:2px 8px;font-size:11px;">Green</span> = Install (Type 2)</li>
+            <li><span class="chip chip-maint" style="padding:2px 8px;font-size:11px;">Orange</span> = Maintenance (Type 3)</li>
+            <li><span class="chip chip-travel" style="padding:2px 8px;font-size:11px;">Gray</span> = Travel Day</li>
+          </ul>
+        </li>
+        <li><strong>Tech name</strong> displayed on each chip</li>
+        <li><strong>Click any chip</strong> &rarr; opens WO Detail Modal (P12)</li>
+      </ul>
+      <p><strong>Left Panel &mdash; Collapsible Dashboard:</strong></p>
+      <ul>
+        <li>Stats: total scheduled WOs, WOs this week, techs active, pending queue count</li>
+        <li>Activity bubbles with quick-glance metrics</li>
+        <li>Links to Service Activity (P3), New Sale Activity (P4), SaaS Pipeline (P5)</li>
+        <li>Links to Active Associates (P6), WO Images (P7)</li>
+        <li>Links to SLA Engine Log (P8), Sync Log (P9), Email Log (P10)</li>
+      </ul>
+      <p><strong>Right Panel &mdash; Collapsible Chat:</strong></p>
+      <ul>
+        <li>GPT-4.1-mini powered chat panel <span class="tag tag-nav">&rarr; P11</span></li>
+        <li>Full schedule context injected: all techs, schedule entries, queued WOs</li>
+        <li>Thread management (create, delete, switch)</li>
+      </ul>
+    </div>
+
+    <!-- P3 -->
+    <div class="page-card">
+      <div class="page-label">Page 3</div>
+      <h3>Dashboard &mdash; Service Activity</h3>
+      <p>Filtered views of service-type work orders for the manager to review scheduling patterns and workload distribution.</p>
+      <ul>
+        <li><strong>"All Service"</strong> filter &mdash; shows all service WOs (Types 1 &amp; 4 combined)</li>
+        <li><strong>"Type 1: Service"</strong> filter &mdash; standard service calls only</li>
+        <li><strong>"Type 4: Service"</strong> filter &mdash; type 4 service calls only</li>
+        <li><strong>"Active Associates"</strong> link <span class="tag tag-nav">&rarr; P6</span></li>
+        <li><strong>"WO Images"</strong> link <span class="tag tag-nav">&rarr; P7</span></li>
+      </ul>
+      <p>Each filter shows a table of matching WOs with WO number, customer, tech assigned, date, SLA rule applied, and status.</p>
+    </div>
+
+    <!-- P4 -->
+    <div class="page-card">
+      <div class="page-label">Page 4</div>
+      <h3>Dashboard &mdash; New Sale Activity</h3>
+      <p>Focused view on equipment installation work orders and future expansion categories.</p>
+      <ul>
+        <li><strong>"Equipment Installation"</strong> (Type 2) filter &mdash; active and upcoming installs</li>
+        <li><strong>"Demo"</strong> &mdash; grayed out (future)</li>
+        <li><strong>"Training"</strong> &mdash; grayed out (future)</li>
+        <li><strong>"Site Inspections"</strong> &mdash; grayed out (future)</li>
+        <li><strong>"Site Support"</strong> &mdash; grayed out (future)</li>
+        <li><strong>"Active Associates"</strong> link <span class="tag tag-nav">&rarr; P6</span></li>
+        <li><strong>"WO Images"</strong> link <span class="tag tag-nav">&rarr; P7</span></li>
+      </ul>
+      <div class="callout">
+        <strong>Future Categories:</strong> Demo, Training, Site Inspections, and Site Support are placeholders for future WO types. They appear grayed out with "Coming Soon" labels to indicate planned functionality.
+      </div>
+    </div>
+
+    <!-- P5 -->
+    <div class="page-card">
+      <div class="page-label">Page 5</div>
+      <h3>Dashboard &mdash; SaaS Pipeline</h3>
+      <p>The control center for the automated scheduling pipeline. One button triggers the entire chain.</p>
+      <ul>
+        <li><strong>"Incoming WOs (SaaS)"</strong> button &mdash; single click triggers the full auto-chain:
+          <ol style="margin-top:8px; padding-left:20px;">
+            <li>SaaS pull &mdash; fetch queued work orders from SaaS <span class="tag tag-read">SaaS Read</span></li>
+            <li>SLA engine &mdash; auto-assign closest tech via 5-rule engine <span class="tag tag-sla">SLA</span></li>
+            <li>Push to TA &mdash; write schedule entries + WOs to TA on port 4300 <span class="tag tag-sync">TA Push</span></li>
+            <li>TA writes back to SaaS &mdash; queued &rarr; scheduled status update <span class="tag tag-sync">SaaS Write</span></li>
+            <li>Appointment emails &mdash; customer notification sent <span class="tag tag-email">Email</span></li>
+          </ol>
+        </li>
+        <li><strong>Pipeline Status</strong> &mdash; visual indicator for each step showing success/failure/pending</li>
+        <li><strong>"View Sync Log"</strong> link <span class="tag tag-nav">&rarr; P9</span></li>
+        <li><strong>"View Email Log"</strong> link <span class="tag tag-nav">&rarr; P10</span></li>
+      </ul>
+      <div class="callout-pipeline callout">
+        <strong>Full Automation:</strong> The entire chain fires sequentially when the button is pressed. Each step's result is displayed in real-time so the manager can see exactly where the pipeline is in its execution.
+      </div>
+    </div>
+
+    <!-- P6 -->
+    <div class="page-card">
+      <div class="page-label">Page 6</div>
+      <h3>Active Associates</h3>
+      <p>Roster of all field technicians managed by the scheduling system.</p>
+      <table>
+        <tr><th>Column</th><th>Description</th></tr>
+        <tr><td>Name</td><td>Full name of the technician</td></tr>
+        <tr><td>Role</td><td>Job title / role designation</td></tr>
+        <tr><td>Home Zip</td><td>Technician's home base zip code (used for Haversine distance calc)</td></tr>
+        <tr><td>Active</td><td>Green/red status indicator</td></tr>
+        <tr><td>Scheduled WOs</td><td>Count of currently scheduled work orders</td></tr>
+      </table>
+      <ul>
+        <li><strong>8 seeded associates</strong> distributed across the US for demo/testing</li>
+        <li>Home zip is the anchor point for all SLA distance calculations</li>
+        <li>Active/inactive status determines eligibility for auto-assignment</li>
+      </ul>
+    </div>
+
+    <!-- P7 -->
+    <div class="page-card">
+      <div class="page-label">Page 7</div>
+      <h3>WO Images</h3>
+      <p>Manager view of all work order images uploaded by technicians through the TA app.</p>
+      <ul>
+        <li><strong>Technician dropdown</strong> &mdash; select a tech to view their uploaded images</li>
+        <li><strong>Image grid</strong> grouped by WO number</li>
+        <li><strong>Last 45 days</strong> of images displayed</li>
+        <li>Images include system photos, damage photos, wide views, part photos, and out-of-box issue photos</li>
+        <li>Click any image to view full-size in a lightbox overlay</li>
+      </ul>
+    </div>
+
+    <!-- P8 -->
+    <div class="page-card">
+      <div class="page-label">Page 8</div>
+      <h3>SLA Engine Log</h3>
+      <p>Complete audit trail of every SLA decision made by the scheduling engine.</p>
+      <table>
+        <tr><th>Column</th><th>Description</th></tr>
+        <tr><td>Rule</td><td>Which rule was applied (R1&ndash;R5)</td></tr>
+        <tr><td>Tech Name</td><td>The technician assigned (or considered)</td></tr>
+        <tr><td>WO Number</td><td>The work order being scheduled</td></tr>
+        <tr><td>Distance</td><td>Haversine distance from tech to job site (miles)</td></tr>
+        <tr><td>Result</td><td>Accepted / Rejected with reason</td></tr>
+        <tr><td>Timestamp</td><td>When the decision was made</td></tr>
+      </table>
+      <div class="callout">
+        <strong>Audit Trail:</strong> Every scheduling decision is logged. If a manager questions why Tech A got a job instead of Tech B, this log shows the exact rule, distances, and reasoning.
+      </div>
+    </div>
+
+    <!-- P9 -->
+    <div class="page-card">
+      <div class="page-label">Page 9</div>
+      <h3>Sync Log</h3>
+      <p>Record of all data synchronization operations between SA, TA, and SaaS.</p>
+      <table>
+        <tr><th>Column</th><th>Description</th></tr>
+        <tr><td>Direction</td><td>SaaS &rarr; SA, SA &rarr; TA, or TA &rarr; SaaS</td></tr>
+        <tr><td>Entity</td><td>What was synced (WorkOrder, ScheduleEntry, Status)</td></tr>
+        <tr><td>Status</td><td>Success / Failed / Pending</td></tr>
+        <tr><td>Details</td><td>WO number, tech name, or error message</td></tr>
+        <tr><td>Timestamp</td><td>When the sync occurred</td></tr>
+      </table>
+      <p>Filterable by direction and status. Failed syncs highlighted in red for quick identification.</p>
+    </div>
+
+    <!-- P10 -->
+    <div class="page-card">
+      <div class="page-label">Page 10</div>
+      <h3>Email Log</h3>
+      <p>Record of all appointment confirmation emails sent to customers after scheduling.</p>
+      <table>
+        <tr><th>Column</th><th>Description</th></tr>
+        <tr><td>Subject</td><td>Email subject line (includes WO number and date)</td></tr>
+        <tr><td>Recipient</td><td>Customer email address</td></tr>
+        <tr><td>WO Number</td><td>Associated work order</td></tr>
+        <tr><td>Status</td><td>Sent / Failed / Queued</td></tr>
+        <tr><td>Timestamp</td><td>When the email was sent</td></tr>
+      </table>
+      <p>Failed emails are highlighted and can be retried from this page.</p>
+    </div>
+
+    <!-- P11 -->
+    <div class="page-card">
+      <div class="page-label">Page 11</div>
+      <h3>Chat Panel</h3>
+      <p>Right-side collapsible chat interface for the scheduling manager.</p>
+      <ul>
+        <li><strong>GPT-4.1-mini</strong> powered via OpenAI API <span class="tag tag-external">OpenAI</span></li>
+        <li><strong>Full schedule context injected:</strong> all tech profiles, current schedule entries, queued WOs, SLA rules</li>
+        <li><strong>Thread management:</strong> create new threads, delete old threads, switch between threads</li>
+        <li><strong>Example queries:</strong>
+          <ul>
+            <li>"Who has the lightest schedule next week?"</li>
+            <li>"Can we swap Tech A and Tech B for WO-1234?"</li>
+            <li>"Show me all travel days scheduled for March"</li>
+            <li>"Which techs are closest to zip code 75001?"</li>
+          </ul>
+        </li>
+        <li>Collapsible &mdash; manager can hide/show the panel without losing thread state</li>
+      </ul>
+    </div>
+
+    <!-- P12 -->
+    <div class="page-card">
+      <div class="page-label">Page 12</div>
+      <h3>WO Detail Modal</h3>
+      <p>Modal overlay triggered by clicking any WO chip on the calendar grid.</p>
+      <ul>
+        <li><strong>WO Number</strong> &mdash; work order identifier</li>
+        <li><strong>WO Type</strong> &mdash; Service, Install, or Maintenance with color badge</li>
+        <li><strong>Customer Name</strong> &mdash; account name from SaaS</li>
+        <li><strong>Address</strong> &mdash; full site address</li>
+        <li><strong>Assigned Tech</strong> &mdash; technician name and home zip</li>
+        <li><strong>Scheduled Date</strong> &mdash; date on calendar</li>
+        <li><strong>Time Slot</strong> &mdash; AM (9:00) or PM (12:00)</li>
+        <li><strong>SLA Rule Applied</strong> &mdash; which rule (R1&ndash;R5) assigned this tech</li>
+        <li><strong>Status</strong> &mdash; Scheduled / In Progress / Completed</li>
+        <li><strong>Priority</strong> &mdash; Low / Medium / High</li>
+        <li><strong>Distance</strong> &mdash; miles from tech's home zip to job site</li>
+      </ul>
+      <p>Modal closes on click-outside or Escape key. Data is read-only &mdash; scheduling changes go through the SLA engine.</p>
+    </div>
+  </div>
+
+  <!-- 4. SLA ENGINE -->
+  <div class="section">
+    <h2>4. SLA Engine &mdash; 5-Rule Scheduling System</h2>
+    <p>The SLA engine is the core intelligence of Schedule Assistant. When new work orders arrive from SaaS, the engine evaluates each one against 5 rules in priority order to find the optimal technician assignment.</p>
+
+    <div class="sla-card">
+      <div class="rule-label">Rule 1 &mdash; Default</div>
+      <h4>Closest Available Tech by Haversine Distance</h4>
+      <p>The baseline rule. Calculate the great-circle distance between each active tech's home zip code and the job site address. Assign the closest available technician. This rule always runs as the fallback if no other rule matches first.</p>
+    </div>
+
+    <div class="sla-card">
+      <div class="rule-label">Rule 2 &mdash; Travel Days</div>
+      <h4>Jobs &gt;400mi Require Travel Day Before + After (3 Days Total)</h4>
+      <p>If the Haversine distance from the tech's home zip to the job site exceeds 400 miles, the engine automatically books a travel day before the job and a travel day after. The job occupies 3 calendar days total: travel out, work day, travel home. Travel days appear as gray chips on the calendar.</p>
+    </div>
+
+    <div class="sla-card">
+      <div class="rule-label">Rule 3 &mdash; On-Road Double</div>
+      <h4>Tech On-Site, Done Before Noon, 2nd Job Within 50mi, PM Slot</h4>
+      <p>If a tech is already on-site for a morning job and is expected to finish before noon, the engine checks for another queued WO within 50 miles of the current job site. If found, it books the second job in the PM slot (12:00) on the same day. Maximizes daily output by doubling up when geographically convenient.</p>
+    </div>
+
+    <div class="sla-card">
+      <div class="rule-label">Rule 4 &mdash; Rolling Home Zip</div>
+      <h4>Next-Day Job Within 300mi of Current Site, Decided Before 3pm, Skip Travel Home</h4>
+      <p>If a tech finishes a job and there is a queued WO within 300 miles of their current location (not home zip), and the decision is made before 3:00 PM, the engine assigns the next-day job and the tech stays on the road instead of traveling home. The tech's "effective home zip" rolls forward to the current job site for the next calculation.</p>
+    </div>
+
+    <div class="sla-card">
+      <div class="rule-label">Rule 5 &mdash; Home-Area Double</div>
+      <h4>Jobs Within 75mi of Home Zip, Book AM (9am) + PM (12pm), 2 Jobs/Day</h4>
+      <p>When two or more queued WOs fall within 75 miles of a tech's home zip, the engine books both on the same day: first job at 9:00 AM, second job at 12:00 PM. This rule maximizes throughput for local-area work without requiring travel days.</p>
+    </div>
+
+    <div class="callout">
+      <strong>Rule Priority:</strong> Rules are evaluated in order R2 &rarr; R3 &rarr; R4 &rarr; R5 &rarr; R1. The engine tries the most specific/optimization rules first and falls back to R1 (closest tech) if none of the special conditions are met. Every evaluation is logged to the SLA Engine Log (P8).
+    </div>
+
+    <h3>Distance Calculation</h3>
+    <p>All distances use the <strong>Haversine formula</strong> &mdash; the great-circle distance between two points on a sphere given their latitudes and longitudes. Zip codes are geocoded to lat/lng coordinates. This provides accurate "as the crow flies" distance without requiring a routing API.</p>
+  </div>
+
+  <!-- 5. AUTO-SYNC PIPELINE -->
+  <div class="section">
+    <h2>5. Auto-Sync Pipeline</h2>
+    <p>The full automated scheduling loop from WO intake to customer notification. Every step is logged and auditable.</p>
+
+    <h3>Pipeline Flow</h3>
+    <div class="flow">
+      <div class="flow-box highlight">SaaS</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">SA (Pull WOs)</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box highlight">SLA Engine</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">SA (Assign)</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box highlight">TA (:4300)</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">TA &rarr; SaaS</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box highlight">Email</div>
+    </div>
+
+    <h3>Step-by-Step Detail</h3>
+    <table>
+      <tr><th>Step</th><th>Direction</th><th>Action</th><th>Result</th></tr>
+      <tr>
+        <td>1</td>
+        <td>SaaS &rarr; SA</td>
+        <td>Pull all queued (unscheduled) work orders from SaaS API</td>
+        <td>WOs stored locally in SA database with status "queued"</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>SA internal</td>
+        <td>SLA engine evaluates each queued WO against 5 rules, selects optimal tech</td>
+        <td>Each WO assigned a tech, date, time slot, and SLA rule. Logged to SlaLog</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>SA &rarr; TA</td>
+        <td>Push schedule entries + WO data to Technician Assistant on port 4300</td>
+        <td>TA receives new schedule entries and WO details. Logged to SyncLog</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>TA &rarr; SaaS</td>
+        <td>TA writes back to SaaS: WO status changes from "queued" to "scheduled"</td>
+        <td>SaaS records updated. Logged to SyncLog</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>SA &rarr; Customer</td>
+        <td>Appointment confirmation email sent to customer with date, time, tech name</td>
+        <td>Email delivered. Logged to EmailLog</td>
+      </tr>
+    </table>
+
+    <div class="callout-pipeline callout">
+      <strong>No Manual Buttons:</strong> The entire chain fires when the manager clicks "Incoming WOs (SaaS)" on the Pipeline page (P5). Each step executes sequentially and reports its result in real-time on the pipeline status display.
+    </div>
+
+    <h3>Sync Directions</h3>
+    <div class="grid-2">
+      <div class="grid-item">
+        <h4>SaaS &rarr; SA</h4>
+        <p>Pull queued work orders, customer info, addresses</p>
+      </div>
+      <div class="grid-item">
+        <h4>SA &rarr; TA</h4>
+        <p>Push schedule entries, WO assignments, tech assignments</p>
+      </div>
+      <div class="grid-item">
+        <h4>TA &rarr; SaaS</h4>
+        <p>Write-back status updates (queued &rarr; scheduled)</p>
+      </div>
+      <div class="grid-item">
+        <h4>SA &rarr; Customer</h4>
+        <p>Appointment confirmation emails with scheduling details</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. DATA MODEL -->
+  <div class="section">
+    <h2>6. Data Model &mdash; 13 Prisma Models</h2>
+    <p>Prisma ORM with SQLite. Auto-migrates on startup via <code>prisma db push</code>. Database stored at <code>~/Library/Application Support/Schedule Assistant/sa.db</code>.</p>
+
+    <div class="model-grid">
+      <div class="model-item"><strong>User</strong></div>
+      <div class="model-item"><strong>Session</strong></div>
+      <div class="model-item"><strong>Associate</strong></div>
+      <div class="model-item"><strong>WorkOrder</strong></div>
+      <div class="model-item"><strong>ScheduleEntry</strong></div>
+      <div class="model-item"><strong>WoImage</strong></div>
+      <div class="model-item"><strong>SlaLog</strong></div>
+      <div class="model-item"><strong>EmailLog</strong></div>
+      <div class="model-item"><strong>SyncLog</strong></div>
+      <div class="model-item"><strong>ActionLog</strong></div>
+      <div class="model-item"><strong>SystemState</strong></div>
+      <div class="model-item"><strong>Thread</strong></div>
+      <div class="model-item"><strong>Message</strong></div>
+    </div>
+
+    <h3>Key Model Details</h3>
+    <table>
+      <tr><th>Model</th><th>Purpose</th><th>Key Fields</th></tr>
+      <tr>
+        <td><strong>User</strong></td>
+        <td>Manager authentication</td>
+        <td>username, passwordHash, role (manager)</td>
+      </tr>
+      <tr>
+        <td><strong>Session</strong></td>
+        <td>Auth sessions with 3hr expiry</td>
+        <td>token (crypto.randomUUID), userId, expiresAt</td>
+      </tr>
+      <tr>
+        <td><strong>Associate</strong></td>
+        <td>Field technician profiles</td>
+        <td>name, role, homeZip, homeLat, homeLng, active, scheduledCount</td>
+      </tr>
+      <tr>
+        <td><strong>WorkOrder</strong></td>
+        <td>Work orders pulled from SaaS</td>
+        <td>woNumber, type, customer, address, lat, lng, status, priority, assignedTechId, slaRule</td>
+      </tr>
+      <tr>
+        <td><strong>ScheduleEntry</strong></td>
+        <td>Calendar entries for techs</td>
+        <td>date, timeSlot (AM/PM), associateId, workOrderId, entryType (work/travel)</td>
+      </tr>
+      <tr>
+        <td><strong>WoImage</strong></td>
+        <td>Images from TA synced for manager review</td>
+        <td>workOrderId, associateId, imageType, imagePath, uploadedAt</td>
+      </tr>
+      <tr>
+        <td><strong>SlaLog</strong></td>
+        <td>Audit trail of SLA engine decisions</td>
+        <td>rule (R1&ndash;R5), techName, woNumber, distance, result (accepted/rejected), reason</td>
+      </tr>
+      <tr>
+        <td><strong>EmailLog</strong></td>
+        <td>Sent appointment emails</td>
+        <td>subject, recipient, woNumber, status (sent/failed/queued), sentAt</td>
+      </tr>
+      <tr>
+        <td><strong>SyncLog</strong></td>
+        <td>All sync operations</td>
+        <td>direction, entity, status, details, syncedAt</td>
+      </tr>
+      <tr>
+        <td><strong>ActionLog</strong></td>
+        <td>General action audit log</td>
+        <td>action, entity, entityId, details, userId, createdAt</td>
+      </tr>
+      <tr>
+        <td><strong>SystemState</strong></td>
+        <td>Key-value config store</td>
+        <td>key, value</td>
+      </tr>
+      <tr>
+        <td><strong>Thread</strong></td>
+        <td>Chat conversation threads</td>
+        <td>title, userId, createdAt</td>
+      </tr>
+      <tr>
+        <td><strong>Message</strong></td>
+        <td>Chat messages within threads</td>
+        <td>role (user/assistant), content, threadId, createdAt</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 7. TECH STACK -->
+  <div class="section">
+    <h2>7. Tech Stack</h2>
+
+    <div class="grid-2">
+      <div class="grid-item">
+        <h4>Desktop Shell</h4>
+        <p>Electron 33 &mdash; cross-platform desktop app</p>
+      </div>
+      <div class="grid-item">
+        <h4>Backend</h4>
+        <p>Express 5 ESM &mdash; Node.js with ES modules</p>
+      </div>
+      <div class="grid-item">
+        <h4>Frontend</h4>
+        <p>React 19 &mdash; single-page application</p>
+      </div>
+      <div class="grid-item">
+        <h4>Build Tool</h4>
+        <p>Vite 7 &mdash; fast HMR and production builds</p>
+      </div>
+      <div class="grid-item">
+        <h4>Database</h4>
+        <p>Prisma ORM + SQLite &mdash; 13 models, auto-migrate</p>
+      </div>
+      <div class="grid-item">
+        <h4>AI / Chat</h4>
+        <p>GPT-4.1-mini (OpenAI) &mdash; schedule-aware chat</p>
+      </div>
+      <div class="grid-item">
+        <h4>Port</h4>
+        <p>4400 &mdash; localhost and Tailscale</p>
+      </div>
+      <div class="grid-item">
+        <h4>Auth</h4>
+        <p>Cookie-based (sa_auth) &mdash; 3-hour sessions</p>
+      </div>
+    </div>
+
+    <h3>Seeded Data</h3>
+    <ul>
+      <li><strong>1 manager user:</strong> <code>manager / manager123</code></li>
+      <li><strong>8 associates</strong> distributed across the US with home zip codes for distance testing</li>
+      <li><strong>Sample work orders</strong> in queued and scheduled states for demo</li>
+    </ul>
+
+    <h3>Architecture Pattern</h3>
+    <p>Same stack as Technician Assistant &mdash; Electron wraps an Express 5 backend serving a React 19 SPA. The backend uses ESM (<code>"type": "module"</code>) with a CJS bridge (<code>backend-runner.js</code>). Prisma auto-migrates on startup with <code>prisma db push</code>. Dashboard must be built with Vite before building the Electron package.</p>
+
+    <div class="callout">
+      <strong>Mock Adapter Pattern:</strong> Like TA, SA uses <code>USE_MOCK=true</code> in .env. All SaaS, email, and TA communication is simulated locally for development and demo. The mock adapter seeds sample WOs, simulates SLA decisions, and fakes email sends.
+    </div>
+  </div>
+
+  <!-- 8. NAVIGATION FLOW -->
+  <div class="section">
+    <h2>8. Navigation Flow</h2>
+
+    <h3>Primary Flow</h3>
+    <div class="flow">
+      <div class="flow-box">P1 Calendar Login</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P2 Main Schedule</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P12 WO Detail Modal</div>
+    </div>
+
+    <h3>Dashboard Flows</h3>
+    <div class="flow">
+      <div class="flow-box">P2 Main</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P3 Service Activity</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">&larr; Return</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box">P2 Main</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P4 New Sale Activity</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">&larr; Return</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box">P2 Main</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P5 SaaS Pipeline</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">&larr; Return</div>
+    </div>
+
+    <h3>Sub-Page Flows</h3>
+    <div class="flow">
+      <div class="flow-box">P3 or P4</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P6 Active Associates</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">&larr; Return</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box">P3 or P4</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P7 WO Images</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">&larr; Return</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box">P5 Pipeline</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P9 Sync Log</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">&larr; Return</div>
+    </div>
+    <div class="flow">
+      <div class="flow-box">P5 Pipeline</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">P10 Email Log</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">&larr; Return</div>
+    </div>
+
+    <h3>Pipeline Auto-Chain</h3>
+    <div class="flow">
+      <div class="flow-box highlight">SaaS Pull</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box highlight">SLA Engine</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box highlight">TA Push (:4300)</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box highlight">SaaS Write-Back</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box highlight">Customer Email</div>
+    </div>
+  </div>
+
+  <!-- 9. API INTEGRATIONS -->
+  <div class="section">
+    <h2>9. API Integrations</h2>
+    <table>
+      <tr><th>#</th><th>Integration</th><th>Direction</th><th>Used For</th></tr>
+      <tr>
+        <td>1</td>
+        <td><strong>SaaS API</strong></td>
+        <td>Read + Write</td>
+        <td>Pull queued WOs, write-back scheduled status after assignment</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><strong>TA API (:4300)</strong></td>
+        <td>Write</td>
+        <td>Push schedule entries and WO data to Technician Assistant</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><strong>OpenAI API</strong></td>
+        <td>Read + Write</td>
+        <td>GPT-4.1-mini chat assistant with full schedule context</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><strong>Email Service</strong></td>
+        <td>Write</td>
+        <td>Send appointment confirmation emails to customers</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><strong>Geocoding API</strong></td>
+        <td>Read</td>
+        <td>Convert zip codes and addresses to lat/lng for Haversine distance</td>
+      </tr>
+    </table>
+
+    <div class="callout">
+      <strong>Mock Mode:</strong> All integrations are mockable via <code>USE_MOCK=true</code>. SaaS returns seeded WOs, TA push logs locally, emails are simulated, and geocoding uses pre-seeded zip code coordinates.
+    </div>
+  </div>
+
+  <!-- 10. SECURITY & ACCESS -->
+  <div class="section">
+    <h2>10. Security &amp; Access Control</h2>
+    <ul>
+      <li><strong>Manager-only access</strong> &mdash; No technician logins. Only managers can view and trigger the scheduling system.</li>
+      <li><strong>Cookie-based auth</strong> &mdash; <code>sa_auth</code> cookie with 3-hour expiry. HttpOnly flag prevents client-side JavaScript access.</li>
+      <li><strong>bcrypt password hashing</strong> &mdash; Salted, 10 rounds via bcryptjs</li>
+      <li><strong>Login rate limiting</strong> &mdash; 5 attempts per minute per IP via express-rate-limit</li>
+      <li><strong>CORS restricted</strong> &mdash; Only localhost, 127.0.0.1, and Tailscale IPs allowed</li>
+      <li><strong>Security headers</strong> &mdash; helmet middleware: X-Content-Type-Options, X-Frame-Options, Referrer-Policy, CSP</li>
+      <li><strong>Session IDs</strong> &mdash; Uses <code>crypto.randomUUID()</code> for cryptographically secure session tokens</li>
+      <li><strong>Logout invalidation</strong> &mdash; Logout deletes the session record from the database</li>
+      <li><strong>No data export</strong> &mdash; Data flows through controlled API endpoints only</li>
+      <li><strong>Audit logging</strong> &mdash; Every SLA decision, sync operation, and email send is logged with timestamps</li>
+    </ul>
+  </div>
+
+  <!-- 11. SA + TA RELATIONSHIP -->
+  <div class="section">
+    <h2>11. SA + TA Relationship</h2>
+    <p>Schedule Assistant and Technician Assistant are two halves of the same system. SA handles the <em>planning</em>; TA handles the <em>execution</em>.</p>
+
+    <div class="grid-2">
+      <div class="grid-item">
+        <h4>Schedule Assistant (SA)</h4>
+        <p>Port 4400. Manager-only. Pulls WOs from SaaS, runs SLA engine, assigns techs, pushes schedule to TA, sends customer emails. Baby blue theme.</p>
+      </div>
+      <div class="grid-item">
+        <h4>Technician Assistant (TA)</h4>
+        <p>Port 4300. Tech-facing. Receives schedule from SA, displays WOs, collects field data (images, parts, notes), writes back to SaaS. Dark green theme.</p>
+      </div>
+    </div>
+
+    <h3>Communication Flow</h3>
+    <div class="flow">
+      <div class="flow-box highlight">SA (:4400)</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box">HTTP POST to :4300</div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box highlight">TA (:4300)</div>
+    </div>
+    <p>SA pushes schedule entries and work order assignments to TA via direct HTTP POST requests on localhost. TA receives and stores the data, making it available to the field technician's interface.</p>
+
+    <div class="callout">
+      <strong>Both apps must be running:</strong> SA pushes data to TA on port 4300. If TA is not running, the sync step will fail and be logged in the Sync Log for retry.
+    </div>
+  </div>
+
+  <!-- 12. BUILD & DEPLOY -->
+  <div class="section">
+    <h2>12. Build &amp; Deploy</h2>
+
+    <h3>Build Commands</h3>
+    <div class="page-card">
+      <div class="page-label">Step 1 &mdash; Build Dashboard</div>
+      <p><code>cd dashboard && npm run build</code></p>
+      <p style="color:#8a9ab8;font-size:13px;margin-top:4px;">Vite 7 builds the React 19 SPA into <code>dashboard/dist/</code></p>
+    </div>
+    <div class="page-card">
+      <div class="page-label">Step 2 &mdash; Build Electron</div>
+      <p><code>cd desktop && npm run dist:unsigned</code></p>
+      <p style="color:#8a9ab8;font-size:13px;margin-top:4px;">Electron Builder packages the app into <code>desktop/release/mac-arm64/</code></p>
+    </div>
+    <div class="page-card">
+      <div class="page-label">Step 3 &mdash; Deploy</div>
+      <p><code>pkill -f "Schedule Assistant"; rm -rf "/Applications/Schedule Assistant.app"</code></p>
+      <p><code>cp -R "desktop/release/mac-arm64/Schedule Assistant.app" /Applications/</code></p>
+      <p><code>open "/Applications/Schedule Assistant.app"</code></p>
+      <p style="color:#8a9ab8;font-size:13px;margin-top:4px;">Kill running instance, replace app bundle, launch fresh</p>
+    </div>
+
+    <h3>Environment Files</h3>
+    <ul>
+      <li><code>backend/.env</code> &mdash; development environment variables</li>
+      <li><code>~/Library/Application Support/Schedule Assistant/.env</code> &mdash; production environment variables</li>
+      <li>Key variables: <code>USE_MOCK</code>, <code>OPENAI_API_KEY</code>, <code>PORT</code> (4400)</li>
+    </ul>
+
+    <h3>Tailscale Access</h3>
+    <ul>
+      <li><strong>URL:</strong> <code>http://100.84.51.101:4400</code></li>
+      <li>Mac: 100.84.51.101 | iPhone: 100.124.97.45</li>
+      <li>Server runs inside Electron &mdash; closing the app kills remote access</li>
+    </ul>
+
+    <h3>Database Reset</h3>
+    <p>When the Prisma schema changes, delete the database file to force fresh schema push and re-seed:</p>
+    <p><code>rm ~/Library/Application\ Support/Schedule\ Assistant/sa.db</code></p>
+  </div>
+
+  <!-- 13. OPEN QUESTIONS -->
+  <div class="section">
+    <h2>13. Open Questions &amp; Decisions</h2>
+    <table>
+      <tr><th>#</th><th>Question</th><th>Impact</th></tr>
+      <tr>
+        <td>1</td>
+        <td><strong>SaaS API access</strong> &mdash; Which SaaS platform holds the WO queue? What API credentials are needed to pull queued WOs and write-back scheduled status?</td>
+        <td>Pipeline integration</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><strong>Email service</strong> &mdash; Which email provider should send appointment confirmations? SMTP, SendGrid, SES, or internal?</td>
+        <td>Customer notifications</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><strong>Geocoding source</strong> &mdash; Which geocoding API should convert addresses to lat/lng? Google Maps, OpenCage, or pre-seeded zip code database?</td>
+        <td>Distance calculations</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><strong>TA integration endpoint</strong> &mdash; What specific TA API endpoints should SA POST to for schedule pushes? Does TA need a dedicated intake route?</td>
+        <td>SA &rarr; TA sync</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><strong>SLA rule tuning</strong> &mdash; Are the distance thresholds (400mi, 50mi, 300mi, 75mi) correct for the actual service territory?</td>
+        <td>Scheduling accuracy</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td><strong>Email template</strong> &mdash; What should the appointment confirmation email include? Company branding, reschedule link, tech name/photo?</td>
+        <td>Customer experience</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td><strong>Real-time vs. batch</strong> &mdash; Should the pipeline run automatically on a polling interval, or only when the manager clicks the button?</td>
+        <td>Architecture</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="footer">
+    Schedule Assistant v1.0 &mdash; March 4, 2026
+  </div>
+
+</div>
+</body>
+</html>

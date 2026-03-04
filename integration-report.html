@@ -854,10 +854,38 @@ connect-src: 'self' + ALLOWED_ORIGINS</pre>
     </table>
   </div>
 
+  <div class="section">
+    <h2>Schedule Assistant Sync Endpoints <span class="tag" style="background:#1a2a4a;color:#6aa0d6;border:1px solid #2a4a6a;">NEW v1.6</span></h2>
+    <p>Three new endpoints added to receive automated data from Schedule Assistant (SA, port 4400). All <code>/api/sync</code> paths bypass auth middleware for internal SA-to-TA calls.</p>
+
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Source</th><th>DB Write</th><th>Purpose</th></tr>
+      <tr><td>POST</td><td><code>/api/sync/schedule</code></td><td>SA auto-chain</td><td>ScheduleEntry (upsert)</td><td>Receive schedule entries from SA SLA engine. Match by woNumber + scheduledDate.</td></tr>
+      <tr><td>POST</td><td><code>/api/sync/work-orders</code></td><td>SA auto-chain</td><td>WorkOrder (upsert)</td><td>Receive work order data from SA. Match by woNumber (unique). Create or update.</td></tr>
+      <tr><td>POST</td><td><code>/api/sync/write-to-saas</code></td><td>SA auto-chain</td><td>WorkOrder (update status)</td><td>Write WO status back to mock Salesforce. Closes the automation loop: queued &rarr; scheduled.</td></tr>
+    </table>
+
+    <h3>Auto-Sync Pipeline (Full Loop)</h3>
+    <pre>
+SaaS (Salesforce)
+    |
+    v  POST /api/sync/pull-queue (SA)
+Schedule Assistant (SA, port 4400)
+    |  SLA engine auto-assigns closest tech
+    v  POST /api/sync/schedule + /api/sync/work-orders
+Technician Assistant (TA, port 4300)
+    |  Upserts schedule + WO records
+    v  POST /api/sync/write-to-saas
+SaaS (Salesforce)
+    WO status: queued -> scheduled
+    </pre>
+    <p>The entire pipeline runs automatically when SA pulls new work orders from SaaS. No manual intervention required. Techs see their assignments on TA's Schedule page.</p>
+  </div>
+
   <div class="footer">
-    Technician Assistant &mdash; Integration Report v1.5<br>
-    42 API Endpoints &bull; 20 Database Models &bull; 2 External APIs &bull; 4 Mock Adapters<br>
-    Built by Alex Hosage &mdash; March 3, 2026
+    Technician Assistant &mdash; Integration Report v1.6<br>
+    45 API Endpoints &bull; 20 Database Models &bull; 2 External APIs &bull; 4 Mock Adapters &bull; SA Sync<br>
+    Built by Alex Hosage &mdash; March 4, 2026
   </div>
 
 </div>
