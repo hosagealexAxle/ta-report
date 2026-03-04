@@ -194,7 +194,7 @@
   <div class="header">
     <div class="logo">SA</div>
     <h1>Schedule Assistant</h1>
-    <div class="subtitle">Integration Report &mdash; March 4, 2026 (v1.0)</div>
+    <div class="subtitle">Integration Report &mdash; March 4, 2026 (v1.0 &mdash; R6 + Security Hardening)</div>
     <div class="date">Every API Endpoint &bull; Every Database Model &bull; Every Integration Point</div>
   </div>
 
@@ -205,7 +205,7 @@
       <div class="summary-box"><div class="num">34</div><div class="label">API Endpoints</div></div>
       <div class="summary-box"><div class="num">13</div><div class="label">Database Models</div></div>
       <div class="summary-box"><div class="num">3</div><div class="label">Rate Limiters</div></div>
-      <div class="summary-box"><div class="num">5</div><div class="label">SLA Rules</div></div>
+      <div class="summary-box"><div class="num">6</div><div class="label">SLA Rules</div></div>
     </div>
     <h3>File Locations</h3>
     <table>
@@ -226,7 +226,7 @@
       <li><span class="num">2.</span><a href="#auth">Authentication &amp; Sessions</a> &mdash; 3 endpoints</li>
       <li><span class="num">3.</span><a href="#associates">Associates</a> &mdash; 4 endpoints</li>
       <li><span class="num">4.</span><a href="#workorders">Work Orders</a> &mdash; 4 endpoints</li>
-      <li><span class="num">5.</span><a href="#sla">SLA Engine</a> &mdash; 1 endpoint, 5 rules</li>
+      <li><span class="num">5.</span><a href="#sla">SLA Engine</a> &mdash; 1 endpoint, 6 rules</li>
       <li><span class="num">6.</span><a href="#schedule">Schedule Management</a> &mdash; 5 endpoints</li>
       <li><span class="num">7.</span><a href="#images">Images</a> &mdash; 3 endpoints</li>
       <li><span class="num">8.</span><a href="#sync">Sync Pipeline (SA &harr; TA &harr; SaaS)</a> &mdash; 3 endpoints</li>
@@ -403,13 +403,13 @@
   <!-- 5. SLA ENGINE -->
   <div class="section" id="sla">
     <h2>5. SLA Engine</h2>
-    <p>The core scheduling engine. Evaluates all queued WOs against all active associates using 5 priority-ordered rules with Haversine distance calculations.</p>
+    <p>The core scheduling engine. Evaluates all queued WOs against all active associates using 6 priority-ordered rules with Haversine distance calculations.</p>
 
     <div class="int-card">
       <h4>POST /api/sla/run <span class="tag tag-sla">SLA ENGINE</span> <span class="tag tag-both">READ + WRITE</span></h4>
       <div class="loc">Frontend: <span>App.jsx &mdash; runSlaEngine()</span></div>
       <div class="loc">Backend: <span>server.js &mdash; SLA engine</span></div>
-      <div class="desc">Executes the 5-rule SLA engine against all queued (unassigned) work orders. For each WO, evaluates all active associates in priority order (R5 &rarr; R1 &rarr; R2 &rarr; R3 &rarr; R4). First matching rule assigns the WO. Creates ScheduleEntry + SlaLog for each assignment. Returns summary with total assigned, per-rule breakdown, and any unassigned WOs.</div>
+      <div class="desc">Executes the 6-rule SLA engine against all queued (unassigned) work orders. For each WO, evaluates all active associates in priority order (R6 &rarr; R5 &rarr; R1 &rarr; R2 &rarr; R3 &rarr; R4). R6 runs first for priority=3 WOs (emergency same-day dispatch). First matching rule assigns the WO. Creates ScheduleEntry + SlaLog for each assignment. Returns summary with total assigned, per-rule breakdown, and any unassigned WOs.</div>
       <div class="models">
         <strong>Reads:</strong> WorkOrder (findMany, status="queued"), Associate (findMany, active=true), ScheduleEntry (for capacity checks)<br>
         <strong>Writes:</strong> ScheduleEntry (create per assignment), SlaLog (create per assignment), WorkOrder (update status + assignedTo), ActionLog (create)
@@ -429,11 +429,12 @@
     <h3>Rule Priority Order</h3>
     <table>
       <tr><th>Priority</th><th>Rule</th><th>Distance Threshold</th><th>Capacity Check</th><th>Schedule Adjustment</th></tr>
-      <tr><td>1st</td><td>R5 &mdash; Home-Area</td><td>&le; 75 miles from home</td><td>&lt; 2 jobs on target date</td><td>None (due date)</td></tr>
-      <tr><td>2nd</td><td>R1 &mdash; Closest Tech</td><td>No cap (global closest)</td><td>Available on target date</td><td>None (due date)</td></tr>
-      <tr><td>3rd</td><td>R2 &mdash; Long-Distance</td><td>&gt; 400 miles</td><td>Available on adjusted date</td><td>+3 day travel buffer</td></tr>
-      <tr><td>4th</td><td>R3 &mdash; On-Road Double</td><td>&le; 50 miles from scheduled job</td><td>Under daily max</td><td>Same day as existing job</td></tr>
-      <tr><td>5th</td><td>R4 &mdash; Rolling Zip</td><td>&le; 300 miles from recent job</td><td>Within 3-day window</td><td>3 PM cutoff applies</td></tr>
+      <tr style="background:#3a1a1a;"><td><strong>1st</strong></td><td><strong>R6 &mdash; High Priority</strong></td><td>&le; 50 miles (same-day)</td><td>EVE slot overrides 2-job limit</td><td>Same day (before noon) or next biz day</td></tr>
+      <tr><td>2nd</td><td>R5 &mdash; Home-Area</td><td>&le; 75 miles from home</td><td>&lt; 2 jobs on target date</td><td>None (due date)</td></tr>
+      <tr><td>3rd</td><td>R1 &mdash; Closest Tech</td><td>No cap (global closest)</td><td>Available on target date</td><td>None (due date)</td></tr>
+      <tr><td>4th</td><td>R2 &mdash; Long-Distance</td><td>&gt; 400 miles</td><td>Available on adjusted date</td><td>+3 day travel buffer</td></tr>
+      <tr><td>5th</td><td>R3 &mdash; On-Road Double</td><td>&le; 50 miles from scheduled job</td><td>Under daily max</td><td>Same day as existing job</td></tr>
+      <tr><td>6th</td><td>R4 &mdash; Rolling Zip</td><td>&le; 300 miles from recent job</td><td>Within 3-day window</td><td>3 PM cutoff applies</td></tr>
     </table>
   </div>
 
@@ -761,7 +762,17 @@ const authMiddleware = async (req, res, next) => {
   <!-- 13. SLA ENGINE DETAIL -->
   <div class="section" id="sladetail">
     <h2>13. SLA Engine Integration Detail</h2>
-    <p>How each of the 5 SLA rules maps to database operations. The engine processes all queued WOs sequentially &mdash; earlier assignments affect capacity for later WOs.</p>
+    <p>How each of the 6 SLA rules maps to database operations. The engine processes all queued WOs sequentially &mdash; earlier assignments affect capacity for later WOs.</p>
+
+    <h3>Rule R6: High Priority &mdash; Emergency Dispatch (RUNS FIRST)</h3>
+    <div class="int-card" style="border-color:#d66a6a;">
+      <h4>R6 &mdash; High Priority (priority=3, same-day or next biz day) <span class="tag tag-sla" style="background:#3a1a2a;color:#ff6b6b;border-color:#5a2a3a;">EMERGENCY</span></h4>
+      <div class="desc">Runs FIRST before all other rules. For priority=3 WOs: if queued before noon local time AND a tech is within 50 miles of the WO site, assigns same-day dispatch using the EVE slot (overrides the normal 2-job-per-day limit). If queued after noon or on a weekend, schedules for next business day. Calendar chips for R6 entries render as red with a pulse animation.</div>
+      <div class="models">
+        <strong>Reads:</strong> Associate (all active, homeLat/homeLng), ScheduleEntry (for date check), WorkOrder (priority check)<br>
+        <strong>Writes:</strong> ScheduleEntry (create, same-day or next biz day), SlaLog (ruleApplied="R6", distanceMi), WorkOrder (update status + assignedTo)
+      </div>
+    </div>
 
     <h3>Rule R5: Home-Area Assignment</h3>
     <div class="int-card">
@@ -819,7 +830,7 @@ const authMiddleware = async (req, res, next) => {
       <tr><td>woNumber</td><td>String</td><td>"WO-2026-015"</td></tr>
       <tr><td>associateId</td><td>Int</td><td>3</td></tr>
       <tr><td>associateName</td><td>String</td><td>"Marcus Johnson"</td></tr>
-      <tr><td>ruleApplied</td><td>String</td><td>"R5"</td></tr>
+      <tr><td>ruleApplied</td><td>String</td><td>"R5" (or "R6" for high priority)</td></tr>
       <tr><td>distanceMi</td><td>Float</td><td>48.7</td></tr>
       <tr><td>reasoning</td><td>String</td><td>"Home-area match: 48.7mi from Atlanta, GA. 1/2 jobs on 2026-03-10."</td></tr>
       <tr><td>scheduledDate</td><td>String</td><td>"2026-03-10"</td></tr>
@@ -910,21 +921,38 @@ connect-src: 'self' + ALLOWED_ORIGINS</pre>
     <h3>Session Security</h3>
     <table>
       <tr><th>Feature</th><th>Implementation</th></tr>
-      <tr><td>Session ID</td><td><code>crypto.randomUUID()</code> (cryptographically secure)</td></tr>
+      <tr><td>Session ID</td><td><code>crypto.randomBytes(32)</code> (32-byte cryptographically secure token)</td></tr>
       <tr><td>Cookie flags</td><td>HttpOnly, SameSite=Lax, Secure (production), 3-hour Max-Age</td></tr>
       <tr><td>Cookie name</td><td><code>sa_auth</code> (distinct from TA's <code>ta_auth</code>)</td></tr>
       <tr><td>Logout</td><td>Session record deleted from DB + cookie cleared</td></tr>
       <tr><td>Expiry check</td><td>Every request validates <code>session.expiresAt &gt; now</code></td></tr>
-      <tr><td>Expired cleanup</td><td>Expired sessions deleted on access attempt</td></tr>
+      <tr><td>Expired cleanup</td><td>Hourly interval deletes all expired sessions from database</td></tr>
     </table>
 
     <h3>Error Response Pattern</h3>
-    <pre>// All API error handlers return generic message to client:
+    <pre>// All 32 API error handlers return generic message to client:
 catch (err) {
   console.error('[endpoint_name] Error:', err);
-  res.status(500).json({ error: 'server_error' });
+  res.status(500).json({ error: 'internal_error' });
 }
-// No err.message, no stack trace, no internal detail leaked to clients</pre>
+// No err.message, no Prisma stack trace, no internal detail leaked to clients</pre>
+
+    <h3>Security Hardening (12 Fixes)</h3>
+    <table>
+      <tr><th>ID</th><th>Severity</th><th>Fix Applied</th></tr>
+      <tr><td>C1</td><td>Critical</td><td>.env excluded from Electron app bundle (no API keys shipped)</td></tr>
+      <tr><td>C2</td><td>Critical</td><td>All 32 error handlers return "internal_error" (no <code>err.message</code> leaks)</td></tr>
+      <tr><td>H1</td><td>High</td><td>Auth middleware uses explicit allowlist instead of prefix matching</td></tr>
+      <tr><td>H2</td><td>High</td><td>Image upload: ID validation + <code>path.resolve()</code> check + file type whitelist</td></tr>
+      <tr><td>H3</td><td>High</td><td>Image serving: filePath must be under uploadsDir</td></tr>
+      <tr><td>H4</td><td>High</td><td><code>shell.openExternal</code> restricted to http/https URLs only</td></tr>
+      <tr><td>M1</td><td>Medium</td><td>Async <code>bcrypt.compare()</code> replaces <code>bcrypt.compareSync</code></td></tr>
+      <tr><td>M2</td><td>Medium</td><td>SLA log query bounded with <code>take</code> max 500</td></tr>
+      <tr><td>M3</td><td>Medium</td><td>Global body limit 256kb, 12mb only on upload route</td></tr>
+      <tr><td>L1</td><td>Low</td><td>Session IDs: <code>crypto.randomBytes(32)</code> replaces CUID</td></tr>
+      <tr><td>L2</td><td>Low</td><td>Hourly expired session cleanup interval</td></tr>
+      <tr><td>L3</td><td>Low</td><td>Image upload validates extension (.jpg/.jpeg/.png/.gif/.webp only)</td></tr>
+    </table>
   </div>
 
   <!-- 16. DATABASE MODELS -->
@@ -1074,7 +1102,7 @@ rm -f ~/Library/Application\ Support/Schedule\ Assistant/sa.db
 
   <div class="footer">
     Schedule Assistant v1.0 &mdash; Integration Report &mdash; March 4, 2026<br>
-    34 API Endpoints &bull; 13 Database Models &bull; 5 SLA Rules &bull; SA&harr;TA Sync Pipeline<br>
+    34 API Endpoints &bull; 13 Database Models &bull; 6 SLA Rules (R6 High Priority) &bull; SA&harr;TA Sync Pipeline &bull; 12-Point Security Hardening<br>
     Built by Alex Hosage
   </div>
 

@@ -35,7 +35,7 @@
 <body>
 
 <h1>Technician Assistant</h1>
-<div class="subtitle">Project Status &mdash; March 4, 2026 (v1.6 &mdash; Schedule Assistant Integration)</div>
+<div class="subtitle">Project Status &mdash; March 4, 2026 (v1.7 &mdash; SA R6 + Security Hardening)</div>
 
 <h2>Executive Summary</h2>
 <p><strong>Technician Assistant (TA)</strong> is a field service management application that provides technicians with a controlled, read/write interface to Salesforce work order data &mdash; without giving them direct access to Salesforce or any other enterprise SaaS platform. The app is purpose-built for HVAC/mechanical field technicians who need to view assigned work orders, complete line items, upload site photos, track parts usage, report out-of-box issues, and manage their weekly schedule &mdash; all from a single mobile-friendly interface.</p>
@@ -785,7 +785,7 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
   <li class="resolved"><strong>PUSHED TO GITHUB</strong> &mdash; hosagealexAxle/technician-assistant + axle-inc/technician-assistant.</li>
 </ul>
 
-<div class="section-new">
+<div class="section-done">
 <strong>v1.6 UPDATE (Mar 4, 2026) &mdash; Schedule Assistant Integration:</strong> Technician Assistant now receives automated schedule data from the companion app <strong>Schedule Assistant (SA)</strong>, completing a full SaaS &rarr; SA &rarr; TA &rarr; SaaS data loop:
 <ul style="margin-top: 8px;">
   <li><strong>3 New Sync Endpoints</strong> &mdash; <code>POST /api/sync/schedule</code> (receives schedule entries from SA), <code>POST /api/sync/work-orders</code> (receives work order data from SA), <code>POST /api/sync/write-to-saas</code> (writes WO status back to mock Salesforce). All skip auth middleware for internal SA calls.</li>
@@ -796,8 +796,17 @@ node -e "import {PrismaClient} from '@prisma/client'; import {runSeed} from './s
 </ul>
 </div>
 
+<div class="section-new">
+<strong>v1.7 UPDATE (Mar 4, 2026) &mdash; SA R6 SLA Rule + Security Hardening:</strong> Schedule Assistant adds a 6th SLA rule and 12-point security hardening:
+<ul style="margin-top: 8px;">
+  <li><strong>New SLA Rule R6 &mdash; High Priority</strong> &mdash; Priority=3 WOs get emergency same-day dispatch. If queued before noon AND within 50mi of a tech: same-day (EVE slot overrides 2-job limit). After noon or weekend: next business day. R6 runs FIRST before all other rules. Calendar chips for R6 entries are red with pulse animation.</li>
+  <li><strong>SA Security Hardening (12 fixes)</strong> &mdash; .env excluded from Electron bundle (C1), all 32 error handlers return "internal_error" instead of err.message (C2), auth middleware explicit allowlist (H1), path traversal protection on upload + serve (H2/H3), shell.openExternal restricted to http/https (H4), async bcrypt.compare (M1), SLA log bounded query (M2), body limit 256kb global/12mb upload (M3), crypto.randomBytes(32) session IDs (L1), hourly session cleanup (L2), strict file extension whitelist (L3).</li>
+  <li><strong>TA Impact</strong> &mdash; TA now receives R6-flagged schedule entries from SA. High priority WOs appear on the tech's schedule with emergency priority indicators.</li>
+</ul>
+</div>
+
 <div class="footer">
-  <p>Technician Assistant v1.6 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 49+ Work Orders &mdash; 23 Models &mdash; 47+ Endpoints &mdash; QR Scanning + Parts/Inventory Sync &mdash; Expenses &amp; Mileage + Draft Queue &mdash; Schedule Assistant Integration &mdash; Security Hardened &mdash; Tailscale HTTPS &mdash; Port 4300</p>
+  <p>Technician Assistant v1.7 &mdash; Mock Adapter Architecture &mdash; Claude/GPT Chat &mdash; 49+ Work Orders &mdash; 23 Models &mdash; 47+ Endpoints &mdash; QR Scanning + Parts/Inventory Sync &mdash; Expenses &amp; Mileage + Draft Queue &mdash; Schedule Assistant Integration (6-Rule SLA + R6 High Priority) &mdash; Security Hardened (12 Fixes) &mdash; Tailscale HTTPS &mdash; Port 4300</p>
   <p>Updated March 4, 2026</p>
 </div>
 

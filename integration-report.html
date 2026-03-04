@@ -177,7 +177,7 @@
     <div class="logo">TA</div>
     <h1>Integration Report</h1>
     <div class="subtitle">Every API Endpoint &bull; Every Database Model &bull; Every Code Location</div>
-    <div class="date">March 3, 2026 &mdash; v1.5</div>
+    <div class="date">March 4, 2026 &mdash; v1.7</div>
   </div>
 
   <!-- SUMMARY -->
@@ -855,8 +855,8 @@ connect-src: 'self' + ALLOWED_ORIGINS</pre>
   </div>
 
   <div class="section">
-    <h2>Schedule Assistant Sync Endpoints <span class="tag" style="background:#1a2a4a;color:#6aa0d6;border:1px solid #2a4a6a;">NEW v1.6</span></h2>
-    <p>Three new endpoints added to receive automated data from Schedule Assistant (SA, port 4400). All <code>/api/sync</code> paths bypass auth middleware for internal SA-to-TA calls.</p>
+    <h2>Schedule Assistant Sync Endpoints <span class="tag" style="background:#1a2a4a;color:#6aa0d6;border:1px solid #2a4a6a;">UPDATED v1.7</span></h2>
+    <p>Three endpoints receive automated data from Schedule Assistant (SA, port 4400). All <code>/api/sync</code> paths bypass auth middleware for internal SA-to-TA calls. SA now runs a <strong>6-rule SLA engine</strong> (R6 added in v1.7) with 12-point security hardening.</p>
 
     <table>
       <tr><th>Method</th><th>Path</th><th>Source</th><th>DB Write</th><th>Purpose</th></tr>
@@ -871,20 +871,49 @@ SaaS (Salesforce)
     |
     v  POST /api/sync/pull-queue (SA)
 Schedule Assistant (SA, port 4400)
-    |  SLA engine auto-assigns closest tech
+    |  6-rule SLA engine (R6 &rarr; R5 &rarr; R1 &rarr; R2 &rarr; R3 &rarr; R4)
+    |  R6: priority=3 same-day emergency dispatch
     v  POST /api/sync/schedule + /api/sync/work-orders
 Technician Assistant (TA, port 4300)
     |  Upserts schedule + WO records
+    |  R6 entries appear as red-pulse chips on calendar
     v  POST /api/sync/write-to-saas
 SaaS (Salesforce)
     WO status: queued -> scheduled
     </pre>
     <p>The entire pipeline runs automatically when SA pulls new work orders from SaaS. No manual intervention required. Techs see their assignments on TA's Schedule page.</p>
+
+    <h3>R6 &mdash; High Priority Emergency Dispatch (v1.7)</h3>
+    <p>New SLA rule runs <strong>first</strong> in evaluation order (before R5). Triggers on <code>priority=3</code> work orders.</p>
+    <table>
+      <tr><th>Condition</th><th>Result</th></tr>
+      <tr><td>Queued before noon local time AND within 50 mi of a tech</td><td>Same-day dispatch (uses EVE slot, overrides 2-job limit)</td></tr>
+      <tr><td>Queued after noon OR weekend</td><td>Next business day, first available slot</td></tr>
+    </table>
+    <p>Calendar chips for R6 entries are <span style="color:#ef4444;font-weight:700;">red with pulse animation</span>. Haversine distance calculation (same as R1/R5) determines closest eligible tech.</p>
+
+    <h3>SA Security Hardening (v1.7)</h3>
+    <p>12 fixes applied to Schedule Assistant before data reaches TA sync endpoints:</p>
+    <table>
+      <tr><th>ID</th><th>Severity</th><th>Fix</th></tr>
+      <tr><td>C1</td><td style="color:#ef4444;font-weight:700;">Critical</td><td><code>.env</code> excluded from Electron bundle</td></tr>
+      <tr><td>C2</td><td style="color:#ef4444;font-weight:700;">Critical</td><td>Generic <code>"internal_error"</code> on all 32 handlers &mdash; no stack leaks</td></tr>
+      <tr><td>H1</td><td style="color:#f59e0b;font-weight:700;">High</td><td>Auth allowlist &mdash; only login/check bypass middleware</td></tr>
+      <tr><td>H2</td><td style="color:#f59e0b;font-weight:700;">High</td><td>Upload path traversal prevention (<code>path.basename</code>)</td></tr>
+      <tr><td>H3</td><td style="color:#f59e0b;font-weight:700;">High</td><td>Serve path traversal prevention (<code>path.basename</code>)</td></tr>
+      <tr><td>H4</td><td style="color:#f59e0b;font-weight:700;">High</td><td><code>shell.openExternal</code> restricted to http/https</td></tr>
+      <tr><td>M1</td><td style="color:#3b82f6;font-weight:700;">Medium</td><td>Async <code>bcrypt.compare</code> (non-blocking)</td></tr>
+      <tr><td>M2</td><td style="color:#3b82f6;font-weight:700;">Medium</td><td>SLA log bounded <code>take 500</code></td></tr>
+      <tr><td>M3</td><td style="color:#3b82f6;font-weight:700;">Medium</td><td>Body limit 256 KB default / 12 MB uploads</td></tr>
+      <tr><td>L1</td><td style="color:#22c55e;font-weight:700;">Low</td><td><code>crypto.randomBytes(32)</code> session IDs</td></tr>
+      <tr><td>L2</td><td style="color:#22c55e;font-weight:700;">Low</td><td>Hourly expired-session cleanup</td></tr>
+      <tr><td>L3</td><td style="color:#22c55e;font-weight:700;">Low</td><td>File extension whitelist: .jpg/.jpeg/.png/.gif/.webp</td></tr>
+    </table>
   </div>
 
   <div class="footer">
-    Technician Assistant &mdash; Integration Report v1.6<br>
-    45 API Endpoints &bull; 20 Database Models &bull; 2 External APIs &bull; 4 Mock Adapters &bull; SA Sync<br>
+    Technician Assistant &mdash; Integration Report v1.7 (R6 + Security Hardening)<br>
+    45 API Endpoints &bull; 20 Database Models &bull; 2 External APIs &bull; 4 Mock Adapters &bull; SA Sync (6-rule SLA)<br>
     Built by Alex Hosage &mdash; March 4, 2026
   </div>
 

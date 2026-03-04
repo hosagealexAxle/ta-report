@@ -216,7 +216,7 @@
     <div class="logo">TA</div>
     <h1>Technician Assistant</h1>
     <div class="subtitle">Field Technician Work Order & Reporting App</div>
-    <div class="date">Project Report — March 3, 2026 (v1.5)</div>
+    <div class="date">Project Report — March 4, 2026 (v1.7)</div>
   </div>
 
   <!-- OVERVIEW -->
@@ -1025,7 +1025,7 @@
     <p><strong>Schedule Assistant (SA)</strong> is a companion manager-only app that automates work order scheduling for TA's field technicians. SA runs on port 4400 and communicates with TA on port 4300 to complete a full automated data loop:</p>
 
     <h3>Data Flow</h3>
-    <p><strong>SaaS (Salesforce)</strong> &rarr; <strong>SA</strong> (pull WOs, SLA auto-assign) &rarr; <strong>TA</strong> (receive schedule + WOs) &rarr; <strong>SaaS</strong> (write-back: queued &rarr; scheduled)</p>
+    <p><strong>SaaS (Salesforce)</strong> &rarr; <strong>SA</strong> (pull WOs, 6-rule SLA auto-assign) &rarr; <strong>TA</strong> (receive schedule + WOs) &rarr; <strong>SaaS</strong> (write-back: queued &rarr; scheduled)</p>
 
     <h3>New TA Endpoints (v1.6)</h3>
     <div class="page-card">
@@ -1043,16 +1043,20 @@
 
     <h3>How It Works</h3>
     <ul>
-      <li>SA's SLA engine auto-assigns the closest available tech using 5 rules based on Haversine distance from each tech's home zip.</li>
+      <li>SA's SLA engine auto-assigns the closest available tech using 6 rules based on Haversine distance from each tech's home zip.</li>
+      <li><strong>New R6 (High Priority):</strong> Priority=3 WOs get emergency same-day dispatch. R6 runs FIRST before all other rules. If queued before noon AND within 50mi of a tech: same-day EVE slot (overrides 2-job limit). After noon or weekend: next business day. R6 calendar chips are red with pulse animation.</li>
       <li>All <code>/api/sync</code> paths skip TA's auth middleware for internal SA-to-TA calls.</li>
       <li>Techs see their auto-scheduled assignments on TA's Schedule page without any manual data entry.</li>
       <li>Manager monitors the schedule in SA's 8-week calendar view with colored chips per WO type.</li>
     </ul>
+
+    <h3>SA Security Hardening (12 Fixes) <span class="tag-new">v1.7</span></h3>
+    <p>Schedule Assistant received a 12-point security hardening pass: .env excluded from Electron bundle (C1), generic error responses on all 32 handlers (C2), auth middleware explicit allowlist (H1), path traversal protection on upload and serve (H2/H3), shell.openExternal restricted to http/https (H4), async bcrypt.compare (M1), SLA log bounded query (M2), body limit 256kb/12mb (M3), crypto.randomBytes(32) session IDs (L1), hourly session cleanup (L2), strict file extension whitelist (L3).</p>
   </div>
 
   <div class="footer">
-    Technician Assistant &mdash; Project Report v1.6<br>
-    Updated March 4, 2026
+    Technician Assistant &mdash; Project Report v1.7<br>
+    Updated March 4, 2026 &mdash; R6 SLA Rule + Security Hardening
   </div>
 
 </div>

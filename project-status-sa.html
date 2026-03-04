@@ -38,14 +38,14 @@
 <div class="subtitle">Project Status &mdash; March 4, 2026 (v1.0)</div>
 
 <h2>Executive Summary</h2>
-<p><strong>Schedule Assistant (SA)</strong> is a manager-only Electron desktop application that automates work order scheduling for field technicians. It reads work orders from SaaS (Salesforce), auto-assigns technicians via a 5-rule SLA engine using Haversine distance calculations, pushes the generated schedule to Technician Assistant (TA), and TA writes back to SaaS. The result is a full auto-sync pipeline &mdash; no manual scheduling needed.</p>
+<p><strong>Schedule Assistant (SA)</strong> is a manager-only Electron desktop application that automates work order scheduling for field technicians. It reads work orders from SaaS (Salesforce), auto-assigns technicians via a 6-rule SLA engine using Haversine distance calculations, pushes the generated schedule to Technician Assistant (TA), and TA writes back to SaaS. The result is a full auto-sync pipeline &mdash; no manual scheduling needed.</p>
 
 <p><strong>The core problem it solves:</strong> Dispatchers currently spend hours each day manually assigning work orders to technicians, cross-referencing locations, travel distances, and technician availability. SA replaces this entire workflow with an automated engine that evaluates geographic proximity, travel constraints, daily job limits, and rolling zip code patterns to produce optimal schedules in seconds. Managers review the output on an 8-week calendar dashboard, and with one click the schedule flows downstream to every technician's TA instance and back to Salesforce.</p>
 
 <p><strong>How it works in practice:</strong></p>
 <ul>
   <li><strong>Pull Queue:</strong> SA pulls queued (unassigned) work orders from SaaS into its local database. Each WO includes account name, address, coordinates, type, priority, and due date.</li>
-  <li><strong>SLA Engine:</strong> The 5-rule engine runs against all queued WOs, evaluating each against all 8 associates. Rules are evaluated in priority order (R5 &rarr; R1 &rarr; R2 &rarr; R3 &rarr; R4), and the first matching rule assigns the WO to the optimal tech.</li>
+  <li><strong>SLA Engine:</strong> The 6-rule engine runs against all queued WOs, evaluating each against all 8 associates. Rules are evaluated in priority order (R6 &rarr; R5 &rarr; R1 &rarr; R2 &rarr; R3 &rarr; R4), and the first matching rule assigns the WO to the optimal tech.</li>
   <li><strong>Schedule Push:</strong> Assigned WOs become ScheduleEntry records. The manager reviews on the 8-week calendar, then pushes to TA with one click.</li>
   <li><strong>TA Sync:</strong> TA receives the schedule entries and work orders, making them available to field technicians. When techs complete work, TA writes status back to SaaS.</li>
   <li><strong>Email Notifications:</strong> After scheduling, SA can send appointment confirmation emails to customers with the scheduled date, technician name, and work order details.</li>
@@ -55,7 +55,7 @@
 <p><strong>Architecture summary:</strong> Same proven stack as Technician Assistant &mdash; Electron 33 desktop shell, Express 5 ESM backend, React 19 + Vite 7 dashboard, Prisma ORM with SQLite. Port 4400. Cookie-based auth (<code>sa_auth</code>). Mock adapter pattern (<code>USE_MOCK=true</code>) for all external integrations (SaaS, TA sync, email).</p>
 
 <div class="section-done">
-<strong>v1.0 BUILD COMPLETE (March 4, 2026):</strong> Full application built and deployed. 8 associates across the US (Atlanta, Boston, Santa Monica, Columbus, Austin, Jacksonville, Denver, Long Beach), 30 queued WOs for SLA processing, 10 pre-scheduled WOs on calendar, 5-rule SLA engine with Haversine distance, SA&rarr;TA sync pipeline, email notifications, AI chat with full schedule context, 8-week calendar dashboard, and comprehensive logging (SLA, Sync, Email, Action).
+<strong>v1.0 BUILD COMPLETE (March 4, 2026):</strong> Full application built and deployed. 8 associates across the US (Atlanta, Boston, Santa Monica, Columbus, Austin, Jacksonville, Denver, Long Beach), 30 queued WOs for SLA processing, 10 pre-scheduled WOs on calendar, 6-rule SLA engine with Haversine distance (including R6 High Priority emergency dispatch), SA&rarr;TA sync pipeline, email notifications, AI chat with full schedule context, 8-week calendar dashboard, comprehensive logging (SLA, Sync, Email, Action), and 12-point security hardening pass.
 </div>
 
 <h2>System Architecture</h2>
@@ -66,7 +66,7 @@
   <tr><td>Dashboard</td><td>React 19 + Vite 7</td><td>Single monolithic App.jsx. State-based page navigation, no router. 12 view states.</td></tr>
   <tr><td>Database</td><td>SQLite + Prisma 6</td><td>13 models, auto-migrates on startup via db push</td></tr>
   <tr><td>Chat LLM</td><td>GPT-4.1-mini (OpenAI)</td><td>Full associate + schedule + queued WO context injected into system prompt</td></tr>
-  <tr><td>SLA Engine</td><td>Custom (server.js)</td><td>5 rules, Haversine distance, priority-ordered evaluation</td></tr>
+  <tr><td>SLA Engine</td><td>Custom (server.js)</td><td>6 rules (R6 high priority + R5&ndash;R1 + R2&ndash;R4), Haversine distance, priority-ordered evaluation</td></tr>
   <tr><td>Mock Layer</td><td>Prisma/SQLite</td><td>USE_MOCK=true. 8 associates, 30 queued WOs, 10 scheduled WOs. Swap-ready for real APIs.</td></tr>
   <tr><td>Color Theme</td><td>Dark Blue</td><td>Background: #0f1520, Panel: #1a2d4a, Accent: #5b9bd5, Text: #e4e8f0</td></tr>
 </table>
@@ -80,7 +80,7 @@
   <tr><td>WorkOrder</td><td>WOs pulled from SaaS queue</td><td>woNumber (unique), type (1&ndash;4), status (queued/scheduled/assigned/completed), priority, dueDate, accountName, accountAddress, accountCity, accountState, accountZip, lat, lng, assignedTo (FK &rarr; Associate), sfId</td></tr>
   <tr><td>ScheduleEntry</td><td>Calendar assignments</td><td>workOrderId (FK), associateId (FK), woNumber, scheduledDate, title, accountName, status</td></tr>
   <tr><td>WoImage</td><td>Work order site images</td><td>workOrderId (FK, cascade), slot, fileName, filePath</td></tr>
-  <tr><td>SlaLog</td><td>SLA engine decision audit trail</td><td>woNumber, associateId, associateName, ruleApplied (R1&ndash;R5), distanceMi, reasoning, scheduledDate</td></tr>
+  <tr><td>SlaLog</td><td>SLA engine decision audit trail</td><td>woNumber, associateId, associateName, ruleApplied (R1&ndash;R6), distanceMi, reasoning, scheduledDate</td></tr>
   <tr><td>EmailLog</td><td>Appointment email history</td><td>woNumber, recipientEmail, recipientName, scheduledDate, associateName, status (sent/failed), sentAt</td></tr>
   <tr><td>SyncLog</td><td>SA &harr; TA sync audit trail</td><td>direction (pull/push-ta/push-saas), recordCount, status (success/error), detail</td></tr>
   <tr><td>ActionLog</td><td>General audit trail</td><td>type, label, detail, ok</td></tr>
@@ -121,7 +121,7 @@
 <h3>SLA Engine</h3>
 <table>
   <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
-  <tr><td>POST</td><td>/api/sla/run</td><td>Execute 5-rule SLA engine against all queued WOs. Creates ScheduleEntry + SlaLog for each assignment. Returns assignment summary.</td></tr>
+  <tr><td>POST</td><td>/api/sla/run</td><td>Execute 6-rule SLA engine against all queued WOs. R6 (high priority) runs first. Creates ScheduleEntry + SlaLog for each assignment. Returns assignment summary.</td></tr>
 </table>
 
 <h3>Schedule</h3>
@@ -176,8 +176,19 @@
   <tr><td>POST</td><td>/api/chat</td><td>Send message + get GPT reply. System prompt includes all associates, full schedule, and queued WOs.</td></tr>
 </table>
 
-<h2>SLA Engine &mdash; 5 Rules</h2>
+<h2>SLA Engine &mdash; 6 Rules</h2>
 <p>The SLA engine evaluates every queued work order against all active associates. Rules are checked in priority order. The first rule that matches assigns the WO. All distance calculations use the <strong>Haversine formula</strong> (great-circle distance between two lat/lng points on Earth).</p>
+
+<h3>Rule R6: High Priority &mdash; Emergency Same-Day Dispatch (FIRST)</h3>
+<table>
+  <tr><th>Condition</th><th>Detail</th></tr>
+  <tr><td>Trigger</td><td>WO has <strong>priority = 3</strong> (HIGH)</td></tr>
+  <tr><td>Before Noon</td><td>If queued before 12:00 PM local time AND a tech is within <strong>50 miles</strong>: same-day dispatch. Uses EVE slot to override the normal 2-job-per-day limit.</td></tr>
+  <tr><td>After Noon / Weekend</td><td>If queued after noon or on a weekend: scheduled for <strong>next business day</strong></td></tr>
+  <tr><td>Priority</td><td>R6 runs <strong>FIRST</strong> before all other rules (R5, R1, R2, R3, R4)</td></tr>
+  <tr><td>Calendar Chip</td><td>R6 entries display as <strong>red chips with pulse animation</strong> on the 8-week calendar</td></tr>
+  <tr><td>Action</td><td>Creates ScheduleEntry (same-day or next business day), SlaLog with rule "R6", distance in miles</td></tr>
+</table>
 
 <h3>Rule R5: Home-Area Assignment (Primary)</h3>
 <table>
@@ -227,11 +238,12 @@
 
 <h3>SLA Rule Evaluation Order</h3>
 <pre>For each queued WO:
-  1. R5: Check all associates within 75mi of home &rarr; assign closest with capacity
-  2. R1: Find globally closest available tech &rarr; assign
-  3. R2: If closest is >400mi, add 3-day travel buffer &rarr; assign on adjusted date
-  4. R3: Check if any already-scheduled tech has a job within 50mi &rarr; stack same day
-  5. R4: Check 300mi rolling zip from recent jobs within 3 days, 3PM cutoff &rarr; assign
+  1. R6: Priority=3? Before noon + tech within 50mi &rarr; same-day EVE slot. After noon/weekend &rarr; next biz day.
+  2. R5: Check all associates within 75mi of home &rarr; assign closest with capacity
+  3. R1: Find globally closest available tech &rarr; assign
+  4. R2: If closest is >400mi, add 3-day travel buffer &rarr; assign on adjusted date
+  5. R3: Check if any already-scheduled tech has a job within 50mi &rarr; stack same day
+  6. R4: Check 300mi rolling zip from recent jobs within 3 days, 3PM cutoff &rarr; assign
 
 Each assignment creates:
   - ScheduleEntry (workOrderId, associateId, scheduledDate)
@@ -329,8 +341,8 @@ Step 5: SA &rarr; Email      (POST /api/email/appointment)
 <h3>V5: SLA Log</h3>
 <ul>
   <li>Scrollable table of all SLA engine decisions</li>
-  <li>Columns: WO Number, Associate, Rule Applied (R1&ndash;R5), Distance (mi), Scheduled Date, Reasoning</li>
-  <li>Color-coded by rule: R5 green (local), R1 blue (closest), R2 orange (travel), R3 teal (double-up), R4 purple (rolling)</li>
+  <li>Columns: WO Number, Associate, Rule Applied (R1&ndash;R6), Distance (mi), Scheduled Date, Reasoning</li>
+  <li>Color-coded by rule: R6 red/pulse (high priority), R5 green (local), R1 blue (closest), R2 orange (travel), R3 teal (double-up), R4 purple (rolling)</li>
   <li>Filter by rule, associate, or date range</li>
 </ul>
 
@@ -406,15 +418,39 @@ Step 5: SA &rarr; Email      (POST /api/email/appointment)
 <table>
   <tr><th>Feature</th><th>Implementation</th></tr>
   <tr><td>Session Cookie</td><td><code>sa_auth</code> HttpOnly, SameSite=Lax, 3-hour Max-Age</td></tr>
-  <tr><td>Session ID</td><td><code>crypto.randomUUID()</code> (cryptographically secure)</td></tr>
-  <tr><td>Password Hashing</td><td>bcrypt (salted, 10 rounds)</td></tr>
+  <tr><td>Session ID</td><td><code>crypto.randomBytes(32)</code> (cryptographically secure, 32 bytes)</td></tr>
+  <tr><td>Password Hashing</td><td>bcrypt async <code>bcrypt.compare()</code> (salted, 10 rounds)</td></tr>
   <tr><td>Rate Limiting</td><td>API: 120 req/min, Chat: 10 req/min, Login: 5 req/min</td></tr>
   <tr><td>CORS</td><td>Whitelist: localhost:4400, 127.0.0.1:4400, Tailscale IP</td></tr>
   <tr><td>Helmet</td><td>CSP directives, X-Content-Type-Options, X-Frame-Options, Referrer-Policy</td></tr>
-  <tr><td>Image Validation</td><td>Extension whitelist + magic byte check + 10MB size limit</td></tr>
-  <tr><td>Path Traversal</td><td>Filename sanitization on uploads, <code>path.basename()</code> on file serving</td></tr>
-  <tr><td>Error Responses</td><td>Generic "server_error" to clients, full details logged server-side</td></tr>
+  <tr><td>Image Validation</td><td>Extension whitelist (.jpg/.jpeg/.png/.gif/.webp only) + magic byte check + 10MB size limit</td></tr>
+  <tr><td>Path Traversal (Upload)</td><td>ID validation + <code>path.resolve()</code> check ensures file stays under uploads directory + file type whitelist</td></tr>
+  <tr><td>Path Traversal (Serve)</td><td><code>filePath</code> must be under <code>uploadsDir</code>, prevents directory escape</td></tr>
+  <tr><td>Error Responses</td><td>All 32 error handlers return generic "internal_error" to clients, no <code>err.message</code> or Prisma stack traces leaked</td></tr>
+  <tr><td>Auth Middleware</td><td>Explicit allowlist of public paths instead of prefix matching</td></tr>
+  <tr><td>Body Limits</td><td>Global 256kb limit, 12mb only on upload route</td></tr>
+  <tr><td>Session Cleanup</td><td>Hourly interval deletes expired sessions from database</td></tr>
+  <tr><td>External URLs</td><td><code>shell.openExternal</code> restricted to http/https URLs only</td></tr>
+  <tr><td>.env Protection</td><td>.env excluded from Electron app bundle &mdash; no API keys shipped</td></tr>
 </table>
+
+<div class="section-done">
+<strong>SECURITY HARDENING (March 4, 2026):</strong> 12-point security audit applied:
+<ul style="margin-top: 8px;">
+  <li><strong>C1:</strong> .env excluded from Electron app bundle (no API keys shipped in .app)</li>
+  <li><strong>C2:</strong> All 32 error handlers return generic "internal_error" instead of <code>err.message</code> (prevents Prisma stack trace leaks)</li>
+  <li><strong>H1:</strong> Auth middleware uses explicit allowlist instead of prefix matching</li>
+  <li><strong>H2:</strong> Path traversal protection on image upload (ID validation + path resolve check + file type whitelist)</li>
+  <li><strong>H3:</strong> Path traversal protection on image serving (filePath must be under uploadsDir)</li>
+  <li><strong>H4:</strong> <code>shell.openExternal</code> restricted to http/https URLs only</li>
+  <li><strong>M1:</strong> <code>bcrypt.compareSync</code> replaced with async <code>bcrypt.compare</code></li>
+  <li><strong>M2:</strong> SLA log query has bounded <code>take</code> (max 500)</li>
+  <li><strong>M3:</strong> Global body limit reduced from 12mb to 256kb, 12mb only on upload route</li>
+  <li><strong>L1:</strong> Session IDs use <code>crypto.randomBytes(32)</code> instead of CUID</li>
+  <li><strong>L2:</strong> Hourly expired session cleanup interval</li>
+  <li><strong>L3:</strong> Image upload validates file extension (.jpg/.jpeg/.png/.gif/.webp only)</li>
+</ul>
+</div>
 
 <h2>Repository + File Structure</h2>
 <p><strong>Local Path:</strong> <code>~/Desktop/schedule-assistant/</code></p>
@@ -524,7 +560,7 @@ cd backend &amp;&amp; npx prisma db push --force-reset
 </table>
 
 <div class="footer">
-  <p>Schedule Assistant v1.0 &mdash; 5-Rule SLA Engine &mdash; GPT-4.1-mini Chat &mdash; 8 Associates &mdash; 40 Work Orders &mdash; 13 Models &mdash; 30+ Endpoints &mdash; SA&harr;TA Sync Pipeline &mdash; Port 4400</p>
+  <p>Schedule Assistant v1.0 &mdash; 6-Rule SLA Engine (R6 High Priority) &mdash; GPT-4.1-mini Chat &mdash; 8 Associates &mdash; 40 Work Orders &mdash; 13 Models &mdash; 30+ Endpoints &mdash; SA&harr;TA Sync Pipeline &mdash; 12-Point Security Hardening &mdash; Port 4400</p>
   <p>Updated March 4, 2026</p>
 </div>
 
